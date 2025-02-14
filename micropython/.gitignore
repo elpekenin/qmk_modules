@@ -1,2 +1,4 @@
 build-embed/
 micropython_embed/
+
+*.pyi

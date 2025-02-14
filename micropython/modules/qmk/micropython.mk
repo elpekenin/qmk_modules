@@ -1,0 +1,2 @@
+QMK_MOD_DIR := $(USERMOD_DIR)
+SRC_USERMOD_C += $(QMK_MOD_DIR)/modqmk.c $(QMK_MOD_DIR)/mphal.c
