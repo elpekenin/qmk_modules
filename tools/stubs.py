@@ -49,7 +49,11 @@ class _Pyi:
         if not self._docstring:
             return None
 
-        return "\n".join(self._docstring)
+        if len(self._docstring) == 1:
+            return self._docstring[0]
+
+        # trailing newline to make formatter happy
+        return "\n".join(self._docstring) + "\n"
 
     def get_content(self) -> str | None:
         if not self._content:
@@ -106,7 +110,7 @@ class _Pyi:
         if docstring is not None:
             lines.extend(
                 [
-                    f'"""{docstring}\n"""',
+                    f'"""{docstring}"""',
                     "",
                 ],
             )
@@ -122,7 +126,7 @@ class _Pyi:
         if content is not None:
             lines.append(content)
 
-        stub = file.with_suffix(".pyi")
+        stub = file.parent / "stubs" / (file.stem + ".pyi")
         stub.write_text("\n".join(lines))
 
 
@@ -132,7 +136,7 @@ def _generate(file: Path) -> None:
     pyi = _Pyi()
     with file.open() as f:
         for line in f.readlines():
-            pyi.process(line[:-1])  # remove trailing newline
+            pyi.process(line.strip())
 
     pyi.write(file)
 
@@ -152,6 +156,10 @@ def main() -> int:
 
     args = parser.parse_args()
     files: list[Path] = args.files
+
+    if not files:
+        msg = "No file(s) provided."
+        raise Error(msg)
 
     for file in files:
         _generate(file)

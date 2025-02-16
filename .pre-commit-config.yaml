@@ -11,6 +11,13 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+  - repo: local
+    hooks:
+      - id: stubs
+        name: Generate stubs for C files
+        entry: ./tools/stubs.py
+        language: python
+        files: micropython/modules/(.*)/(.*).c
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.9.6
     hooks:
@@ -20,10 +27,3 @@ repos:
     rev: v1.15.0
     hooks:
     -   id: mypy
-  - repo: local
-    hooks:
-      - id: stubs
-        name: Generate stubs for C files
-        entry: ./tools/generate_stubs.py
-        language: python
-        files: micropython/modules/(.*)/(.*).c
