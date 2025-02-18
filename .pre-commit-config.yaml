@@ -18,7 +18,7 @@ repos:
         entry: ./tools/stubs.py
         language: python
         files: micropython/modules/(.*)/(.*).c
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.6
     hooks:
       - id: ruff
