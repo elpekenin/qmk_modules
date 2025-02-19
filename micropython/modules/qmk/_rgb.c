@@ -83,7 +83,7 @@ static const mp_rom_map_elem_t mp_qmk_rgb_globals_table[] = {
     //|         """Create instance from the given color channels."""
     //|
     { MP_ROM_QSTR(MP_QSTR_RGB), MP_ROM_PTR(&qmk_type_RGB)},
-    //| def set_color(index: int, rgb: RGB) -> None:
+    //| def set_color(index: int, rgb: RGB, /) -> None:
     //|     """Configure a LED's color."""
     //|
     { MP_ROM_QSTR(MP_QSTR_set_color), MP_ROM_PTR(&qmk_rgb_set_color_obj)},

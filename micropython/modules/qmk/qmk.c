@@ -69,11 +69,11 @@ static const mp_rom_map_elem_t mp_qmk_globals_table[] = {
     //| """Version of QMK on which this firmware was built, as a (major, minor, patch) tuple."""
     //|
     { MP_ROM_QSTR(MP_QSTR_version_info), MP_ROM_PTR(&mp_qmk_version_info) },
-    //| def tap_code(kc: int) -> None:
+    //| def tap_code(kc: int, /) -> None:
     //|     """Send a basic keycode over HID."""
     //|
     { MP_ROM_QSTR(MP_QSTR_tap_code), MP_ROM_PTR(&mp_qmk_tap_code_obj) },
-    //| def send_string(text: str) -> None:
+    //| def send_string(text: str, /) -> None:
     //|     """Send a string over HID."""
     //|
     { MP_ROM_QSTR(MP_QSTR_send_string), MP_ROM_PTR(&mp_qmk_send_string_obj) },

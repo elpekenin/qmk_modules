@@ -29,14 +29,14 @@ KC_X: int
 KC_Y: int
 KC_Z: int
 
-def C(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+def C(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     """Return control + `kc` combination."""
 
-def S(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+def S(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     """Return shift + `kc` combination."""
 
-def G(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+def G(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     """Return gui + `kc` combination."""
 
-def A(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+def A(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     """Return alt + `kc` combination."""

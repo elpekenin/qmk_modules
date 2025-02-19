@@ -96,19 +96,19 @@ static const mp_rom_map_elem_t mp_qmk_keycode_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_KC_Z), MP_ROM_INT(KC_Z) },
 
     //|
-    //| def C(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+    //| def C(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return control + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_C), MP_ROM_PTR(&mp_qmk_c_obj) },
-    //| def S(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+    //| def S(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return shift + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_S), MP_ROM_PTR(&mp_qmk_s_obj) },
-    //| def G(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+    //| def G(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return gui + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_A), MP_ROM_PTR(&mp_qmk_a_obj) },
-    //| def A(kc: int) -> int:  # noqa: N802  # name mimics QMK's
+    //| def A(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return alt + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_G), MP_ROM_PTR(&mp_qmk_g_obj) },

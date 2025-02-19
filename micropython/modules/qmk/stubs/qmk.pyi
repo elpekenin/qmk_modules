@@ -16,8 +16,8 @@ version: str
 version_info: tuple[int, int, int]
 """Version of QMK on which this firmware was built, as a (major, minor, patch) tuple."""
 
-def tap_code(kc: int) -> None:
+def tap_code(kc: int, /) -> None:
     """Send a basic keycode over HID."""
 
-def send_string(text: str) -> None:
+def send_string(text: str, /) -> None:
     """Send a string over HID."""

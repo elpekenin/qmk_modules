@@ -8,5 +8,5 @@ class RGB:
     def __init__(self, r: int, g: int, b: int) -> None:
         """Create instance from the given color channels."""
 
-def set_color(index: int, rgb: RGB) -> None:
+def set_color(index: int, rgb: RGB, /) -> None:
     """Configure a LED's color."""
