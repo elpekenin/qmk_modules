@@ -2,8 +2,6 @@
 
 """Registry of QMK keycodes."""
 
-from __future__ import annotations
-
 KC_A: int
 KC_B: int
 KC_C: int
@@ -31,14 +29,14 @@ KC_X: int
 KC_Y: int
 KC_Z: int
 
-def C(kc: int) -> int:
+def C(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     """Return control + `kc` combination."""
 
-def S(kc: int) -> int:
+def S(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     """Return shift + `kc` combination."""
 
-def G(kc: int) -> int:
+def G(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     """Return gui + `kc` combination."""
 
-def A(kc: int) -> int:
+def A(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     """Return alt + `kc` combination."""

@@ -1,0 +1,10 @@
+[tool.ruff.lint]
+extend-select = ["ALL"]
+extend-ignore = [
+    "FIX002",  # line contains TODO
+    "PYI021",  # docstring in stubs
+    "TD003",  # TODO without link to issue
+]
+
+[tool.mypy]
+strict = true

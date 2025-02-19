@@ -12,6 +12,7 @@ import argparse
 from pathlib import Path
 
 HERE = Path.cwd()
+NAME = Path(__file__).stem
 
 DOCSTRING = "//!"
 CONTENT = "//|"
@@ -32,11 +33,15 @@ def _file(raw: str) -> Path:
 
 
 class Error(Exception):
+    """Custom exception class."""
+
     def __init__(self, msg: str) -> None:
+        """Store message."""
         super().__init__()
         self.msg = msg
 
     def __str__(self) -> str:
+        """Display message."""
         return self.msg
 
 
@@ -75,7 +80,7 @@ class _Pyi:
         if len(line) == offset:
             return ""
 
-        if not line[offset] == " ":
+        if line[offset] != " ":
             msg = "Whitespace between marker and content in mandatory."
             raise Error(msg)
 
@@ -115,13 +120,6 @@ class _Pyi:
                 ],
             )
 
-        lines.extend(
-            [
-                "from __future__ import annotations",
-                "",
-            ],
-        )
-
         content = self.get_content()
         if content is not None:
             lines.append(content)
@@ -131,7 +129,7 @@ class _Pyi:
 
 
 def _generate(file: Path) -> None:
-    assert file.is_file()
+    assert file.is_file()  # noqa: S101  # defensive programming
 
     pyi = _Pyi()
     with file.open() as f:
@@ -144,7 +142,7 @@ def _generate(file: Path) -> None:
 def main() -> int:
     """Entrypoint."""
     parser = argparse.ArgumentParser(
-        prog=__name__,
+        prog=NAME,
         description=__doc__,
     )
 

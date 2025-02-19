@@ -2,9 +2,13 @@
 
 """Utilities to interact with QMK from MicroPython."""
 
-from __future__ import annotations
+# ruff: noqa: F401
+# the modules being imported dont really exist on the VM
+# these imports are the result of having multiple `.c` files
+# to organize the code (each one gets its own `.pyi` generated)
 
-import qmk_keycode as keycode  # noqa: F401
+import _keycode as keycode
+import _rgb as rgb
 
 version: str
 """Version of QMK on which this firmware was built, as a raw string."""

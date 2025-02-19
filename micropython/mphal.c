@@ -3,6 +3,8 @@
  * Copyright (c) 2022-2023 Damien P. George
  */
 
+// Some OS-like glue functions
+
 // TODO:
 //   * hook `import` into QMK filesystem API
 //   * hook pin-control functions into QMK GPIO/UART/SPI/... API

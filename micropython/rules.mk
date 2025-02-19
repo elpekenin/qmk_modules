@@ -47,4 +47,4 @@ CFLAGS += -DMP_CONFIGFILE=\"$(MP_CONFIGFILE)\"
 
 MICROPY_SRC := $(wildcard $(EMBED_DIR)/*/*.c) $(wildcard $(EMBED_DIR)/*/*/*.c)
 QMK_MOD_SRC := $(wildcard $(HERE)/modules/*/*.c)
-SRC += $(MICROPY_SRC) $(QMK_MOD_SRC)
+SRC += $(MICROPY_SRC) $(QMK_MOD_SRC) $(HERE)/mphal.c

@@ -4,57 +4,44 @@
 #include "py/objstr.h"
 #include "py/runtime.h"
 
-// these headers are available when building QMK
-// but not when MicroPy collects QSTRs from the file
-#if __has_include("quantum.h")
-#    include "quantum.h"
-#endif
+#include "qmk.h"
 
-static mp_obj_t mp_qmk_c(const mp_obj_t kc_obj) {
-    mp_int_t kc = mp_obj_get_int(kc_obj);
-
+static inline mp_int_t validate_keycode(const mp_obj_t kc_in) {
+    mp_int_t kc = mp_obj_get_int(kc_in);
     if (kc > QK_MODS_MAX) {
         mp_raise_ValueError(MP_ERROR_TEXT("keycode too big"));
     }
 
+    return kc;
+}
+
+static mp_obj_t mp_qmk_c(const mp_obj_t kc_in) {
+    mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(C(kc));
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_c_obj, mp_qmk_c);
 
-static mp_obj_t mp_qmk_s(const mp_obj_t kc_obj) {
-    mp_int_t kc = mp_obj_get_int(kc_obj);
-
-    if (kc > QK_MODS_MAX) {
-        mp_raise_ValueError(MP_ERROR_TEXT("keycode too big"));
-    }
-
+static mp_obj_t mp_qmk_s(const mp_obj_t kc_in) {
+    mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(S(kc));
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_s_obj, mp_qmk_s);
 
-static mp_obj_t mp_qmk_a(const mp_obj_t kc_obj) {
-    mp_int_t kc = mp_obj_get_int(kc_obj);
-
-    if (kc > QK_MODS_MAX) {
-        mp_raise_ValueError(MP_ERROR_TEXT("keycode too big"));
-    }
-
+static mp_obj_t mp_qmk_a(const mp_obj_t kc_in) {
+    mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(A(kc));
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_a_obj, mp_qmk_a);
 
-static mp_obj_t mp_qmk_g(const mp_obj_t kc_obj) {
-    mp_int_t kc = mp_obj_get_int(kc_obj);
-
-    if (kc > QK_MODS_MAX) {
-        mp_raise_ValueError(MP_ERROR_TEXT("keycode too big"));
-    }
-
+static mp_obj_t mp_qmk_g(const mp_obj_t kc_in) {
+    mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(G(kc));
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_g_obj, mp_qmk_g);
 
 static const mp_rom_map_elem_t mp_qmk_keycode_globals_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk_dot_keycode)},
+
     //| KC_A: int
     { MP_ROM_QSTR(MP_QSTR_KC_A), MP_ROM_INT(KC_A) },
     //| KC_B: int
@@ -109,19 +96,19 @@ static const mp_rom_map_elem_t mp_qmk_keycode_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_KC_Z), MP_ROM_INT(KC_Z) },
 
     //|
-    //| def C(kc: int) -> int:
+    //| def C(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return control + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_C), MP_ROM_PTR(&mp_qmk_c_obj) },
-    //| def S(kc: int) -> int:
+    //| def S(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return shift + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_S), MP_ROM_PTR(&mp_qmk_s_obj) },
-    //| def G(kc: int) -> int:
+    //| def G(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return gui + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_A), MP_ROM_PTR(&mp_qmk_a_obj) },
-    //| def A(kc: int) -> int:
+    //| def A(kc: int) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return alt + `kc` combination."""
     //|
     { MP_ROM_QSTR(MP_QSTR_G), MP_ROM_PTR(&mp_qmk_g_obj) },

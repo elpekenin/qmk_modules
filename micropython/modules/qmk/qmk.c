@@ -4,14 +4,10 @@
 #include "py/objstr.h"
 #include "py/runtime.h"
 
-// these headers are available when building QMK
-// but not when MicroPy collects QSTRs from the file
-#if __has_include("quantum.h")
-#    include "quantum.h"
-#    include "version.h"
-#endif
+#include "qmk.h"
 
 extern mp_obj_module_t mp_qmk_keycode;
+extern mp_obj_module_t mp_qmk_rgb;
 
 static const MP_DEFINE_STR_OBJ(mp_qmk_version, QMK_VERSION);
 
@@ -26,8 +22,8 @@ static const mp_rom_obj_tuple_t mp_qmk_version_info = {
     },
 };
 
-static mp_obj_t mp_qmk_tap_code(const mp_obj_t kc_obj) {
-    mp_int_t kc = mp_obj_get_int(kc_obj);
+static mp_obj_t mp_qmk_tap_code(const mp_obj_t kc_in) {
+    mp_int_t kc = mp_obj_get_int(kc_in);
 
     if (kc > QK_MODS_MAX) {
         mp_raise_ValueError(MP_ERROR_TEXT("keycode too big"));
@@ -38,10 +34,12 @@ static mp_obj_t mp_qmk_tap_code(const mp_obj_t kc_obj) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_tap_code_obj, mp_qmk_tap_code);
 
-static mp_obj_t mp_qmk_send_string(const mp_obj_t str_obj) {
-    mp_check_self(mp_obj_is_str_or_bytes(str_obj));
+static mp_obj_t mp_qmk_send_string(const mp_obj_t kc_in) {
+    if (!mp_obj_is_str_or_bytes(kc_in)) {
+        mp_raise_TypeError(MP_ERROR_TEXT("input is not a str"));
+    }
 
-    GET_STR_DATA_LEN(str_obj, str, len);
+    GET_STR_DATA_LEN(kc_in, str, len);
 
     send_string((const char *)str); // FIXME: ugh
     return mp_const_none;
@@ -49,10 +47,20 @@ static mp_obj_t mp_qmk_send_string(const mp_obj_t str_obj) {
 static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_send_string_obj, mp_qmk_send_string);
 
 static const mp_rom_map_elem_t mp_qmk_globals_table[] = {
-    //| import qmk_keycode as keycode  # noqa: F401
+    //| # ruff: noqa: F401
+    //| # the modules being imported dont really exist on the VM
+    //| # these imports are the result of having multiple `.c` files
+    //| # to organize the code (each one gets its own `.pyi` generated)
     //|
+    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk)},
+    //| import _keycode as keycode
     { MP_ROM_QSTR(MP_QSTR_keycode), MP_ROM_PTR(&mp_qmk_keycode) },
+#ifdef RGB_MATRIX_ENABLE
+    //| import _rgb as rgb
+    { MP_ROM_QSTR(MP_QSTR_rgb), MP_ROM_PTR(&mp_qmk_rgb) },
+#endif
 
+    //|
     //| version: str
     //| """Version of QMK on which this firmware was built, as a raw string."""
     //|

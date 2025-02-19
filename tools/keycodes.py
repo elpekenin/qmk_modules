@@ -2,7 +2,9 @@
 
 """Generate globals table for all char keycodes."""
 
-# TODO: Support numbers, symbols and whatnot
+# TODO(elpekenin): Support numbers, symbols and whatnot
+
+import sys
 
 TEMPLATE = """\
     //| KC_{0}: int
@@ -11,4 +13,4 @@ TEMPLATE = """\
 
 for ord_ in range(ord("A"), ord("Z") + 1):
     chr_ = chr(ord_)
-    print(TEMPLATE.format(chr_))
+    sys.stdout.write(TEMPLATE.format(chr_) + "\n")
