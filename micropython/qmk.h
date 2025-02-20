@@ -4,4 +4,8 @@
 #if __has_include("quantum.h")
 #    include "quantum.h"
 #    include "version.h"
+#    define COLLECTING_QSTR 0
+#else
+#    pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+#    define COLLECTING_QSTR 1
 #endif

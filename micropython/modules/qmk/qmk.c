@@ -55,7 +55,7 @@ static const mp_rom_map_elem_t mp_qmk_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk)},
     //| import _keycode as keycode
     { MP_ROM_QSTR(MP_QSTR_keycode), MP_ROM_PTR(&mp_qmk_keycode) },
-#ifdef RGB_MATRIX_ENABLE
+#if defined(RGB_MATRIX_ENABLE) || COLLECTING_QSTR == 1
     //| import _rgb as rgb
     { MP_ROM_QSTR(MP_QSTR_rgb), MP_ROM_PTR(&mp_qmk_rgb) },
 #endif
