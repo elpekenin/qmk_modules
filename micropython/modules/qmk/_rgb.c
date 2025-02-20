@@ -1,7 +1,5 @@
 //! Interact with RGB LEDs.
 
-#ifdef RGB_MATRIX_ENABLE
-
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"
@@ -19,7 +17,7 @@ typedef struct _RGB_t {
 
 static inline mp_int_t validate_color(mp_arg_val_t color_in) {
     mp_int_t color = color_in.u_int;
-    if (x < 0 || x > 255) {
+    if (color < 0 || color > 255) {
         mp_raise_ValueError(MP_ERROR_TEXT("color must be 0-255"));
     }
 
@@ -68,7 +66,12 @@ static mp_obj_t qmk_rgb_set_color(mp_obj_t index_in, mp_obj_t rgb_in) {
     }
     RGB_t *rgb = MP_OBJ_TO_PTR(rgb_in);
 
+#if defined(RGB_MATRIX_ENABLE)
     rgb_matrix_set_color(index, rgb->r, rgb->g, rgb->b);
+#else
+    (void)index;
+    (void)rgb;
+#endif
     return mp_const_none;
 }
 static MP_DEFINE_CONST_FUN_OBJ_2(qmk_rgb_set_color_obj, qmk_rgb_set_color);
@@ -94,5 +97,3 @@ const mp_obj_module_t mp_qmk_rgb = {
     .base = { &mp_type_module },
     .globals = (mp_obj_dict_t *)&mp_qmk_rgb_globals,
 };
-
-#endif
