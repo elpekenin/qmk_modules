@@ -1,4 +1,4 @@
-HERE := $(dir $(lastword $(MAKEFILE_LIST)))
+HERE := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 EMBED_DIR := $(HERE)/micropython_embed
 
 #

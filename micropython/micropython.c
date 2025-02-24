@@ -5,7 +5,7 @@
 
 #include "py/gc.h"
 #include "py/runtime.h"
-#include "py/stackctrl.h"
+#include "py/cstack.h"
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 0, 0);
 
@@ -16,12 +16,10 @@ extern uint8_t __main_stack_base__;
 static uint8_t py_heap[MICROPY_HEAP_SIZE] = {0};
 
 void keyboard_post_init_micropython(void) {
-    mp_stack_set_top(&__main_stack_end__);
+    // dont consume too much, ChibiOS and/or QMK may need a fair amount too
+    mp_cstack_init_with_top(&__main_stack_end__, (&__main_stack_end__ - &__main_stack_base__) / 2);
 
     gc_init(py_heap, py_heap + sizeof(py_heap));
-
-    // dont consume too much, ChibiOS and/or QMK may need a fair amount too
-    mp_stack_set_limit((&__main_stack_end__ - &__main_stack_base__) / 2);
 
     // allow user to override the default settings above
     keyboard_post_init_micropython_kb();
