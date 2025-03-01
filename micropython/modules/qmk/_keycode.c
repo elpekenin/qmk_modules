@@ -15,31 +15,31 @@ static inline mp_int_t validate_keycode(const mp_obj_t kc_in) {
     return kc;
 }
 
-static mp_obj_t mp_qmk_c(const mp_obj_t kc_in) {
+static mp_obj_t qmk_c(const mp_obj_t kc_in) {
     mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(C(kc));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_c_obj, mp_qmk_c);
+static MP_DEFINE_CONST_FUN_OBJ_1(qmk_c_obj, qmk_c);
 
-static mp_obj_t mp_qmk_s(const mp_obj_t kc_in) {
+static mp_obj_t qmk_s(const mp_obj_t kc_in) {
     mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(S(kc));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_s_obj, mp_qmk_s);
+static MP_DEFINE_CONST_FUN_OBJ_1(qmk_s_obj, qmk_s);
 
-static mp_obj_t mp_qmk_a(const mp_obj_t kc_in) {
+static mp_obj_t qmk_a(const mp_obj_t kc_in) {
     mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(A(kc));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_a_obj, mp_qmk_a);
+static MP_DEFINE_CONST_FUN_OBJ_1(qmk_a_obj, qmk_a);
 
-static mp_obj_t mp_qmk_g(const mp_obj_t kc_in) {
+static mp_obj_t qmk_g(const mp_obj_t kc_in) {
     mp_int_t kc = validate_keycode(kc_in);
     return MP_OBJ_NEW_SMALL_INT(G(kc));
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(mp_qmk_g_obj, mp_qmk_g);
+static MP_DEFINE_CONST_FUN_OBJ_1(qmk_g_obj, qmk_g);
 
-static const mp_rom_map_elem_t mp_qmk_keycode_globals_table[] = {
+static const mp_rom_map_elem_t qmk_keycode_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk_dot_keycode)},
 
     //| KC_A: int
@@ -99,23 +99,23 @@ static const mp_rom_map_elem_t mp_qmk_keycode_globals_table[] = {
     //| def C(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return control + `kc` combination."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_C), MP_ROM_PTR(&mp_qmk_c_obj) },
+    { MP_ROM_QSTR(MP_QSTR_C), MP_ROM_PTR(&qmk_c_obj) },
     //| def S(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return shift + `kc` combination."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_S), MP_ROM_PTR(&mp_qmk_s_obj) },
+    { MP_ROM_QSTR(MP_QSTR_S), MP_ROM_PTR(&qmk_s_obj) },
     //| def G(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return gui + `kc` combination."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_A), MP_ROM_PTR(&mp_qmk_a_obj) },
+    { MP_ROM_QSTR(MP_QSTR_A), MP_ROM_PTR(&qmk_a_obj) },
     //| def A(kc: int, /) -> int:  # noqa: N802  # name mimics QMK's
     //|     """Return alt + `kc` combination."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_G), MP_ROM_PTR(&mp_qmk_g_obj) },
+    { MP_ROM_QSTR(MP_QSTR_G), MP_ROM_PTR(&qmk_g_obj) },
 };
-static MP_DEFINE_CONST_DICT(mp_qmk_keycode_globals, mp_qmk_keycode_globals_table);
+static MP_DEFINE_CONST_DICT(qmk_keycode_globals, qmk_keycode_globals_table);
 
-const mp_obj_module_t mp_qmk_keycode = {
+const mp_obj_module_t qmk_keycode = {
     .base = { &mp_type_module },
-    .globals = (mp_obj_dict_t *)&mp_qmk_keycode_globals,
+    .globals = (mp_obj_dict_t *)&qmk_keycode_globals,
 };
