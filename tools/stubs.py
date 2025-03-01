@@ -11,8 +11,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-HERE = Path.cwd()
-NAME = Path(__file__).stem
+THIS = Path(__file__)
+HERE = THIS.parent
+NAME = THIS.stem
 
 DOCSTRING = "//!"
 CONTENT = "//|"
