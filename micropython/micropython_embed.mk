@@ -8,6 +8,6 @@ MICROPYTHON_TOP = src
 # can't use CFLAGS=... $(MAKE) from the other makefile because it overrides the variable completely
 CFLAGS += -DMP_CONFIGFILE=\"$(MP_CONFIGFILE)\"
 
-USER_C_MODULES = modules
+USER_C_MODULES = user_c_modules
 
 include $(MICROPYTHON_TOP)/ports/embed/embed.mk

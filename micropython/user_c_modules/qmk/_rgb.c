@@ -165,6 +165,13 @@ static MP_DEFINE_CONST_FUN_OBJ_2(qmk_rgb_set_color_obj, qmk_rgb_set_color);
 static const mp_rom_map_elem_t qmk_rgb_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk_dot_rgb)},
 
+    //| RED: RGB
+    { MP_ROM_QSTR(MP_QSTR_RED), MP_ROM_PTR(&qmk_rgb_RED)},
+    //| GREEN: RGB
+    { MP_ROM_QSTR(MP_QSTR_GREEN), MP_ROM_PTR(&qmk_rgb_GREEN)},
+    //| BLUE: RGB
+    { MP_ROM_QSTR(MP_QSTR_BLUE), MP_ROM_PTR(&qmk_rgb_BLUE)},
+    //|
     //| class RGB:
     //|     """Represent a color."""
     //|
@@ -176,13 +183,6 @@ static const mp_rom_map_elem_t qmk_rgb_globals_table[] = {
     //|         """Create instance from the given color channels."""
     //|
     { MP_ROM_QSTR(MP_QSTR_RGB), MP_ROM_PTR(&qmk_rgb_RGB)},
-    //| RED: RGB
-    { MP_ROM_QSTR(MP_QSTR_RED), MP_ROM_PTR(&qmk_rgb_RED)},
-    //| GREEN: RGB
-    { MP_ROM_QSTR(MP_QSTR_GREEN), MP_ROM_PTR(&qmk_rgb_GREEN)},
-    //| BLUE: RGB
-    { MP_ROM_QSTR(MP_QSTR_BLUE), MP_ROM_PTR(&qmk_rgb_BLUE)},
-    //|
     //| def set_color(index: int, rgb: RGB, /) -> None:
     //|     """Configure a LED's color."""
     //|

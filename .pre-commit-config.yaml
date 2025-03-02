@@ -10,7 +10,7 @@ repos:
         name: Generate stubs for C files
         entry: ./tools/stubs.py
         language: python
-        files: micropython/modules/(.*)/(.*).c
+        files: micropython/user_c_modules/(.*)/(.*).c
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v3.1.0
     hooks:
