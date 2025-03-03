@@ -6,6 +6,9 @@
 # the modules being imported dont really exist on the VM
 # these imports are the result of having multiple `.c` files
 # to organize the code (each one gets its own `.pyi` generated)
+#
+# this is: you can't `import qmk.keycode` nor `import _keycode`
+# instead, you `import qmk` and use it as `qmk.keycode.foo()`
 
 import _keycode as keycode
 import _rgb as rgb

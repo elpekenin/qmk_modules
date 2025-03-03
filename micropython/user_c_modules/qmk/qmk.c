@@ -60,6 +60,9 @@ static const mp_rom_map_elem_t qmk_globals_table[] = {
     //| # the modules being imported dont really exist on the VM
     //| # these imports are the result of having multiple `.c` files
     //| # to organize the code (each one gets its own `.pyi` generated)
+    //| #
+    //| # this is: you can't `import qmk.keycode` nor `import _keycode`
+    //| # instead, you `import qmk` and use it as `qmk.keycode.foo()`
     //|
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk)},
     //| import _keycode as keycode
