@@ -1,7 +1,7 @@
 {
     "maintainer": "elpekenin",
-    "module_name": "logging",
+    "module_name": "ledmap",
     "features": {
-        "console": true
+        "rgb_matrix": true
     }
 }

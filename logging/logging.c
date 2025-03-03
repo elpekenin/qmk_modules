@@ -6,12 +6,10 @@
 
 #include <ch.h>
 
-#include <quantum/logging/print.h>
 #include <platforms/timer.h>
+#include <quantum/logging/print.h>
 
 #include "elpekenin/logging.h"
-
-// *** Actual logging ***
 
 // stringify log levels
 // clang-format off

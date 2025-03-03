@@ -113,8 +113,10 @@ typedef enum {
  *     msg: Format string for the message.
  *     ...: Variadic arguments to fill the specifiers in ``msg``.
  *
- * Return:
- *    Whether message could be emitted. (errno.h style)
+ * Return: Error code.
+ *    ``0``: Message handled correctly (maybe ignored due to settings).
+ *    ``-EBUSY``: Could not acquire the mutex guarding this function.
+ *    ``-EINVAL``: Logging format is wrong. Following calls will behave as usual ``printf``, returning 0.
  *
  */
 int logging(feature_t feature, log_level_t level, const char *msg, ...);
