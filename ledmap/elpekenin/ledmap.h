@@ -51,7 +51,7 @@
 /**
  * Available colors
  */
-typedef enum _ledmap_color_t {
+typedef enum {
     /** */
     RED,
     /** */
