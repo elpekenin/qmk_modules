@@ -95,7 +95,7 @@ uint8_t ledmap_layer_count(void);
 ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
 
 /**
- * Return the color that has been assigned to a key in the ledmap (applies transparency).
+ * Retrieve the color assigned to a key in the ledmap (transparency gets applied).
  *
  * Args:
  *     layer: Where to look at.
@@ -110,7 +110,7 @@ ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col)
  *    * ``-ENOTSUP``: Value read at this position has no logic defined.
  *
  */
-int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
+int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
 
 /**
  * Assign their color to all leds in the given range.

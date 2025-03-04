@@ -25,7 +25,7 @@ static const uint8_t color_to_hue[__LEDMAP_SEPARATOR__] = {
 };
 // clang-format on
 
-int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
+int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
     // clang-format off
     if (
         layer >= ledmap_layer_count() // out of range
@@ -55,7 +55,7 @@ int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
                 // look up further down (only on active layers)
                 for (int8_t i = layer - 1; i > 0; --i) {
                     if (layer_state & (1 << i)) {
-                        return get_ledmap_color(i, row, col, rgb);
+                        return rgb_at_ledmap_location(i, row, col, rgb);
                     }
                 }
 
@@ -97,7 +97,7 @@ void draw_ledmap(uint8_t led_min, uint8_t led_max) {
                 continue;
             }
 
-            if (get_ledmap_color(layer, row, col, &rgb) == 0) {
+            if (rgb_at_ledmap_location(layer, row, col, &rgb) == 0) {
                 rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
             }
         }
