@@ -8,27 +8,45 @@
 
 #include "elpekenin/ledmap.h"
 
-static inline bool is_special_color(uint8_t hue) {
-    return hue >= _MARKER_;
+// clang-format off
+static const uint8_t color_to_hue[__LEDMAP_SEPARATOR__] = {
+    [RED]        = 0,
+    [ORANGE]     = 21,
+    [YELLOW]     = 43,
+    [CHARTREUSE] = 64,
+    [GREEN]      = 85,
+    [SPRING]     = 106,
+    [CYAN]       = 127,
+    [AZURE]      = 148,
+    [BLUE]       = 169,
+    [VIOLET]     = 180,
+    [MAGENTA]    = 201,
+    [ROSE]       = 222,
 };
+// clang-format on
 
 int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
+    // clang-format off
     if (
-        layer >= ledmap_layer_count()  // out of range
-        || !(layer_state & (1 << layer))  // layer is not active
-        || rgb == NULL  // invalid pointer
+        layer >= ledmap_layer_count() // out of range
+        || !(layer_state & (1 << layer)) // layer is not active
+        || rgb == NULL // invalid pointer
     ) {
+        // clang-format on
         return -EINVAL;
     }
 
-    uint8_t hue = hue_at_ledmap_location(layer, row, col);
-    uint8_t sat = rgb_matrix_get_sat();
-    uint8_t val = rgb_matrix_get_val();
-    hsv_t   hsv = {hue, sat, val};
+    ledmap_color_t color = color_at_ledmap_location(layer, row, col);
 
-    // not "regular" colors (hue), but ones with special handling
-    if (is_special_color(hue)) {
-        switch (hue) {
+    hsv_t hsv = (hsv_t){
+        .s = rgb_matrix_get_sat(),
+        .v = rgb_matrix_get_val(),
+    };
+
+    if (color < __LEDMAP_SEPARATOR__) {
+        hsv.h = color_to_hue[color];
+    } else {
+        switch (color) {
             case TRNS:
                 if (layer == 0) {
                     return -ENODATA;
@@ -44,12 +62,20 @@ int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
                 return -EINVAL;
 
             case WHITE:
-                hsv = (hsv_t){0, 0, val};
+                hsv.h = 0;
+                hsv.s = 0;
                 break;
 
             case BLACK:
-                hsv = (hsv_t){0, 0, 0};
+                hsv = (hsv_t){
+                    .h = 0,
+                    .s = 0,
+                    .v = 0,
+                };
                 break;
+
+            default:
+                return -ENOTSUP;
         }
     }
 
@@ -59,6 +85,7 @@ int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
 
 void draw_ledmap(uint8_t led_min, uint8_t led_max) {
     layer_state_t layer = get_highest_layer(layer_state | default_layer_state);
+
     rgb_t rgb = (rgb_t){RGB_OFF};
 
     // iterate all keys

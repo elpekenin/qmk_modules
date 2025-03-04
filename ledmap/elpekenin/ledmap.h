@@ -10,7 +10,7 @@
  *
  * .. code-block:: c
  *
- *     const uint8_t PROGMEM ledmap[][MATRIX_ROWS][MATRIX_COLS] = {
+ *     const ledmap_color_t PROGMEM ledmap[][MATRIX_ROWS][MATRIX_COLS] = {
  *         [_QWERTY] = LAYOUT(
  *             RED,  RED,  RED,  RED,  RED,  RED,     RED,  RED,  RED,  RED,  RED,  RED,
  *             RED,  RED,  RED,  RED,  RED,  RED,     RED,  RED,  RED,  RED,  RED,  RED,
@@ -51,47 +51,48 @@
 /**
  * Available colors
  */
-enum colors {
+typedef enum _ledmap_color_t {
     /** */
-    RED        = 0,
+    RED,
     /** */
-    ORANGE     = 21,
+    ORANGE,
     /** */
-    YELLOW     = 43,
+    YELLOW,
     /** */
-    CHARTREUSE = 64,
+    CHARTREUSE,
     /** */
-    GREEN      = 85,
+    GREEN,
     /** */
-    SPRING     = 106,
+    SPRING,
     /** */
-    CYAN       = 127,
+    CYAN,
     /** */
-    AZURE      = 148,
+    AZURE,
     /** */
-    BLUE       = 169,
+    BLUE,
     /** */
-    VIOLET     = 180,
+    VIOLET,
     /** */
-    MAGENTA    = 201,
+    MAGENTA,
     /** */
-    ROSE       = 222,
+    ROSE,
 
-    // special values
-    /** */
-    TRNS  = 253,
-    /** */
-    WHITE = 254,
-    /** */
-    BLACK = 255,
+    __LEDMAP_SEPARATOR__,
 
-    // has to be equal to the smallest special value
-    _MARKER_ = TRNS,
-};
+    /** */
+    TRNS,
+    /** */
+    WHITE,
+    /** */
+    BLACK,
+
+    __N_LEDMAP_COLORS__,
+} ledmap_color_t;
 
 // Not intended to be used by users -> no docstring
 uint8_t ledmap_layer_count(void);
-uint8_t hue_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
+
+ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
 
 /**
  * Return the color that has been assigned to a key in the ledmap (applies transparency).
@@ -106,6 +107,7 @@ uint8_t hue_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
  *    * ``0``: Color was found, and assigned into pointer.
  *    * ``-EINVAL``: Some input was wrong.
  *    * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
+ *    * ``-ENOTSUP``: Value read at this position has no logic defined.
  *
  */
 int get_ledmap_color(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
