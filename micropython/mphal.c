@@ -18,7 +18,7 @@
 #include "py/compile.h"
 #include "py/mperrno.h"
 #if MICROPY_PY_SYS_STDFILES
-#include "py/stream.h"
+#    include "py/stream.h"
 #endif
 
 #if !MICROPY_VFS

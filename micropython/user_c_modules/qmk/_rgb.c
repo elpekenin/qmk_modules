@@ -15,7 +15,7 @@
 #if defined(RGB_MATRIX_ENABLE) || COLLECTING_QSTR == 1
 typedef struct _qmk_rgb_t {
     mp_obj_base_t base;
-    rgb_t inner;
+    rgb_t         inner;
 } qmk_rgb_t;
 
 typedef enum {
@@ -37,9 +37,12 @@ static inline mp_int_t validate_color(mp_int_t color) {
 static void qmk_rgb_RGB_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     color_channel_t channel = none;
 
-    if (attr == MP_QSTR_r) channel = r;
-    else if (attr == MP_QSTR_g) channel = g;
-    else if (attr == MP_QSTR_b) channel = b;
+    if (attr == MP_QSTR_r)
+        channel = r;
+    else if (attr == MP_QSTR_g)
+        channel = g;
+    else if (attr == MP_QSTR_b)
+        channel = b;
 
     // attribute not found, continue lookup in locals dict.
     if (channel == none) {
@@ -107,9 +110,9 @@ static mp_obj_t qmk_rgb_RGB_make_new(const mp_obj_type_t *type, size_t n_args, s
     // parse arguments
     enum { ARG_r, ARG_g, ARG_b };
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_r, MP_ARG_INT | MP_ARG_REQUIRED,  {.u_rom_obj = MP_ROM_NONE } },
-        { MP_QSTR_g, MP_ARG_INT | MP_ARG_REQUIRED,  {.u_rom_obj = MP_ROM_NONE } },
-        { MP_QSTR_b, MP_ARG_INT | MP_ARG_REQUIRED,  {.u_rom_obj = MP_ROM_NONE } },
+        {MP_QSTR_r, MP_ARG_INT | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_NONE}},
+        {MP_QSTR_g, MP_ARG_INT | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_NONE}},
+        {MP_QSTR_b, MP_ARG_INT | MP_ARG_REQUIRED, {.u_rom_obj = MP_ROM_NONE}},
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
@@ -120,12 +123,13 @@ static mp_obj_t qmk_rgb_RGB_make_new(const mp_obj_type_t *type, size_t n_args, s
 
     // create new object
     qmk_rgb_t *self = mp_obj_malloc(qmk_rgb_t, type);
-    self->inner = (rgb_t){ r, g, b };
+    self->inner     = (rgb_t){r, g, b};
 
     // return it
     return MP_OBJ_FROM_PTR(self);
 }
 
+// clang-format off
 MP_DEFINE_CONST_OBJ_TYPE(
     qmk_rgb_RGB,
     MP_QSTR_RGB,
@@ -133,19 +137,20 @@ MP_DEFINE_CONST_OBJ_TYPE(
     attr, qmk_rgb_RGB_attr,
     make_new, qmk_rgb_RGB_make_new
 );
+// clang-format on
 
 static const qmk_rgb_t qmk_rgb_RED = {
-    .base = { &qmk_rgb_RGB },
+    .base  = {&qmk_rgb_RGB},
     .inner = (rgb_led_t){RGB_RED},
 };
 
 static const qmk_rgb_t qmk_rgb_GREEN = {
-    .base = { &qmk_rgb_RGB },
+    .base  = {&qmk_rgb_RGB},
     .inner = (rgb_led_t){RGB_GREEN},
 };
 
 static const qmk_rgb_t qmk_rgb_BLUE = {
-    .base = { &qmk_rgb_RGB },
+    .base  = {&qmk_rgb_RGB},
     .inner = (rgb_led_t){RGB_BLUE},
 };
 
@@ -163,14 +168,14 @@ static mp_obj_t qmk_rgb_set_color(mp_obj_t index_in, mp_obj_t rgb_in) {
 static MP_DEFINE_CONST_FUN_OBJ_2(qmk_rgb_set_color_obj, qmk_rgb_set_color);
 
 static const mp_rom_map_elem_t qmk_rgb_globals_table[] = {
-    { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk_dot_rgb)},
+    {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk_dot_rgb)},
 
     //| RED: RGB
-    { MP_ROM_QSTR(MP_QSTR_RED), MP_ROM_PTR(&qmk_rgb_RED)},
+    {MP_ROM_QSTR(MP_QSTR_RED), MP_ROM_PTR(&qmk_rgb_RED)},
     //| GREEN: RGB
-    { MP_ROM_QSTR(MP_QSTR_GREEN), MP_ROM_PTR(&qmk_rgb_GREEN)},
+    {MP_ROM_QSTR(MP_QSTR_GREEN), MP_ROM_PTR(&qmk_rgb_GREEN)},
     //| BLUE: RGB
-    { MP_ROM_QSTR(MP_QSTR_BLUE), MP_ROM_PTR(&qmk_rgb_BLUE)},
+    {MP_ROM_QSTR(MP_QSTR_BLUE), MP_ROM_PTR(&qmk_rgb_BLUE)},
     //|
     //| class RGB:
     //|     """Represent a color."""
@@ -182,16 +187,16 @@ static const mp_rom_map_elem_t qmk_rgb_globals_table[] = {
     //|     def __init__(self, r: int, g: int, b: int) -> None:
     //|         """Create instance from the given color channels."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_RGB), MP_ROM_PTR(&qmk_rgb_RGB)},
+    {MP_ROM_QSTR(MP_QSTR_RGB), MP_ROM_PTR(&qmk_rgb_RGB)},
     //| def set_color(index: int, rgb: RGB, /) -> None:
     //|     """Configure a LED's color."""
     //|
-    { MP_ROM_QSTR(MP_QSTR_set_color), MP_ROM_PTR(&qmk_rgb_set_color_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_color), MP_ROM_PTR(&qmk_rgb_set_color_obj)},
 };
 static MP_DEFINE_CONST_DICT(qmk_rgb_globals, qmk_rgb_globals_table);
 
 const mp_obj_module_t qmk_rgb = {
-    .base = { &mp_type_module },
+    .base    = {&mp_type_module},
     .globals = (mp_obj_dict_t *)&qmk_rgb_globals,
 };
 #endif

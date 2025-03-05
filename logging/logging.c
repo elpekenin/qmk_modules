@@ -200,7 +200,7 @@ int logging(feature_t feature, log_level_t level, const char *msg, ...) {
         switch (get_token(&format)) {
             case INVALID_SPEC: // reached when the logging format is invalid
                 wrap_printf = false;
-                exitcode = -EINVAL;
+                exitcode    = -EINVAL;
                 goto exit;
 
             case STR_END:
@@ -256,7 +256,7 @@ exit:
 }
 
 void print_str(const char *str, const sendchar_func_t func) {
-    if (func == NULL) return  __logging_error();
+    if (func == NULL) return __logging_error();
 
     for (size_t i = 0; i < strlen(str); ++i) {
         func(str[i]);
@@ -264,7 +264,7 @@ void print_str(const char *str, const sendchar_func_t func) {
 }
 
 void print_u8(const uint8_t val, const sendchar_func_t func) {
-    if (func == NULL) return  __logging_error();
+    if (func == NULL) return __logging_error();
 
     char buff[4];
     snprintf(buff, sizeof(buff), "%d", val);
@@ -272,7 +272,7 @@ void print_u8(const uint8_t val, const sendchar_func_t func) {
 }
 
 void print_u8_array(const uint8_t *list, const size_t len, const sendchar_func_t func) {
-    if (func == NULL) return  __logging_error();
+    if (func == NULL) return __logging_error();
 
     func('[');
     for (size_t i = 0; i < len - 1; ++i) {
