@@ -89,11 +89,6 @@ typedef enum {
     __N_LEDMAP_COLORS__,
 } ledmap_color_t;
 
-// Not intended to be used by users -> no docstring
-uint8_t ledmap_layer_count(void);
-
-ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
-
 /**
  * Retrieve the color assigned to a key in the ledmap (transparency gets applied).
  *
@@ -125,3 +120,8 @@ int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
  *
  */
 void draw_ledmap(uint8_t led_min, uint8_t led_max);
+
+// Not intended to be used by users -> no docstring
+uint8_t ledmap_layer_count(void);
+
+ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
