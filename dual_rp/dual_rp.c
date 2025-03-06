@@ -5,6 +5,8 @@
 
 #include <ch.h>
 
+#include "elpekenin/dual_rp.h"
+
 __attribute__((weak)) void c1_init_kb(void) {}
 __attribute__((weak)) void c1_init_user(void) {}
 
