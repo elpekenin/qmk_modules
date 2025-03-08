@@ -9,6 +9,6 @@ uint8_t indicators_count(void) {
     return NUM_INDICATORS_RAW;
 }
 
-indicator_t *get_indicator(uint8_t i) {
-    return pgm_read_ptr(&(indicators[i]));
+indicator_t get_indicator(uint8_t i) {
+    return *(indicator_t *)pgm_read_ptr(&(indicators[i]));
 }

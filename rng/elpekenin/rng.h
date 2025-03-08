@@ -7,7 +7,6 @@
  * .. note::
  *    This is just a convenience layer on top of ``lib8tion.h`` right now,
  *    but may use another source in the future.
- *
  */
 
 /**
@@ -30,7 +29,6 @@
  *
  * .. warning::
  *    Setting a constant value means the PRNG sequence will be the same on every restart.
- *
  */
 void rng_set_seed(uint16_t seed);
 

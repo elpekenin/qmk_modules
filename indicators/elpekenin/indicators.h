@@ -16,7 +16,6 @@
  * Since indicators are checked (and applied) in the same order that you define them, this config is:
  *   * On the layer ``UTILS``, all LEDs will be off except for ``QK_BOOT`` which will be red
  *   * No indicator to be drawn on other layers (running effect left unchanged)
- *
  */
 
 /**
@@ -95,7 +94,6 @@ typedef struct PACKED {
  * Args:
  *     _keycode: Value of the keycode.
  *     rgb: Color to be applied.
- *
  */
 #define KEYCODE_INDICATOR(_keycode, rgb)  \
     (indicator_t) {                       \
@@ -111,7 +109,6 @@ typedef struct PACKED {
  * Args:
  *     _layer: Where the indicator should fire.
  *     rgb: Color to be applied.
- *
  */
 #define LAYER_INDICATOR(_layer, rgb)    \
     (indicator_t) {                     \
@@ -128,7 +125,6 @@ typedef struct PACKED {
  *     _keycode: Value of the keycode.
  *     _layer: Where the indicator should fire.
  *     rgb: Color to be applied.
- *
  */
 #define KEYCODE_IN_LAYER_INDICATOR(_keycode, _layer, rgb) \
     (indicator_t) {                                       \
@@ -145,7 +141,6 @@ typedef struct PACKED {
  * Args:
  *     _layer: Where the indicator should fire.
  *     rgb: Color to be applied.
- *
  */
 #define ASSIGNED_KEYCODE_IN_LAYER_INDICATOR(_layer, rgb) \
     (indicator_t) {                                      \
@@ -163,7 +158,6 @@ typedef struct PACKED {
  *     _keycode: Value of the keycode.
  *     mod_mask: Bitmask of the modifiers that must be active.
  *     rgb: Color to be applied.
- *
  */
 #define KEYCODE_WITH_MOD_INDICATOR(_keycode, mod_mask, rgb) \
     (indicator_t) {                                         \
@@ -180,7 +174,6 @@ typedef struct PACKED {
  * Args:
  *     _layer: Where the indicator should fire.
  *     rgb: Color to be applied.
- *
  */
 #define CUSTOM_KEYCODE_IN_LAYER_INDICATOR(_layer, rgb) \
     (indicator_t) {                                    \
@@ -201,11 +194,10 @@ typedef struct PACKED {
  * .. warning::
  *    Since QMK does not (yet?) allow to hook modules into the RGB system,
  *    you need to call this function from within ``rgb_matrix_indicators_advanced_user``
- *
  */
 bool draw_indicators(uint8_t led_min, uint8_t led_max);
 
 // Not intended to be used by users -> no docstring
 uint8_t indicators_count(void);
 
-indicator_t *get_indicator(uint8_t i);
+indicator_t get_indicator(uint8_t i);

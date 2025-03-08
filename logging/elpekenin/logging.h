@@ -101,7 +101,6 @@ typedef enum {
  *   * ``%%``: Write a literal ``%``.
  *
  *   For example, with format of ``[%F] (%LL) -- %M | %T``, messages would look like: ``[QP] (DEBUG) -- <msg%args> | 3s``
- *
  */
 
 /**
@@ -117,7 +116,6 @@ typedef enum {
  *    * ``0``: Message handled correctly (maybe ignored due to settings).
  *    * ``-EBUSY``: Could not acquire the mutex guarding this function.
  *    * ``-EINVAL``: Logging format is wrong. Following calls will behave as usual ``printf``, returning 0.
- *
  */
 int logging(feature_t feature, log_level_t level, const char *msg, ...);
 

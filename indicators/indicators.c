@@ -49,10 +49,10 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
 
             // iterate all indicators
             for (int8_t i = 0; i < indicators_count(); ++i) {
-                const indicator_t *indicator = get_indicator(i);
+                const indicator_t indicator = get_indicator(i);
 
-                if (should_draw_indicator(indicator, &args)) {
-                    rgb_matrix_set_color(args.led_index, indicator->color.r, indicator->color.g, indicator->color.b);
+                if (should_draw_indicator(&indicator, &args)) {
+                    rgb_matrix_set_color(args.led_index, indicator.color.r, indicator.color.g, indicator.color.b);
                 }
             }
         }

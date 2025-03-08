@@ -1,6 +1,10 @@
 // Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <quantum/quantum.h>
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
+
 typedef void (*init_fn)(void);
 
 extern init_fn __preinit_array_base__;

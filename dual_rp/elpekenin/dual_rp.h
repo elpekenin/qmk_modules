@@ -3,7 +3,6 @@
 
 /**
  * Run code on the second core of your RP2040.
- *
  */
 
 /**
@@ -26,7 +25,6 @@
  *
  * .. caution::
  *    If you do so, the functions mentioned above will no longer be called.
- *
  */
 void c1_main(void);
 

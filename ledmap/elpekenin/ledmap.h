@@ -33,7 +33,6 @@
  *      * Does not support assigning colors to LEDs that aren't under a key (eg: indicators or underglow)
  *
  *    It also hasn't been exhaustively tested, there might be some problems.
- *
  */
 
 /**
@@ -103,7 +102,6 @@ typedef enum {
  *    * ``-EINVAL``: Some input was wrong.
  *    * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
  *    * ``-ENOTSUP``: Value read at this position has no logic defined.
- *
  */
 int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
 
@@ -117,7 +115,6 @@ int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
  * .. warning::
  *    Since QMK does not (yet?) allow to hook modules into the RGB system,
  *    you need to call this function from within ``rgb_matrix_indicators_advanced_user``
- *
  */
 void draw_ledmap(uint8_t led_min, uint8_t led_max);
 
