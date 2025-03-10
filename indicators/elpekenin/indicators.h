@@ -40,10 +40,22 @@
  * Used to tell whether the indicator's color should be applied.
  */
 typedef struct {
-    uint8_t  led_index;
-    uint8_t  layer;
+    /**
+     * Index of the LED.
+     */
+    uint8_t led_index;
+    /**
+     * Highest active layer.
+     */
+    uint8_t layer;
+    /**
+     * Keycode currently mapped to the key where LED belongs.
+     */
     uint16_t keycode;
-    uint8_t  mods;
+    /**
+     * Active modifiers (bitmask).
+     */
+    uint8_t mods;
 } indicator_fn_args_t;
 
 /**
