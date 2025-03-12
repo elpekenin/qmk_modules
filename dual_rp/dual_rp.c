@@ -1,11 +1,9 @@
-// Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <stdbool.h>
+#include "elpekenin/dual_rp.h"
 
 #include <ch.h>
-
-#include "elpekenin/dual_rp.h"
 
 __attribute__((weak)) void c1_init_kb(void) {}
 __attribute__((weak)) void c1_init_user(void) {}

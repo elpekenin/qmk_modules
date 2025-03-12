@@ -1,9 +1,9 @@
-// Copyright 2023 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <quantum/quantum.h>
-
 #include "elpekenin/indicators.h"
+
+#include <quantum/quantum.h>
 
 static bool should_draw_indicator(const indicator_t *indicator, const indicator_fn_args_t *args) {
     if (indicator->flags & LAYER && indicator->conditions.layer != args->layer) {

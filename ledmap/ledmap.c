@@ -1,12 +1,10 @@
-// Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <errno.h>
-
-#include <quantum/action_layer.h>
-#include <quantum/rgb_matrix/rgb_matrix.h>
-
 #include "elpekenin/ledmap.h"
+
+#include <errno.h>
+#include <quantum/quantum.h>
 
 // clang-format off
 static const uint8_t color_to_hue[__LEDMAP_SEPARATOR__] = {

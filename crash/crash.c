@@ -1,10 +1,10 @@
-// Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <quantum/quantum.h>
-#include <osal.h>
-
 #include "elpekenin/crash.h"
+
+#include <osal.h>
+#include <quantum/quantum.h>
 
 /* When set into a known address, flags that the program has crashed. */
 #define MAGIC_VALUE (0xDEADA55)

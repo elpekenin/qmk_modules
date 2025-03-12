@@ -19,7 +19,7 @@ IndentPPDirectives: AfterHash
 IndentWidth: '4'
 MaxEmptyLinesToKeep: '1'
 PointerAlignment: Right
-SortIncludes: 'false'
+SortIncludes: 'true'
 SpaceBeforeAssignmentOperators: 'true'
 SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: 'false'

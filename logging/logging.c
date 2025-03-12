@@ -1,15 +1,14 @@
-// Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <stdarg.h>
-#include <string.h>
+#include "elpekenin/logging.h"
 
 #include <ch.h>
-
+#include <errno.h>
 #include <platforms/timer.h>
-#include <quantum/logging/print.h>
-
-#include "elpekenin/logging.h"
+#include <quantum/quantum.h>
+#include <stdarg.h>
+#include <string.h>
 
 // stringify log levels
 // clang-format off

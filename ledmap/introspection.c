@@ -1,7 +1,5 @@
-// Copyright 2024 Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-#include <stdint.h>
 
 #include <platforms/progmem.h>
 
