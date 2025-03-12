@@ -210,8 +210,6 @@ int logging(feature_t feature, log_level_t level, const char *msg, ...) {
                 putchar_(*format);
                 break;
 
-                // ----------
-
             case F_SPEC: // print feature name
                 printf("%s", feature_str[feature]);
                 break;

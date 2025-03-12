@@ -8,10 +8,6 @@
  *    Only works on Cortex-M microcontrollers, but apparently, not on M4F.
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once

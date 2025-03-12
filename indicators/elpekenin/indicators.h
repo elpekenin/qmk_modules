@@ -18,10 +18,6 @@
  *   * No indicator to be drawn on other layers (running effect left unchanged)
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once

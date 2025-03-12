@@ -5,10 +5,6 @@
  * Run code on the second core of your RP2040.
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once

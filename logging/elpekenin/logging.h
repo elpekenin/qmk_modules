@@ -12,10 +12,6 @@
  * .. _logging: https://docs.python.org/3/library/logging.html
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once
@@ -127,10 +123,6 @@ typedef enum {
     PERC_SPEC,
     T_SPEC,
 } token_t;
-
-/**
- * ----
- */
 
 /**
  * Get the current level for a feature.

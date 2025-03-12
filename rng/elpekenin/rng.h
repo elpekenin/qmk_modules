@@ -9,10 +9,6 @@
  *    but may use another source in the future.
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once

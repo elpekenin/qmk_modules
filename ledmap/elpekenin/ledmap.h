@@ -35,10 +35,6 @@
  *    It also hasn't been exhaustively tested, there might be some problems.
  */
 
-/**
- * ----
- */
-
 // -- barrier --
 
 #pragma once
