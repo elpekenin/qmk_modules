@@ -14,6 +14,7 @@
 //   * hook print into lib/printf
 
 #include <stdio.h>
+
 #include "py/builtin.h"
 #include "py/compile.h"
 #include "py/mperrno.h"

@@ -3,11 +3,11 @@
 // TODO:
 //   * host LEDs
 
+#include "qmk.h"
+
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"
-
-#include "qmk.h"
 
 extern mp_obj_module_t qmk_keycode;
 extern mp_obj_module_t qmk_rgb;

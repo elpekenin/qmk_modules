@@ -9,7 +9,6 @@
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"
-
 #include "qmk.h"
 
 #if defined(RGB_MATRIX_ENABLE) || COLLECTING_QSTR == 1

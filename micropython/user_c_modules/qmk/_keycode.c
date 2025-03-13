@@ -3,7 +3,6 @@
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"
-
 #include "qmk.h"
 
 static inline mp_int_t validate_keycode(const mp_obj_t kc_in) {
