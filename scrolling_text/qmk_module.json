@@ -1,0 +1,8 @@
+{
+    "maintainer": "elpekenin",
+    "module_name": "scrolling text",
+    "features": {
+        "deferred_exec": true,
+        "quantum_painter": true
+    }
+}
