@@ -4,3 +4,6 @@
 [submodule "crash/backtrace"]
 	path = crash/backtrace
 	url = https://github.com/red-rocket-computing/backtrace
+[submodule "arm_math_m0/src"]
+	path = arm_math_m0/src
+	url = https://github.com/TimPaterson/ArmMathM0
