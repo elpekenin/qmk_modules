@@ -1,11 +1,9 @@
-CRASH_MOD := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-
 CFLAGS += \
     -funwind-tables \
     -Wframe-address \
     -mpoke-function-name \
     -fno-omit-frame-pointer
 
-VPATH += $(CRASH_MOD)/backtrace/include
+VPATH += $(MODULE_PATH_CRASH)/backtrace/include
 
-SRC += backtrace/backtrace/backtrace.c
+SRC += $(MODULE_PATH_CRASH)/backtrace/backtrace/backtrace.c

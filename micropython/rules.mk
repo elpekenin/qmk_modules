@@ -1,5 +1,4 @@
-MICROPYTHON_MOD := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-EMBED_DIR := $(MICROPYTHON_MOD)/micropython_embed
+EMBED_DIR := $(MODULE_PATH_MICROPYTHON)/micropython_embed
 
 #
 # MicroPy config selection.
@@ -18,7 +17,7 @@ else ifneq ("$(wildcard $(KEYBOARD_PATH_2)/mpconfigport.h)","")
 else ifneq ("$(wildcard $(KEYBOARD_PATH_1)/mpconfigport.h)","")
 	MPCONFDIR = $(KEYBOARD_PATH_1)
 else
-	MPCONFDIR = $(MICROPYTHON_MOD)
+	MPCONFDIR = $(MODULE_PATH_MICROPYTHON)
 endif
 
 MP_CONFIGFILE = $(abspath $(MPCONFDIR))/mpconfigport.h
@@ -32,13 +31,13 @@ $(shell \
     MP_CONFIGFILE="$(MP_CONFIGFILE)" \
     $(MAKE) \
     -f micropython_embed.mk \
-    -C $(MICROPYTHON_MOD) \
+    -C $(MODULE_PATH_MICROPYTHON) \
     > /dev/null)
 
 #
 # MicroPy compilation along the rest of QMK
 ##############################################################################
-VPATH += $(MICROPYTHON_MOD) \
+VPATH += $(MODULE_PATH_MICROPYTHON) \
          $(EMBED_DIR) \
          $(EMBED_DIR)/port
 
@@ -46,9 +45,9 @@ VPATH += $(MICROPYTHON_MOD) \
 CFLAGS += -DMP_CONFIGFILE=\"$(MP_CONFIGFILE)\"
 
 MICROPY_SRC := $(wildcard $(EMBED_DIR)/*/*.c) $(wildcard $(EMBED_DIR)/*/*/*.c)
-QMK_MOD_SRC := $(wildcard $(MICROPYTHON_MOD)/user_c_modules/*/*.c)
+QMK_MOD_SRC := $(wildcard $(MODULE_PATH_MICROPYTHON)/user_c_modules/*/*.c)
 
 SRC += \
-    $(MICROPYTHON_MOD)/mphal.c \
+    $(MODULE_PATH_MICROPYTHON)/mphal.c \
     $(MICROPY_SRC) \
     $(QMK_MOD_SRC)

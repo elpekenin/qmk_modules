@@ -1,6 +1,7 @@
-MATH_M0_MOD := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-
-VPATH += $(MATH_M0_MOD)/src/src/include
-
 $(error Does not currently work: seems like QMK doesn't like .s files)
-SRC += $(wildcard $(MATH_M0_MOD)/src/src/*/*.s)
+
+VPATH += \
+    $(MODULE_PATH_ARM_MATH_M0)/src/src/include \
+    $(MODULE_PATH_ARM_MATH_M0)/src/src/Denormals
+
+SRC += $(wildcard $(MODULE_PATH_ARM_MATH_M0)/src/src/*/*.s)
