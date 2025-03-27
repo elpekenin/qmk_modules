@@ -157,13 +157,15 @@ __attribute__((weak)) const char *log_time(void) {
     return buff;
 }
 
+#if defined(ENABLE_LOGGING)
+static bool wrap_printf = ENABLE_LOGGING;
+#else
 static bool wrap_printf = true;
+#endif
+
 static MUTEX_DECL(logging_mutex);
 
 int logging(feature_t feature, log_level_t level, const char *msg, ...) {
-    va_list     args;
-    const char *format = LOGGING_FORMAT;
-
     int exitcode = 0;
 
     bool has_acquired_lock = false;
@@ -174,7 +176,7 @@ int logging(feature_t feature, log_level_t level, const char *msg, ...) {
         goto exit;
     }
 
-    // if format is wrong, use regular printf
+    va_list args;
     if (!wrap_printf) {
         va_start(args, msg);
         vprintf(msg, args);
@@ -193,7 +195,7 @@ int logging(feature_t feature, log_level_t level, const char *msg, ...) {
     // set msg lvel
     msg_level = level;
 
-    // set_format does not allow setting an invalid format, just go thru it
+    const char *format = LOGGING_FORMAT;
     while (true) {
         // order specs alphabetically, special cases first
         switch (get_token(&format)) {
