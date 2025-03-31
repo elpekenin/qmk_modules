@@ -10,5 +10,7 @@ uint8_t indicators_count(void) {
 }
 
 indicator_t get_indicator(uint8_t i) {
-    return *(indicator_t *)pgm_read_ptr(&(indicators[i]));
+    indicator_t value;
+    memcpy_P(&value, &indicators[i], sizeof(indicator_t));
+    return value;
 }

@@ -44,6 +44,7 @@ void keyboard_pre_init_crash(void) {
 }
 
 // IRQ handler that will store the crash's cause and reset the controller (instead of deadloop or w/e)
+// inline to prevent an extra stack frame in the bactracke
 __attribute__((noreturn)) static inline void handler(const char *msg) {
     magic                  = MAGIC_VALUE;
     crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, UNWIND_DEPTH);

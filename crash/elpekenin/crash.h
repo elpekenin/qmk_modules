@@ -16,10 +16,10 @@
 #include <stdint.h>
 
 /**
- * How big a pre-allocated buffer to store backtraces will be.
+ * How big the array to store backtraces will be.
  */
 #ifndef UNWIND_DEPTH
-#    define UNWIND_DEPTH (100)
+#    define UNWIND_DEPTH 100
 #endif
 
 /**

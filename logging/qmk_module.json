@@ -1,7 +1,4 @@
 {
     "maintainer": "elpekenin",
-    "module_name": "logging",
-    "features": {
-        "console": true
-    }
+    "module_name": "logging"
 }

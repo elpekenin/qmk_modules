@@ -4,6 +4,7 @@
 #include "elpekenin/scrolling_text.h"
 
 #include <errno.h>
+#include <quantum/color.h>
 
 #ifdef SCROLLING_TEXT_DEBUG
 #    define scrolling_text_dprintf dprintf

@@ -1,7 +1,4 @@
 {
     "maintainer": "elpekenin",
-    "module_name": "ledmap",
-    "features": {
-        "rgb_matrix": true
-    }
+    "module_name": "ledmap"
 }

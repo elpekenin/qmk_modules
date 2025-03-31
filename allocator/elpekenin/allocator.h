@@ -15,13 +15,55 @@
 #include <stddef.h>
 
 /**
- * How big a pre-allocated buffer to store backtraces will be.
+ * How big the array to store different allocators will be.
  */
-#ifndef ALLOC_BUFF_SIZE
-#    define ALLOC_BUFF_SIZE 100
+#ifndef ALLOCATORS_POOL_SIZE
+#    define ALLOCATORS_POOL_SIZE 10
+#endif
+
+/**
+ * How big the array to store allocations' metadata will be.
+ */
+#ifndef ALLOC_STATS_POOL_SIZE
+#    define ALLOC_STATS_POOL_SIZE 100
 #endif
 
 typedef struct allocator_t allocator_t;
+
+/**
+ * Information about an allocation.
+ */
+typedef struct PACKED {
+    /**
+     * Allocator used to request this memory.
+     */
+    allocator_t *allocator;
+
+    /**
+     * Pointer to the memory region provided by allocator.
+     */
+    void *ptr;
+
+    /**
+     * Size in bytes of the memory region.
+     */
+    size_t size;
+
+    /**
+     * Information about this alloation's duration.
+     */
+    struct {
+        /**
+         * When was the memory allocated.
+         */
+        uint32_t start;
+
+        /**
+         * When was the memory freed.
+         */
+        uint32_t end;
+    } lifetime;
+} alloc_stats_t;
 
 /**
  * Signature of a :c:func:`malloc` function.
@@ -68,16 +110,11 @@ struct PACKED allocator_t {
     realloc_fn realloc;
 
     /**
-     * Memory it has current allocated.
-     */
-    size_t used;
-
-    /**
      * A short name/description.
      */
     const char *name;
 
-    /**
+    /**F
      * Arbitrary config used by allocator. Eg a ChibiOS' pool.
      */
     void *arg;
@@ -126,14 +163,9 @@ const allocator_t **get_known_allocators(int8_t *n);
  * Get the allocator defined as "default".
  *
  * .. hint:
- *   For now, that's :c:var:`c_runtime_allocator`
+ *   For now, that's stdlib's implementation.
  */
-allocator_t *get_default_allocator(void);
-
-/**
- * C's stdlib allocator.
- */
-extern allocator_t c_runtime_allocator;
+const allocator_t *get_default_allocator(void);
 
 #if defined(PROTOCOL_CHIBIOS)
 #    include <ch.h>
