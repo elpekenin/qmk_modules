@@ -27,7 +27,7 @@
  *     str_append(&str, "Hello");
  *     str_append(&str, " world");
  *     // display it
- *     printf("%s\n", len, str_get(str));
+ *     printf("%s\n", str_get(str));
  */
 typedef struct {
     /**
