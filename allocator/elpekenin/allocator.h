@@ -167,7 +167,7 @@ const allocator_t **get_known_allocators(int8_t *n);
  */
 const allocator_t *get_default_allocator(void);
 
-#if defined(PROTOCOL_CHIBIOS)
+#if defined(PROTOCOL_CHIBIOS) || defined(__SPHINX__)
 #    include <ch.h>
 _Static_assert(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
 
@@ -178,7 +178,7 @@ _Static_assert(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
  */
 extern allocator_t ch_core_allocator;
 
-#    if CH_CFG_USE_MEMPOOLS == TRUE
+#    if CH_CFG_USE_MEMPOOLS == TRUE || defined(__SPHINX__)
 #        include <chmempools.h>
 /**
  * Create a new ChibiOS' pool allocator.
@@ -186,7 +186,7 @@ extern allocator_t ch_core_allocator;
 allocator_t new_ch_pool_allocator(memory_pool_t *pool, const char *name);
 #    endif
 
-#    if CH_CFG_USE_HEAP == TRUE
+#    if CH_CFG_USE_HEAP == TRUE || defined(__SPHINX__)
 #        include <chmemheaps.h>
 /**
  * Create a new ChibiOS' heap allocator.

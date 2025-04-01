@@ -37,7 +37,7 @@ bool ptr_in_stack(const void *addr);
  */
 size_t get_heap_size(void);
 
-#if defined(MCU_RP)
+#if defined(MCU_RP) || defined(__SPHINX__)
 /**
  * Get amount of flash consumed by binary.
  *
