@@ -18,6 +18,8 @@
 
 #include <quantum/quantum.h> // sendchar_func_t
 
+#include "printf/printf.h" // ATTR_PRINTF
+
 #ifndef LOGGING_FORMAT
 /**
  * Default format for logging messages.
@@ -75,7 +77,7 @@ typedef enum {
  *    * ``-EBUSY``: Could not acquire the mutex guarding this function.
  *    * ``-EINVAL``: Logging format is wrong. Following calls will behave as usual ``printf``, returning 0.
  */
-int logging(log_level_t level, const char *msg, ...);
+ATTR_PRINTF(2, 3) int logging(log_level_t level, const char *msg, ...);
 
 typedef enum {
     STR_END,
