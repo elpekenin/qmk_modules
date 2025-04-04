@@ -26,7 +26,7 @@ static struct {
     log_level_t filter;
     log_level_t message;
 } level = {
-    .filter  = LOG_NONE,
+    .filter  = LOG_WARN, // by default show warns and errors
     .message = LOG_NONE,
 };
 

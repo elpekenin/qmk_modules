@@ -10,7 +10,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include <string.h> // strlen
+#include <stddef.h>
 
 #include "printf/printf.h" // ATTR_PRINTF
 
@@ -27,7 +27,7 @@
  *     str_append(&str, "Hello");
  *     str_append(&str, " world");
  *     // display it
- *     printf("%s\n", str_get(str));
+ *     printf("%.*s\n", str.used, str_get(str));
  */
 typedef struct {
     /**
@@ -36,9 +36,9 @@ typedef struct {
     const size_t size;
 
     /**
-     * How many bytes are available after ``ptr``.
+     * How many bytes have been used.
      */
-    size_t free;
+    size_t used;
 
     /**
      * Location of next position where we can write.
@@ -57,7 +57,7 @@ static inline __attribute__((always_inline)) string_t str_new(size_t n) {
     char buf[n];
     return (string_t){
         .size = n,
-        .free = n,
+        .used = 0,
         .ptr  = buf,
     };
 }
@@ -65,9 +65,9 @@ static inline __attribute__((always_inline)) string_t str_new(size_t n) {
 /**
  * Create a ``string_t`` wrapper for the given buffer.
  */
-#define str_from_buffer(buffer)                                                \
-    (string_t) {                                                               \
-        .size = ARRAY_SIZE(buffer), .free = ARRAY_SIZE(buffer), .ptr = buffer, \
+#define str_from_buffer(buffer)                               \
+    (string_t) {                                              \
+        .size = ARRAY_SIZE(buffer), .used = 0, .ptr = buffer, \
     }
 
 /**
@@ -76,9 +76,9 @@ static inline __attribute__((always_inline)) string_t str_new(size_t n) {
 char *str_get(string_t str);
 
 /**
- * Find out how many bytes in the buffer have been used.
+ * Find out how many bytes in the buffer are left to be used.
  */
-size_t str_used(string_t str);
+size_t str_available(string_t str);
 
 /**
  * Reset the string's state.
@@ -88,7 +88,7 @@ void str_reset(string_t *str);
 /**
  * Add text to the string.
  */
-size_t str_append(string_t *str, const char *text);
+int str_append(string_t *str, const char *text);
 
 /**
  * Format text and add it to the string.

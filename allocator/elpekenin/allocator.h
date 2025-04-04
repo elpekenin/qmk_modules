@@ -169,9 +169,9 @@ const allocator_t *get_default_allocator(void);
 
 #if defined(PROTOCOL_CHIBIOS) || defined(__SPHINX__)
 #    include <ch.h>
-_Static_assert(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
-
 #    include <chmemcore.h>
+
+_Static_assert(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
 
 /**
  * ChibiOS' core allocator.

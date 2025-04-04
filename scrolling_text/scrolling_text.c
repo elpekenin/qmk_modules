@@ -7,6 +7,7 @@
 #include <quantum/color.h>
 
 #ifdef SCROLLING_TEXT_DEBUG
+#    include "quantum/logging/debug.h"
 #    define scrolling_text_dprintf dprintf
 #else
 #    define scrolling_text_dprintf(...)

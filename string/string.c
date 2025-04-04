@@ -7,34 +7,31 @@
 #include <stdint.h>
 
 char *str_get(string_t str) {
-    return str.ptr - (str.free - str.size);
+    return str.ptr - str.used;
 }
 
-size_t str_used(string_t str) {
-    return str.size - str.free;
+size_t str_available(string_t str) {
+    return str.size - str.used;
 }
 
 void str_reset(string_t *str) {
     str->ptr  = str_get(*str);
-    str->free = str->size;
+    str->used = 0;
 }
 
-size_t str_append(string_t *str, const char *text) {
-    const size_t ret = strlcpy(str->ptr, text, str->free);
-    str->ptr += ret;
-    str->free -= ret;
-    return ret;
+int str_append(string_t *str, const char *text) {
+    return str_printf(str, "%s", text);
 }
 
 int str_printf(string_t *str, const char *fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    int ret = vsnprintf(str->ptr, str->free, fmt, args);
+    int ret = vsnprintf(str->ptr, str_available(*str), fmt, args);
     va_end(args);
 
     str->ptr += ret;
-    str->free -= ret;
+    str->used += ret;
 
     return ret;
 }
