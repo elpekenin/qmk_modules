@@ -31,6 +31,21 @@
 typedef struct allocator_t allocator_t;
 
 /**
+ * Information about an object's lifetime.
+ */
+typedef struct PACKED {
+    /**
+     * When was the memory allocated.
+     */
+    uint32_t start;
+
+    /**
+     * When was the memory freed.
+     */
+    uint32_t end;
+} lifetime_t;
+
+/**
  * Information about an allocation.
  */
 typedef struct PACKED {
@@ -50,19 +65,9 @@ typedef struct PACKED {
     size_t size;
 
     /**
-     * Information about this alloation's duration.
+     * Allocation's duration.
      */
-    struct {
-        /**
-         * When was the memory allocated.
-         */
-        uint32_t start;
-
-        /**
-         * When was the memory freed.
-         */
-        uint32_t end;
-    } lifetime;
+    lifetime_t lifetime;
 } alloc_stats_t;
 
 /**
