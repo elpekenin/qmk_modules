@@ -13,7 +13,7 @@
 #endif
 
 /**
- * Factory method for an LS0XX MIP SPI device.
+ * Factory method for an LS0XX SPI device.
  *
  * Args:
  *     panel_width: Width of the display

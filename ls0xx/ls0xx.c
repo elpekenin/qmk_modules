@@ -54,16 +54,16 @@ const painter_comms_vtable_t spi_comms_inverted_cs_vtable = {
 ls0xx_painter_device_t ls0xx_device_t_drivers[LS0XX_NUM_DEVICES] = {0};
 
 __attribute__((weak)) bool qp_ls0xx_init(painter_device_t device, painter_rotation_t rotation) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     // Change the surface geometry based on the panel rotation
     if (rotation == QP_ROTATION_90 || rotation == QP_ROTATION_270) {
-        surface->panel_width  = mip_dev->base.panel_height;
-        surface->panel_height = mip_dev->base.panel_width;
+        surface->panel_width  = ls0xx->base.panel_height;
+        surface->panel_height = ls0xx->base.panel_width;
     } else {
-        surface->panel_width  = mip_dev->base.panel_width;
-        surface->panel_height = mip_dev->base.panel_height;
+        surface->panel_width  = ls0xx->base.panel_width;
+        surface->panel_height = ls0xx->base.panel_height;
     }
 
     // Init the internal surface
@@ -72,12 +72,12 @@ __attribute__((weak)) bool qp_ls0xx_init(painter_device_t device, painter_rotati
         return false;
     }
 
-    mip_dev->base.rotation = rotation;
+    ls0xx->base.rotation = rotation;
 
-    writePinHigh(mip_dev->spi_config.chip_select_pin);
+    writePinHigh(ls0xx->spi_config.chip_select_pin);
     const uint8_t ls0xx_init_sequence[] = {LS0XX_CLEAR, 0};
     spi_transmit(ls0xx_init_sequence, ARRAY_SIZE(ls0xx_init_sequence));
-    writePinLow(mip_dev->spi_config.chip_select_pin);
+    writePinLow(ls0xx->spi_config.chip_select_pin);
 
     return true;
 }
@@ -94,8 +94,8 @@ bool qp_ls0xx_passthru_clear(painter_device_t device) {
 }
 
 bool qp_ls0xx_flush(painter_device_t device) {
-    ls0xx_painter_device_t   *mip_dev = (ls0xx_painter_device_t *)device;
-    surface_painter_device_t *surface = &(mip_dev->surface);
+    ls0xx_painter_device_t   *ls0xx   = (ls0xx_painter_device_t *)device;
+    surface_painter_device_t *surface = &(ls0xx->surface);
     surface_dirty_data_t      dirty   = surface->dirty;
 
     if (!dirty.is_dirty) {
@@ -107,7 +107,7 @@ bool qp_ls0xx_flush(painter_device_t device) {
     // which means that if device is sideways, we need to check l/r instead
     uint16_t top    = 0;
     uint16_t bottom = 0;
-    switch (mip_dev->base.rotation) {
+    switch (ls0xx->base.rotation) {
         case QP_ROTATION_0:
             top    = dirty.t;
             bottom = dirty.b;
@@ -131,12 +131,12 @@ bool qp_ls0xx_flush(painter_device_t device) {
     }
 
     // bytes sent for each row's data
-    uint8_t bytes_per_line = (mip_dev->base.panel_width + 7) / 8 * mip_dev->base.native_bits_per_pixel;
+    uint8_t bytes_per_line = (ls0xx->base.panel_width + 7) / 8 * ls0xx->base.native_bits_per_pixel;
     // offset used to access such data
     uint16_t buffer_offset = top * bytes_per_line;
 
     // start sending
-    writePinHigh(mip_dev->spi_config.chip_select_pin);
+    writePinHigh(ls0xx->spi_config.chip_select_pin);
     uint8_t cmd = LS0XX_WRITE | LS0XX_VCOM;
     spi_transmit(&cmd, 1);
 
@@ -157,7 +157,7 @@ bool qp_ls0xx_flush(painter_device_t device) {
     }
 
     spi_transmit(&dummy, 1);
-    writePinLow(mip_dev->spi_config.chip_select_pin);
+    writePinLow(ls0xx->spi_config.chip_select_pin);
 
     // clear surface's dirty area, no API to prevent extra prints
     surface->base.driver_vtable->flush(surface);
@@ -166,36 +166,36 @@ bool qp_ls0xx_flush(painter_device_t device) {
 }
 
 bool qp_ls0xx_passthru_viewport(painter_device_t device, uint16_t left, uint16_t top, uint16_t right, uint16_t bottom) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     return surface->driver_vtable->viewport(surface, left, top, right, bottom);
 }
 
 bool qp_ls0xx_passthru_pixdata(painter_device_t device, const void *pixel_data, uint32_t native_pixel_count) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     return surface->driver_vtable->pixdata(surface, pixel_data, native_pixel_count);
 }
 
 bool qp_ls0xx_passthru_palette_convert(painter_device_t device, int16_t palette_size, qp_pixel_t *palette) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     return surface->driver_vtable->palette_convert(surface, palette_size, palette);
 }
 
 bool qp_ls0xx_passthru_append_pixels(painter_device_t device, uint8_t *target_buffer, qp_pixel_t *palette, uint32_t pixel_offset, uint32_t pixel_count, uint8_t *palette_indices) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     return surface->driver_vtable->append_pixels(surface, target_buffer, palette, pixel_offset, pixel_count, palette_indices);
 }
 
 bool qp_ls0xx_passthru_append_pixdata(painter_device_t device, uint8_t *target_buffer, uint32_t pixdata_offset, uint8_t pixdata_byte) {
-    ls0xx_painter_device_t *mip_dev = (ls0xx_painter_device_t *)device;
-    painter_driver_t       *surface = (painter_driver_t *)&mip_dev->surface;
+    ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
+    painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 
     return surface->driver_vtable->append_pixdata(surface, target_buffer, pixdata_offset, pixdata_byte);
 }
