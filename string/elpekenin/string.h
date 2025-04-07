@@ -27,7 +27,7 @@
  *     str_append(&str, "Hello");
  *     str_append(&str, " world");
  *     // display it
- *     printf("%.*s\n", str.used, str_get(str));
+ *     printf("%.*s\n", str.used, str.ptr);
  */
 typedef struct {
     /**
@@ -41,7 +41,7 @@ typedef struct {
     size_t used;
 
     /**
-     * Location of next position where we can write.
+     * Text start.
      */
     char *ptr;
 } string_t;
@@ -69,11 +69,6 @@ static inline __attribute__((always_inline)) string_t str_new(size_t n) {
     (string_t) {                                              \
         .size = ARRAY_SIZE(buffer), .used = 0, .ptr = buffer, \
     }
-
-/**
- * Get a pointer to the start of this string.
- */
-char *str_get(string_t str);
 
 /**
  * Find out how many bytes in the buffer are left to be used.

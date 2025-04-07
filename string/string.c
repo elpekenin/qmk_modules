@@ -6,16 +6,11 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-char *str_get(string_t str) {
-    return str.ptr - str.used;
-}
-
 size_t str_available(string_t str) {
     return str.size - str.used;
 }
 
 void str_reset(string_t *str) {
-    str->ptr  = str_get(*str);
     str->used = 0;
 }
 
@@ -27,10 +22,9 @@ int str_printf(string_t *str, const char *fmt, ...) {
     va_list args;
 
     va_start(args, fmt);
-    int ret = vsnprintf(str->ptr, str_available(*str), fmt, args);
+    int ret = vsnprintf(str->ptr + str->used, str_available(*str), fmt, args);
     va_end(args);
 
-    str->ptr += ret;
     str->used += ret;
 
     return ret;

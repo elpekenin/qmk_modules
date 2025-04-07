@@ -23,7 +23,9 @@ static uint8_t py_heap[MICROPY_HEAP_SIZE] = {0};
  */
 void keyboard_post_init_micropython(void) {
     // dont consume too much, ChibiOS and/or QMK may need a fair amount too
-    mp_cstack_init_with_top(&__main_stack_end__, (&__main_stack_end__ - &__main_stack_base__) / 2);
+    const uintptr_t stack_size    = &__main_stack_end__ - &__main_stack_base__;
+    const uintptr_t py_stack_size = stack_size / 2;
+    mp_cstack_init_with_top(&__main_stack_end__ - py_stack_size, py_stack_size);
 
     gc_init(py_heap, py_heap + sizeof(py_heap));
 
