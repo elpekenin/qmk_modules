@@ -128,13 +128,20 @@ static mp_obj_t qmk_rgb_RGB_make_new(const mp_obj_type_t *type, size_t n_args, s
     return MP_OBJ_FROM_PTR(self);
 }
 
+static void qmk_rgb_RGB_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+    (void)kind;
+    qmk_rgb_t *self = MP_OBJ_TO_PTR(self_in);
+    mp_printf(print, "<RGB r=%d, g=%d, b=%d>", self->inner.r, self->inner.g, self->inner.b);
+}
+
 // clang-format off
 MP_DEFINE_CONST_OBJ_TYPE(
     qmk_rgb_RGB,
     MP_QSTR_RGB,
     MP_TYPE_FLAG_NONE,
     attr, qmk_rgb_RGB_attr,
-    make_new, qmk_rgb_RGB_make_new
+    make_new, qmk_rgb_RGB_make_new,
+    print, qmk_rgb_RGB_print
 );
 // clang-format on
 
