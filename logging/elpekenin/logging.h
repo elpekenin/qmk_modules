@@ -61,7 +61,7 @@ typedef enum {
  *     * Default implementation is seconds since boot.
  *   * ``%%``: Write a literal ``%``.
  *
- *   For example, with format of ``[%F] (%LL) -- %M | %T``, messages would look like: ``[QP] (DEBUG) -- <msg%args> | 3s``
+ *   For example, with format of ``[%LL] %T -- %M``, messages would look like: ``[DEBUG] 3s -- Formatted message``
  */
 
 /**

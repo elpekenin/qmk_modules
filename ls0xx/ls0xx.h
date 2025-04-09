@@ -6,14 +6,14 @@
 #include "qp.h"
 
 /**
- * How many displays of this type there are.
+ * How many displays of this type can be created.
  */
 #ifndef LS0XX_NUM_DEVICES
 #    define LS0XX_NUM_DEVICES 1
 #endif
 
 /**
- * Factory method for an LS0XX SPI device.
+ * Create a new device handle.
  *
  * Args:
  *     panel_width: Width of the display
