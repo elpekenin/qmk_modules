@@ -34,3 +34,13 @@ void keyboard_post_init_micropython(void) {
 
     mp_init();
 }
+
+void housekeeping_task_micropython(void) {
+#if MICROPY_ENABLE_GC
+    static uint32_t gc_timer = 0;
+    if (timer_elapsed32(gc_timer) > 1000) {
+        gc_timer = timer_read32();
+        gc_collect();
+    }
+#endif
+}

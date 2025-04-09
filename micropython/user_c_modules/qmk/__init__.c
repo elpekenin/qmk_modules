@@ -13,15 +13,14 @@ extern mp_obj_module_t qmk_rgb;
 
 static const MP_DEFINE_STR_OBJ(qmk_version, QMK_VERSION);
 
-// TODO: send PR upstream to get these numbers generated on `version.h` as well, rather than hardcoding
 static const mp_rom_obj_tuple_t qmk_version_info = {
     .base = {&mp_type_tuple},
     .len  = 3,
     .items =
         {
-            MP_ROM_INT(0),
-            MP_ROM_INT(27),
-            MP_ROM_INT(12),
+            MP_ROM_INT(QMK_MAJOR),
+            MP_ROM_INT(QMK_MINOR),
+            MP_ROM_INT(QMK_PATCH),
         },
 };
 
