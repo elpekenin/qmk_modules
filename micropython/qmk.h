@@ -11,6 +11,11 @@
 #if __has_include("quantum.h")
 #    include "quantum.h"
 #    include "version.h"
+#    if defined(COMMUNITY_MODULE_VERSION_ENABLE)
+#        include "qmk_version.h"
+#    else
+#        error Must enable 'elpekenin/version' too
+#    endif
 #    define COLLECTING_QSTR 0
 #else
 #    pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
