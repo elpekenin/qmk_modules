@@ -26,7 +26,7 @@ typedef enum {
 
 static inline mp_int_t validate_color(mp_int_t color) {
     if (color < 0 || color > 255) {
-        mp_raise_ValueError(MP_ERROR_TEXT("color must be 0-255"));
+        mp_raise_ValueError(MP_ERROR_TEXT("color must be in [0, 255]"));
     }
 
     return color;
@@ -162,6 +162,9 @@ static const qmk_rgb_t qmk_rgb_BLUE = {
 
 static mp_obj_t qmk_rgb_set_color(mp_obj_t index_in, mp_obj_t rgb_in) {
     mp_int_t index = mp_obj_get_int(index_in);
+    if (index < 0 || index >= RGB_MATRIX_LED_COUNT) {
+        mp_raise_ValueError(MP_ERROR_TEXT("index must be in [0, RGB_MATRIX_LED_COUNT)"));
+    }
 
     if (!mp_obj_is_type(rgb_in, &qmk_rgb_RGB)) {
         mp_raise_TypeError(MP_ERROR_TEXT("color is not RGB"));

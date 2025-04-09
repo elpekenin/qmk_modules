@@ -14,8 +14,20 @@
 #    define MICROPY_ENABLE_GC (1)
 #endif
 
+#ifndef MICROPY_ERROR_REPORTING
+#    define MICROPY_ERROR_REPORTING MICROPY_ERROR_REPORTING_DETAILED
+#endif
+
 #ifndef MICROPY_HEAP_SIZE
 #    define MICROPY_HEAP_SIZE (16 * 1024)
+#endif
+
+#if defined(MICROPY_MODULE_BUILTIN_SUBPACKAGES)
+#    if MICROPY_MODULE_BUILTIN_SUBPACKAGES == 0
+#        error 'qmk' needs subpackages to work
+#    endif
+#else
+#    define MICROPY_MODULE_BUILTIN_SUBPACKAGES 1
 #endif
 
 #ifndef MICROPY_PY_GC

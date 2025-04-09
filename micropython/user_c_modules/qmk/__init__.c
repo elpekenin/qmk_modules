@@ -55,9 +55,19 @@ static mp_obj_t qmk_tap_code(const mp_obj_t kc_in) {
 static MP_DEFINE_CONST_FUN_OBJ_1(qmk_tap_code_obj, qmk_tap_code);
 
 static const mp_rom_map_elem_t qmk_globals_table[] = {
+    //| # ruff: noqa: F401
+    //| # the modules being imported dont really exist on the VM
+    //| # these imports are the result of having multiple `.c` files
+    //| # to organize the code (each one gets its own `.pyi` generated)
+    //| #
+    //| # this is: you can't `import qmk.keycode` nor `import _keycode`
+    //| # instead, you `import qmk` and use it as `qmk.keycode.foo()`
+    //|
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_qmk)},
+    //| from . import _keycode as keycode
     {MP_ROM_QSTR(MP_QSTR_keycode), MP_ROM_PTR(&qmk_keycode)},
 #if defined(RGB_MATRIX_ENABLE) || COLLECTING_QSTR == 1
+    //| from . import _rgb as rgb
     {MP_ROM_QSTR(MP_QSTR_rgb), MP_ROM_PTR(&qmk_rgb)},
 #endif
 
@@ -89,5 +99,4 @@ const mp_obj_module_t qmk = {
     .base    = {&mp_type_module},
     .globals = (mp_obj_dict_t *)&qmk_globals,
 };
-
 MP_REGISTER_MODULE(MP_QSTR_qmk, qmk);

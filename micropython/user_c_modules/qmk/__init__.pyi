@@ -5,6 +5,16 @@
 
 """Utilities to interact with QMK from MicroPython."""
 
+# ruff: noqa: F401
+# the modules being imported dont really exist on the VM
+# these imports are the result of having multiple `.c` files
+# to organize the code (each one gets its own `.pyi` generated)
+#
+# this is: you can't `import qmk.keycode` nor `import _keycode`
+# instead, you `import qmk` and use it as `qmk.keycode.foo()`
+
+from . import _keycode as keycode
+from . import _rgb as rgb
 
 version: str
 """Version of QMK on which this firmware was built, as a raw string."""
