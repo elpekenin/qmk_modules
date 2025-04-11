@@ -58,6 +58,10 @@ typedef struct {
      */
     uint64_t mask;
     /**
+     * Length of the string.
+     */
+    uint8_t len;
+    /**
      * User-provided function used to render text.
      */
     callback_fn_t callback;

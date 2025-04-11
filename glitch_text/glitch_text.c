@@ -52,17 +52,14 @@ static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
         return 0;
     }
 
-    // actual logic
-    size_t len = strlen(state->dest);
-
     char chr = '\0';
     do { // dont want a terminator mid-string
         chr = rng_min_max('!', '~');
     } while (chr == '\0');
 
     // all bits that should be set are set, change state
-    uint64_t mask = (1 << (len - 1)) - 1;
-    if ((state->mask & mask) == mask) {
+    uint64_t full_mask = (1 << (state->len - 1)) - 1;
+    if ((state->mask & full_mask) == full_mask) {
         state->mask = 0;
         switch (state->phase) {
             case FILLING:
@@ -83,7 +80,7 @@ static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
     }
 
     // this is an index, -1 prevents out of bounds str[len]
-    uint16_t pos = gen_random_pos(len - 1, &state->mask);
+    uint16_t pos = gen_random_pos(state->len - 1, &state->mask);
 
     switch (state->phase) {
         case FILLING:
@@ -107,13 +104,16 @@ static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
 }
 
 int glitch_text_start(const char *text, callback_fn_t callback) {
-    if (callback == NULL) {
+    if (callback == NULL || text == NULL) {
         glitch_text_dprintf("[ERROR] %s: NULL pointer\n", __func__);
         return -EINVAL;
     }
 
+    size_t len = strlen(text);
+
     glitch_text_state_t *glitch_state = NULL;
-    if (strlen(text) > sizeof(glitch_state->dest)) {
+
+    if (len > sizeof(glitch_state->dest)) {
         glitch_text_dprintf("[ERROR] %s: text too long\n", __func__);
         return -EINVAL;
     }
@@ -131,8 +131,9 @@ int glitch_text_start(const char *text, callback_fn_t callback) {
 
     // kick off the animation
     strlcpy(glitch_state->dest, text, sizeof(glitch_state->dest));
-    glitch_state->mask     = 0;
     glitch_state->phase    = FILLING;
+    glitch_state->mask     = 0;
+    glitch_state->len      = len;
     glitch_state->callback = callback;
     defer_exec(10, glitch_text_callback, glitch_state);
 
