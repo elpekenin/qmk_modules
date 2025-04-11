@@ -6,8 +6,6 @@
 #include <quantum/quantum.h>
 #include <stdlib.h>
 
-#include "elpekenin/shortcuts.h"
-
 #ifdef ALLOCATOR_DEBUG
 #    define allocator_dprintf dprintf
 #else
@@ -191,11 +189,9 @@ const allocator_t *get_default_allocator(void) {
 }
 
 void *calloc_with(allocator_t *allocator, size_t nmemb, size_t size) {
-    const char fn[] = "calloc";
-
     const size_t total_size = nmemb * size;
 
-    allocator_dprintf("[DEBUG]: Using %s.%s\n", allocator->name, fn);
+    allocator_dprintf("[DEBUG]: Using %s.calloc\n", allocator->name);
 
     void *ptr;
 
@@ -204,7 +200,7 @@ void *calloc_with(allocator_t *allocator, size_t nmemb, size_t size) {
         ptr = allocator->calloc(allocator, nmemb, size);
 
         if (ptr == NULL) {
-            allocator_dprintf("[ERROR]: %s.%s failed\n", allocator->name, fn);
+            allocator_dprintf("[ERROR]: %s.calloc failed\n", allocator->name);
         } else {
             push_new_stat(allocator, ptr, total_size);
         }
@@ -220,12 +216,10 @@ void *calloc_with(allocator_t *allocator, size_t nmemb, size_t size) {
 }
 
 void free_with(allocator_t *allocator, void *ptr) {
-    const char fn[] = "free";
-
-    allocator_dprintf("[DEBUG]: Using %s.%s\n", allocator->name, fn);
+    allocator_dprintf("[DEBUG]: Using %s.free\n", allocator->name);
 
     if (allocator->free == NULL) {
-        allocator_dprintf("[ERROR]: There is no %s.%s\n", allocator->name, fn);
+        allocator_dprintf("[ERROR]: There is no %s.free\n", allocator->name);
         return;
     }
 
@@ -245,18 +239,16 @@ void free_with(allocator_t *allocator, void *ptr) {
 }
 
 void *malloc_with(allocator_t *allocator, size_t size) {
-    const char fn[] = "malloc";
-
-    allocator_dprintf("[DEBUG]: Using %s.%s\n", allocator->name, fn);
+    allocator_dprintf("[DEBUG]: Using %s.malloc\n", allocator->name);
 
     if (allocator->malloc == NULL) {
-        allocator_dprintf("[ERROR]: There is no %s.%s\n", allocator->name, fn);
+        allocator_dprintf("[ERROR]: There is no %s.malloc\n", allocator->name);
         return NULL;
     }
 
     void *ptr = allocator->malloc(allocator, size);
     if (ptr == NULL) {
-        allocator_dprintf("[ERROR]: Calling %s.%s failed\n", allocator->name, fn);
+        allocator_dprintf("[ERROR]: Calling %s.malloc failed\n", allocator->name);
     } else {
         push_new_stat(allocator, ptr, size);
     }
@@ -265,9 +257,7 @@ void *malloc_with(allocator_t *allocator, size_t size) {
 }
 
 void *realloc_with(allocator_t *allocator, void *ptr, size_t size) {
-    const char fn[] = "realloc";
-
-    allocator_dprintf("[DEBUG]: Using %s.%s\n", allocator->name, fn);
+    allocator_dprintf("[DEBUG]: Using %s.realloc\n", allocator->name);
 
     // no pointer, realloc is equivalent to malloc
     if (ptr == NULL) {
@@ -301,7 +291,7 @@ void *realloc_with(allocator_t *allocator, void *ptr, size_t size) {
     // actual realloc if available, manually implement with malloc + memcpy otherwise
     if (allocator->realloc != NULL) {
         new_ptr = allocator->realloc(allocator, ptr, size);
-        allocator_dprintf("[ERROR]: %s.%s failed\n", allocator->name, fn);
+        allocator_dprintf("[ERROR]: %s.realloc failed\n", allocator->name);
     } else {
         new_ptr = malloc_with(allocator, size);
 

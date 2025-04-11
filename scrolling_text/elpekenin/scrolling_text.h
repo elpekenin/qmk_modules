@@ -10,6 +10,7 @@
 #pragma once
 
 #include <quantum/quantum.h>
+#include <quantum/util.h>
 
 /**
  * How many scrolling texts can be drawn at the same time.
