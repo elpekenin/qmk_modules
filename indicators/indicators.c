@@ -29,6 +29,10 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
     uint8_t mods  = get_mods();
     uint8_t layer = get_highest_layer(layer_state);
 
+#ifndef NO_ACTION_ONESHOT
+    mods |= get_oneshot_mods();
+#endif // NO_ACTION_ONESHOT
+
     indicator_fn_args_t args = {
         .mods  = mods,
         .layer = layer,
