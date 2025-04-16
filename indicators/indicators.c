@@ -31,7 +31,7 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
 
 #ifndef NO_ACTION_ONESHOT
     mods |= get_oneshot_mods();
-#endif // NO_ACTION_ONESHOT
+#endif
 
     indicator_fn_args_t args = {
         .mods  = mods,
