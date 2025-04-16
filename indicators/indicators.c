@@ -34,7 +34,7 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
 #endif // NO_ACTION_ONESHOT
 
     indicator_fn_args_t args = {
-        .mods  = mod_config(mods),
+        .mods  = mods,
         .layer = layer,
     };
 
