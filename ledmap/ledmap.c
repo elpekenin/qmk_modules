@@ -23,15 +23,14 @@ static const uint8_t color_to_hue[__LEDMAP_SEPARATOR__] = {
 };
 // clang-format on
 
-int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
+Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col) {
     // clang-format off
     if (
         layer >= ledmap_layer_count() // out of range
         || !(layer_state & (1 << layer)) // layer is not active
-        || rgb == NULL // invalid pointer
     ) {
         // clang-format on
-        return -EINVAL;
+        return (Result(rgb_t, int))Err(-EINVAL);
     }
 
     ledmap_color_t color = color_at_ledmap_location(layer, row, col);
@@ -47,17 +46,17 @@ int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) 
         switch (color) {
             case TRNS:
                 if (layer == 0) {
-                    return -ENODATA;
+                    return (Result(rgb_t, int))Err(-ENODATA);
                 }
 
                 // look up further down (only on active layers)
                 for (int8_t i = layer - 1; i > 0; --i) {
                     if (layer_state & (1 << i)) {
-                        return rgb_at_ledmap_location(i, row, col, rgb);
+                        return rgb_at_ledmap_location(i, row, col);
                     }
                 }
 
-                return -EINVAL;
+                return (Result(rgb_t, int))Err(-EINVAL);
 
             case WHITE:
                 hsv.h = 0;
@@ -73,18 +72,15 @@ int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) 
                 break;
 
             default:
-                return -ENOTSUP;
+                return (Result(rgb_t, int))Err(-ENOTSUP);
         }
     }
 
-    *rgb = hsv_to_rgb(hsv);
-    return 0;
+    return (Result(rgb_t, int))Ok(hsv_to_rgb(hsv));
 }
 
 void draw_ledmap(uint8_t led_min, uint8_t led_max) {
     layer_state_t layer = get_highest_layer(layer_state | default_layer_state);
-
-    rgb_t rgb = (rgb_t){RGB_OFF};
 
     // iterate all keys
     for (int8_t row = 0; row < MATRIX_ROWS; ++row) {
@@ -95,7 +91,9 @@ void draw_ledmap(uint8_t led_min, uint8_t led_max) {
                 continue;
             }
 
-            if (rgb_at_ledmap_location(layer, row, col, &rgb) == 0) {
+            Result(rgb_t, int) res = rgb_at_ledmap_location(layer, row, col);
+            if (is_ok(res)) {
+                rgb_t rgb = unwrap(res);
                 rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
             }
         }

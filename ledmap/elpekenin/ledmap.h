@@ -41,6 +41,12 @@
 
 #include <quantum/quantum.h>
 
+#if defined(COMMUNITY_MODULE_RESULT_ENABLE)
+#    include "elpekenin/result.h"
+#else
+#    error Must enable 'elpekenin/result' too
+#endif
+
 /**
  * Available colors
  */
@@ -82,6 +88,8 @@ typedef enum {
     __N_LEDMAP_COLORS__,
 } ledmap_color_t;
 
+ResultImpl(rgb_t, int);
+
 /**
  * Retrieve the color assigned to a key in the ledmap (transparency gets applied).
  *
@@ -91,13 +99,15 @@ typedef enum {
  *     col: Electrical position of the key in the matrix.
  *     rgb: Where the value will be written.
  *
- * Return: Error code.
- *    * ``0``: Color was found, and assigned into pointer.
- *    * ``-EINVAL``: Some input was wrong.
- *    * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
- *    * ``-ENOTSUP``: Value read at this position has no logic defined.
+ * Return:
+ *    Result of the operation.
+ *       * Ok(rgb): Color was retrieved, use :c:func:`unwrap` to get the value.
+ *       * Err(val): Something went wrong, use :c:func:`unwrap_err` to check it.
+ *          * ``-EINVAL``: Some input was wrong.
+ *          * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
+ *          * ``-ENOTSUP``: Unknown value read (not a value in :c:enum:`ledmap_color_t`).
  */
-int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
+Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col);
 
 /**
  * Assign their color to all leds in the given range.
