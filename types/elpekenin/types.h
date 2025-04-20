@@ -77,6 +77,8 @@
 
 /**
  * Option type.
+ *
+ * :c:member:`is_some`: Whether this option contains a value.
  */
 #define Option(T) _Option(T)
 
@@ -97,7 +99,11 @@
         .is_some = false, \
     }
 
-// --
+/**
+ * ----
+ */
+
+// -- barrier --
 
 /**
  * Get the inner value from an `Ok`/`Some` value. Panic if `Err`/`None`.
