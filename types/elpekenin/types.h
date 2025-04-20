@@ -40,19 +40,17 @@
 /**
  * Create a result with the given value.
  */
-#define Ok(v)            \
-    {                    \
-        .is_ok   = true, \
-        .__value = v,    \
+#define Ok(T, E, v)                  \
+    (Result(T, E)) {                 \
+        .is_ok = true, .__value = v, \
     }
 
 /**
  * Create a result instance with the given error.
  */
-#define Err(e)            \
-    {                     \
-        .is_ok   = false, \
-        .__error = e,     \
+#define Err(T, E, e)                  \
+    (Result(T, E)) {                  \
+        .is_ok = false, .__error = e, \
     }
 
 /**
@@ -85,17 +83,16 @@
 /**
  * Create an option with the given value.
  */
-#define Some(v)          \
-    {                    \
-        .is_some = true, \
-        .__value = v,    \
+#define Some(T, v)                     \
+    (Option(T)) {                      \
+        .is_some = true, .__value = v, \
     }
 
 /**
  * Create an empty option.
  */
-#define None              \
-    {                     \
+#define None(T)           \
+    (Option(T)) {         \
         .is_some = false, \
     }
 

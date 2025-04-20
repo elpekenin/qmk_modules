@@ -23,10 +23,10 @@ __attribute__((section(".no_init"))) static crash_info_t crash_info;
 
 Option(crash_info_t) get_crash_call_stack(void) {
     if (copied_magic != MAGIC_VALUE) {
-        return (Option(crash_info_t))Some(crash_info);
+        return Some(crash_info_t, crash_info);
     }
 
-    return (Option(crash_info_t))None;
+    return None(crash_info_t);
 }
 
 // copy magic from no-init variable

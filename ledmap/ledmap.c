@@ -30,7 +30,7 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
         || !(layer_state & (1 << layer)) // layer is not active
     ) {
         // clang-format on
-        return (Result(rgb_t, int))Err(-EINVAL);
+        return Err(rgb_t, int, -EINVAL);
     }
 
     ledmap_color_t color = color_at_ledmap_location(layer, row, col);
@@ -46,7 +46,7 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
         switch (color) {
             case TRNS:
                 if (layer == 0) {
-                    return (Result(rgb_t, int))Err(-ENODATA);
+                    return Err(rgb_t, int, -ENODATA);
                 }
 
                 // look up further down (only on active layers)
@@ -56,7 +56,7 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
                     }
                 }
 
-                return (Result(rgb_t, int))Err(-EINVAL);
+                return Err(rgb_t, int, -EINVAL);
 
             case WHITE:
                 hsv.h = 0;
@@ -72,11 +72,11 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
                 break;
 
             default:
-                return (Result(rgb_t, int))Err(-ENOTSUP);
+                return Err(rgb_t, int, -ENOTSUP);
         }
     }
 
-    return (Result(rgb_t, int))Ok(hsv_to_rgb(hsv));
+    return Ok(rgb_t, int, hsv_to_rgb(hsv));
 }
 
 void draw_ledmap(uint8_t led_min, uint8_t led_max) {
