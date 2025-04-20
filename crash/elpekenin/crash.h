@@ -15,6 +15,12 @@
 #include <backtrace.h>
 #include <stdint.h>
 
+#if defined(COMMUNITY_MODULE_TYPES_ENABLE)
+#    include "elpekenin/types.h"
+#else
+#    error Must enable 'elpekenin/types' too
+#endif
+
 /**
  * How big the array to store backtraces will be.
  */
@@ -22,14 +28,20 @@
 #    define UNWIND_DEPTH 100
 #endif
 
+typedef struct {
+    uint8_t     stack_depth;
+    backtrace_t call_stack[UNWIND_DEPTH];
+    char        msg[256];
+} crash_info_t;
+
+OptionImpl(crash_info_t);
+
 /**
- * Get the information about last execution.
- *
- * Args:
- *     depth: Pointer to your variable which will be set to how deep the backtrace is (0 if no crash).
- *     msg: Pointer to your variable which will be set to the crash's cause (NULL if no crash).
+ * Get information about last execution.
  *
  * Return:
- *     Call stack that crashed the program (NULL if no crash)
+ *     Optional stack trace.
+ *        * Some(trace): Call stack that crashed the program. Use :c:func:`unwrap` to get the value.
+ *        * None: Previous execution did not crash.
  */
-backtrace_t *get_crash_call_stack(uint8_t *depth, const char **msg);
+Option(crash_info_t) get_crash_call_stack(void);

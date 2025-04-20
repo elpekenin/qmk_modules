@@ -91,9 +91,9 @@ void draw_ledmap(uint8_t led_min, uint8_t led_max) {
                 continue;
             }
 
-            Result(rgb_t, int) res = rgb_at_ledmap_location(layer, row, col);
-            if (is_ok(res)) {
-                rgb_t rgb = unwrap(res);
+            Result(rgb_t, int) result = rgb_at_ledmap_location(layer, row, col);
+            if (result.is_ok) {
+                rgb_t rgb = unwrap(result);
                 rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
             }
         }

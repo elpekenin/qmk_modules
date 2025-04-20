@@ -41,16 +41,20 @@
 
 #include <quantum/quantum.h>
 
-#if defined(COMMUNITY_MODULE_RESULT_ENABLE)
-#    include "elpekenin/result.h"
+#if defined(COMMUNITY_MODULE_TYPES_ENABLE)
+#    include "elpekenin/types.h"
 #else
-#    error Must enable 'elpekenin/result' too
+#    error Must enable 'elpekenin/types' too
 #endif
 
 /**
  * Available colors
  */
 typedef enum {
+    // `LAYOUT` puts `KC_NO` in un-used spots
+    // we want to prevent collisions with it
+    NONE = KC_NO,
+
     /** */
     RED,
     /** */
@@ -88,6 +92,8 @@ typedef enum {
     __N_LEDMAP_COLORS__,
 } ledmap_color_t;
 
+_Static_assert(__N_LEDMAP_COLORS__ <= UINT8_MAX, "Update code, reading uses `pgm_read_byte`");
+
 ResultImpl(rgb_t, int);
 
 /**
@@ -101,8 +107,8 @@ ResultImpl(rgb_t, int);
  *
  * Return:
  *    Result of the operation.
- *       * Ok(rgb): Color was retrieved, use :c:func:`unwrap` to get the value.
- *       * Err(val): Something went wrong, use :c:func:`unwrap_err` to check it.
+ *       * Ok(rgb): Color was retrieved. Use :c:func:`unwrap` to get the value.
+ *       * Err(val): Something went wrong. Use :c:func:`unwrap_err` to get the value. Possible values:
  *          * ``-EINVAL``: Some input was wrong.
  *          * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
  *          * ``-ENOTSUP``: Unknown value read (not a value in :c:enum:`ledmap_color_t`).

@@ -19,24 +19,14 @@ __attribute__((section(".no_init"))) uint32_t magic;
 
 static uint32_t copied_magic = 0;
 
-typedef struct {
-    uint8_t     stack_depth;
-    backtrace_t call_stack[UNWIND_DEPTH];
-    char        msg[256];
-} crash_info_t;
-
 __attribute__((section(".no_init"))) static crash_info_t crash_info;
 
-backtrace_t *get_crash_call_stack(uint8_t *depth, const char **msg) {
+Option(crash_info_t) get_crash_call_stack(void) {
     if (copied_magic != MAGIC_VALUE) {
-        *depth = 0;
-        *msg   = NULL;
-        return NULL;
+        return (Option(crash_info_t))Some(crash_info);
     }
 
-    *depth = crash_info.stack_depth;
-    *msg   = crash_info.msg;
-    return crash_info.call_stack;
+    return (Option(crash_info_t))None;
 }
 
 // copy magic from no-init variable
