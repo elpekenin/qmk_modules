@@ -5,23 +5,27 @@
 
 #include <osal.h>
 #include <quantum/quantum.h>
+#include <sys/cdefs.h>
 
 #if defined(COMMUNITY_MODULE_STRING_ENABLE)
 #    include "elpekenin/string.h"
 #endif
+
+#define __noinit __attribute__((section(".no_init")))
+#define __interrupt _Noreturn __attribute__((interrupt))
 
 /* When set into a known address, flags that the program has crashed. */
 #define MAGIC_VALUE (0xDEADA55)
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
-__attribute__((section(".no_init"))) uint32_t magic;
+__noinit uint32_t magic;
 
 static uint32_t copied_magic = 0;
 
-__attribute__((section(".no_init"))) static crash_info_t crash_info;
+__noinit static crash_info_t crash_info;
 
-Option(crash_info_t) get_crash_call_stack(void) {
+Option(crash_info_t) get_crash(void) {
     if (copied_magic != MAGIC_VALUE) {
         return Some(crash_info_t, crash_info);
     }
@@ -37,14 +41,16 @@ void keyboard_pre_init_crash(void) {
     magic = 0;
 }
 
-// IRQ handler that will store the crash's cause and reset the controller (instead of deadloop or w/e)
-// inline to prevent an extra stack frame in the bactracke
-__attribute__((noreturn)) __attribute__((always_inline)) static inline void handler(const char *msg) {
+// store crash's cause and reset the controller (instead of deadloop or w/e)
+//
+// should be inline to prevent an extra stack frame in the backtrace
+// but then, it wouldn't be possible to expose on the header
+_Noreturn void exception(const char *reason) {
     magic                  = MAGIC_VALUE;
     crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, UNWIND_DEPTH);
 
-    if (msg != NULL) {
-        strlcpy(crash_info.msg, msg, sizeof(crash_info.msg));
+    if (reason != NULL) {
+        strlcpy(crash_info.msg, reason, sizeof(crash_info.msg));
     } else {
         // just in case we get to read it somehow
         crash_info.msg[0] = '\0';
@@ -53,11 +59,11 @@ __attribute__((noreturn)) __attribute__((always_inline)) static inline void hand
     NVIC_SystemReset();
 }
 
-__attribute__((interrupt)) void _unhandled_exception(void) {
-    handler("Unknown");
+__interrupt void _unhandled_exception(void) {
+    exception("Unknown");
 }
 
-__attribute__((interrupt)) void HardFault_Handler(void) {
+__interrupt void HardFault_Handler(void) {
     // Better error message for Cortex-M0 and M0+, based on:
     // https://community.arm.com/support-forums/f/embedded-and-microcontrollers-forum/3257/debugging-a-cortex-m0-hard-fault
 #if defined(COMMUNITY_MODULE_STRING_ENABLE) && defined(__CORTEX_M) && __CORTEX_M == 0
@@ -65,6 +71,13 @@ __attribute__((interrupt)) void HardFault_Handler(void) {
     memcpy(&interrupt_context, (const void *)__get_PSP(), sizeof(struct port_extctx));
 
     string_t str = str_from_buffer(crash_info.msg);
+
+// some GCC versions error due to %b but others don't (?)
+// it is implemented in `printf`, so there's no problem
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wformat"
+#    pragma GCC diagnostic ignored "-Wformat-extra-args"
+
     // clang-format off
     str_printf(
         &str,
@@ -76,23 +89,25 @@ __attribute__((interrupt)) void HardFault_Handler(void) {
     );
     // clang-format on
 
+#    pragma GCC diagnostic pop
+
     // not passing `str_get(str)` as argument
     // because `str_printf` already worked on that memory
-    handler(NULL);
+    exception(NULL);
 #endif
-    handler("Hard");
+    exception("Hard");
 }
 
-__attribute__((interrupt)) void BusFault_Handler(void) {
-    handler("Bus");
+__interrupt void BusFault_Handler(void) {
+    exception("Bus");
 }
 
-__attribute__((interrupt)) void UsageFault_Handler(void) {
-    handler("Usage");
+__interrupt void UsageFault_Handler(void) {
+    exception("Usage");
 }
 
-__attribute__((interrupt)) void MemManage_Handler(void) {
-    handler("MemMan");
+__interrupt void MemManage_Handler(void) {
+    exception("MemMan");
 }
 
 // defined by ChibiOS, for context swap (?)

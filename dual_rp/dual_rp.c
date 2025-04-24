@@ -4,14 +4,15 @@
 #include "elpekenin/dual_rp.h"
 
 #include <ch.h>
+#include <sys/cdefs.h>
 
-__attribute__((weak)) void c1_init_kb(void) {}
-__attribute__((weak)) void c1_init_user(void) {}
+__weak_symbol void c1_init_kb(void) {}
+__weak_symbol void c1_init_user(void) {}
 
-__attribute__((weak)) void c1_main_kb(void) {}
-__attribute__((weak)) void c1_main_user(void) {}
+__weak_symbol void c1_main_kb(void) {}
+__weak_symbol void c1_main_user(void) {}
 
-__attribute__((weak)) void c1_main(void) {
+__weak_symbol void c1_main(void) {
     chSysWaitSystemState(ch_sys_running);
     chInstanceObjectInit(&ch1, &ch_core1_cfg);
     chSysUnlock();

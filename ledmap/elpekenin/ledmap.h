@@ -44,7 +44,7 @@
 #if defined(COMMUNITY_MODULE_TYPES_ENABLE)
 #    include "elpekenin/types.h"
 #else
-#    error Must enable 'elpekenin/types' too
+#    error Must enable 'elpekenin/types'
 #endif
 
 /**

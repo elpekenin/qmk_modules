@@ -6,11 +6,12 @@
 #include <errno.h>
 #include <quantum/quantum.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 #if defined(COMMUNITY_MODULE_RNG_ENABLE)
 #    include "elpekenin/rng.h"
 #else
-#    error "This code depends on 'elpekenin/rng' to work"
+#    error Must enable 'elpekenin/rng'
 #endif
 
 #ifdef GLITCH_TEXT_DEBUG
@@ -74,8 +75,7 @@ static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
                 break;
 
             case NOT_RUNNING:
-                glitch_text_dprintf("[ERROR] %s: unreachable\n", __func__);
-                return 0;
+                __unreachable();
         }
     }
 
@@ -95,8 +95,7 @@ static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
             break;
 
         case NOT_RUNNING:
-            glitch_text_dprintf("[ERROR] %s: unreachable\n", __func__);
-            return 0;
+            __unreachable();
     }
 
     state->callback(state->curr, false);

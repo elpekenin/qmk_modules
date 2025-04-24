@@ -9,6 +9,7 @@
 #include <quantum/quantum.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 // stringify log levels
 // clang-format off
@@ -98,15 +99,14 @@ static token_t get_token(const char **str) {
             return INVALID_SPEC;
     }
 
-    logging(LOG_ERROR, "Unreachable (?)");
-    return INVALID_SPEC;
+    __unreachable();
 }
 
 log_level_t get_current_message_level(void) {
     return level.message;
 }
 
-__attribute__((weak)) const char *log_time(void) {
+__weak_symbol const char *log_time(void) {
     static char buff[10] = {0};
     snprintf(buff, sizeof(buff), "%ld", timer_read32() / 1000);
     return buff;

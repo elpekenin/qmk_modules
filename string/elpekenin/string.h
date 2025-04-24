@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/cdefs.h>
 
 #include "printf/printf.h" // ATTR_PRINTF
 
@@ -53,7 +54,7 @@ typedef struct {
  *    This works on a VLA. If you need the value to outlive the function
  *    where it is declared, use ``malloc`` or your own buffer instead.
  */
-static inline __attribute__((always_inline)) string_t str_new(size_t n) {
+static inline __always_inline string_t str_new(size_t n) {
     char buf[n];
     return (string_t){
         .size = n,

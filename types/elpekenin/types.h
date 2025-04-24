@@ -12,6 +12,15 @@
 #include <quantum/util.h>
 #include <stdbool.h>
 
+// forward declare for circular dependency
+//   - `crash.h` returns `Option(crash_info_t)`
+//   - `types.h` uses `exception(char *reason)` on `unwrap`
+#if defined(COMMUNITY_MODULE_CRASH_ENABLE)
+_Noreturn void exception(const char *reason);
+#else
+#    error Must enable 'elpekenin/crash'
+#endif
+
 #define _Result(T, E) result___##T##___##E
 
 /**
@@ -111,7 +120,7 @@
         /* relies on them being first element of struct */   \
         bool *ptr = (bool *)&v;                              \
         if (!(*ptr)) {                                       \
-            chSysHalt("called `unwrap` on `Err` or `None`"); \
+            exception("called `unwrap` on `Err` or `None`"); \
         }                                                    \
                                                              \
         v.__value;                                           \
@@ -123,7 +132,7 @@
 #define unwrap_err(v)                                 \
     ({                                                \
         if (v.is_ok) {                                \
-            chSysHalt("called `unwrap_err` on `Ok`"); \
+            exception("called `unwrap_err` on `Ok`"); \
         }                                             \
                                                       \
         v.__error;                                    \

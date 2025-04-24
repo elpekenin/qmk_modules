@@ -3,6 +3,8 @@
 
 #include "ls0xx.h"
 
+#include <sys/cdefs.h>
+
 #include "ls0xx_opcodes.h"
 #include "qp_comms_spi.h"
 #include "qp_surface_internal.h"
@@ -53,7 +55,7 @@ const painter_comms_vtable_t spi_comms_inverted_cs_vtable = {
 
 ls0xx_painter_device_t ls0xx_device_t_drivers[LS0XX_NUM_DEVICES] = {0};
 
-__attribute__((weak)) bool qp_ls0xx_init(painter_device_t device, painter_rotation_t rotation) {
+__weak_symbol bool qp_ls0xx_init(painter_device_t device, painter_rotation_t rotation) {
     ls0xx_painter_device_t *ls0xx   = (ls0xx_painter_device_t *)device;
     painter_driver_t       *surface = (painter_driver_t *)&ls0xx->surface;
 

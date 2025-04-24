@@ -18,7 +18,7 @@
 #if defined(COMMUNITY_MODULE_TYPES_ENABLE)
 #    include "elpekenin/types.h"
 #else
-#    error Must enable 'elpekenin/types' too
+#    error Must enable 'elpekenin/types'
 #endif
 
 /**
@@ -44,4 +44,9 @@ OptionImpl(crash_info_t);
  *        * Some(trace): Call stack that crashed the program. Use :c:func:`unwrap` to get the value.
  *        * None: Previous execution did not crash.
  */
-Option(crash_info_t) get_crash_call_stack(void);
+Option(crash_info_t) get_crash(void);
+
+/**
+ * Crash the program because of given reason.
+ */
+_Noreturn void exception(const char *reason);

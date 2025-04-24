@@ -14,7 +14,7 @@
 #    if defined(COMMUNITY_MODULE_VERSION_ENABLE)
 #        include "qmk_version.h"
 #    else
-#        error Must enable 'elpekenin/version' too
+#        error Must enable 'elpekenin/version'
 #    endif
 #    define COLLECTING_QSTR 0
 #else
