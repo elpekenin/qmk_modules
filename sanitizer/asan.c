@@ -135,6 +135,12 @@ static void poison_addr(void *addr) {
     shadow[pos.byte] |= (1 << pos.bit);
 }
 
+static void poison_region(void *start, uintptr_t n) {
+    for (uintptr_t i = 0; i < n; i++) {
+        poison_addr(start + i);
+    }
+}
+
 static void unpoison_addr(void *addr) {
     if (!is_in_shadow_region(addr)) {
         return;
@@ -142,6 +148,12 @@ static void unpoison_addr(void *addr) {
 
     shadow_pos_t pos = addr_to_shadow(addr);
     shadow[pos.byte] &= ~(1 << pos.bit);
+}
+
+static void unpoison_region(void *start, uintptr_t n) {
+    for (uintptr_t i = 0; i < n; i++) {
+        unpoison_addr(start + i);
+    }
 }
 
 static void *stack_malloc(__unused uintptr_t id, __unused uintptr_t n) {
@@ -171,26 +183,12 @@ void __asan_init(void) {}
 // perform cleanup before a noreturn function
 void __asan_handle_no_return(void) {}
 
-// poison a memory region
-void __asan_poison_memory_region(void *addr, uintptr_t n) {
-    for (uintptr_t i = 0; i < n; i++) {
-        poison_addr(addr + i);
-    }
-}
-
-// unpoison a memory region
-void __asan_unpoison_memory_region(void *addr, uintptr_t n) {
-    for (uintptr_t i = 0; i < n; i++) {
-        unpoison_addr(addr + i);
-    }
-}
-
 // track an array of `n` global variables
 __nosanitizeaddress void __asan_register_globals(void *globals, uintptr_t n) {
     __asan_global *g = globals;
     for (uintptr_t i = 0; i < n; i++) {
         __asan_global global = g[i];
-        __asan_poison_memory_region((void *)global.beg, global.n);
+        poison_region((void *)global.beg, global.n);
     }
 }
 
@@ -199,23 +197,23 @@ __nosanitizeaddress void __asan_unregister_globals(void *globals, uintptr_t n) {
     __asan_global *g = globals;
     for (uintptr_t i = 0; i < n; i++) {
         __asan_global global = g[i];
-        __asan_unpoison_memory_region((void *)global.beg, global.n);
+        unpoison_region((void *)global.beg, global.n);
     }
 }
 
 // poison stack
 void __asan_poison_stack_memory(void *addr, uintptr_t n) {
-    __asan_poison_memory_region(addr, n);
+    poison_region(addr, n);
 }
 
 // poison for alloca (?)
 void __asan_alloca_poison(void *addr, uintptr_t n) {
-    __asan_poison_memory_region(addr, n);
+    poison_region(addr, n);
 }
 
 // clear poison
 void __asan_allocas_unpoison(void *addr, uintptr_t n) {
-    __asan_unpoison_memory_region(addr, n);
+    unpoison_region(addr, n);
 }
 
 #define REPORT_LOAD_FUNC(size)                            \
