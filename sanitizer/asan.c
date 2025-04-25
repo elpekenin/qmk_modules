@@ -25,21 +25,25 @@
 #include "printf/printf.h"
 
 /**
- * How big the array to track RAM usage will be.
+ * Memory address where RAM starts.
  */
-#ifndef ASAN_SHADOW_MEMORY_SIZE
-// default to RP2040's RAM size
-#    define ASAN_SHADOW_MEMORY_SIZE (264 / 8 * 1024)
+#ifndef ASAN_MEMORY_START_ADDRESS
+// default to ChibiOs symbol
+extern uint8_t __ram0_base__;
+#    define ASAN_MEMORY_START_ADDRESS ((void *)&__ram0_base__)
 #endif
 
 /**
- * Memory address where RAM starts.
+ * How big the (tracked) RAM is.
  */
-#ifndef ASAN_SHADOW_MEMORY_START_ADDRESS
-// default to ChibiOs symbol
-extern uint8_t __ram0_base__;
-#    define ASAN_SHADOW_MEMORY_START_ADDRESS ((void *)&__ram0_base__)
+#ifndef ASAN_MEMORY_SIZE
+// default to RP2040's RAM size
+#    define ASAN_MEMORY_SIZE (264 * 1024)
 #endif
+_Static_assert(ASAN_MEMORY_SIZE % 8 == 0, "ASAN_MEMORY_SIZE must be a multiple of 8");
+
+#define ASAN_MEMORY_END_ADDRESS ((void *)((uintptr_t)ASAN_MEMORY_START_ADDRESS + ASAN_MEMORY_SIZE))
+#define ASAN_SHADOW_MEMORY_SIZE (ASAN_MEMORY_SIZE / 8)
 
 //
 // types
@@ -101,11 +105,11 @@ _Noreturn static void asan_error(asan_operation_t type, void *addr, uintptr_t si
 }
 
 static bool is_in_shadow_region(void *addr) {
-    return ASAN_SHADOW_MEMORY_START_ADDRESS <= addr && addr <= (void *)((uintptr_t)ASAN_SHADOW_MEMORY_START_ADDRESS + ASAN_SHADOW_MEMORY_SIZE);
+    return ASAN_MEMORY_START_ADDRESS <= addr && addr <= ASAN_MEMORY_END_ADDRESS;
 }
 
 static shadow_pos_t addr_to_shadow(void *addr) {
-    uintptr_t offset = addr - ASAN_SHADOW_MEMORY_START_ADDRESS;
+    uintptr_t offset = addr - ASAN_MEMORY_START_ADDRESS;
 
     return (shadow_pos_t){
         .byte = offset / 8,
@@ -128,7 +132,7 @@ static void poison_addr(void *addr) {
     }
 
     if (is_poisoned(addr)) {
-        printf("[ERROR] asan: %p was already poisoned\n", addr);
+        // printf("[ERROR] asan: %p was already poisoned\n", addr);
     }
 
     shadow_pos_t pos = addr_to_shadow(addr);
@@ -188,7 +192,7 @@ __nosanitizeaddress void __asan_register_globals(void *globals, uintptr_t n) {
     __asan_global *g = globals;
     for (uintptr_t i = 0; i < n; i++) {
         __asan_global global = g[i];
-        poison_region((void *)global.beg, global.n);
+        unpoison_region((void *)global.beg, global.n);
     }
 }
 
@@ -197,7 +201,7 @@ __nosanitizeaddress void __asan_unregister_globals(void *globals, uintptr_t n) {
     __asan_global *g = globals;
     for (uintptr_t i = 0; i < n; i++) {
         __asan_global global = g[i];
-        unpoison_region((void *)global.beg, global.n);
+        poison_region((void *)global.beg, global.n);
     }
 }
 
