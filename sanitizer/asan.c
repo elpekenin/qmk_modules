@@ -65,14 +65,31 @@ typedef struct {
     uptr                           odr_indicator;
 } __asan_global;
 
+typedef struct {
+    uptr    addr;
+    uint8_t offset;
+} aligned_t;
+
 //
 // internal
 //
 
+// convert a pointer to given alignment
+// eg: start=0x203,alignment=8 -> aligned=0x200, offset=3
+static aligned_t align(uptr addr) {
+    const uptr alignment      = 8;
+    const uptr alignment_mask = alignment - 1;
+
+    return (aligned_t){
+        .addr   = addr & ~alignment_mask,
+        .offset = addr & alignment_mask,
+    };
+}
+
 static uint8_t shadow_mem[ASAN_MEMORY_SIZE / 8];
 
-__nosanitize static void report_error(void *start, uptr access_size, bool is_write, bool fatal) {
-    printf("[ERROR] asan: %s at %p\n", is_write ? "writing" : "loading", start);
+__nosanitize static void report_error(uptr start, uptr access_size, bool is_write, bool fatal) {
+    printf("[ERROR] asan: %s %d byte(s) at %x\n", is_write ? "writing" : "loading", access_size, start);
 
     if (!fatal) return;
 
@@ -80,17 +97,67 @@ __nosanitize static void report_error(void *start, uptr access_size, bool is_wri
     }
 }
 
-static uint8_t *addr_to_shadow(void *addr) {
+static uint8_t *addr_to_shadow(uptr addr) {
     // out-of-bounds
-    if (addr < ASAN_MEMORY_START_ADDRESS) return NULL;
-    if (addr > (void *)((uptr)ASAN_MEMORY_START_ADDRESS + ASAN_MEMORY_SIZE)) return NULL;
+    if (addr < (uptr)ASAN_MEMORY_START_ADDRESS) return NULL;
+    if (addr > (uptr)ASAN_MEMORY_START_ADDRESS + ASAN_MEMORY_SIZE) return NULL;
 
-    uptr offset = addr - ASAN_MEMORY_START_ADDRESS;
+    uptr offset = addr - (uptr)ASAN_MEMORY_START_ADDRESS;
     return shadow_mem + (offset / 8);
 }
 
-__nosanitize static void check_region(void *start, uptr access_size, bool is_write, bool fatal) {
-    uint8_t *shadow = addr_to_shadow(start);
+__attribute__((optimize("-fno-tree-loop-distribute-patterns"))) // prevent memset replacing the loop
+__nosanitize static void
+set_region(uptr start, uptr size, bool poison) {
+    uptr n = size; // updates remaining
+
+    const aligned_t aligned = align(start);
+
+    uint8_t *shadow = addr_to_shadow(aligned.addr);
+    if (shadow == NULL) {
+        return;
+    }
+
+    // handle first byte
+    if (aligned.offset != 0) {
+        // at most, we can update (8 - offset) bits
+        // number of bits to update is the minimum between that and n
+        const uint8_t bits = MIN(n, (8 - aligned.offset));
+
+        const uint8_t mask = ((1 << bits) - 1) << aligned.offset;
+        if (poison) {
+            *shadow |= mask;
+        } else {
+            *shadow &= ~mask;
+        }
+
+        n -= bits;
+    }
+
+    // packs of 8 bytes updated in batches
+    while (n >= 8) {
+        n -= 8;
+
+        *shadow = poison ? 0xFF : 0;
+    }
+
+    // update leftover bits
+    if (n > 0) {
+        const uint8_t mask = (1 << n) - 1;
+
+        if (poison) {
+            *shadow |= mask;
+        } else {
+            *shadow &= ~mask;
+        }
+    }
+}
+
+__nosanitize static void check_region(uptr start, uptr access_size, bool is_write, bool fatal) {
+    uptr n = access_size; // checked remaining
+
+    const aligned_t aligned = align(start);
+    const uint8_t  *shadow  = addr_to_shadow(aligned.addr);
     if (shadow == NULL) {
         return;
     }
@@ -104,96 +171,59 @@ __nosanitize static void check_region(void *start, uptr access_size, bool is_wri
         return;
     }
 
-    // TODO: speed this up
-    // TODO: handle start being in shadow, but (start+access_size) outside
-    uint8_t bit = 0;
-    for (uptr i = 0; i < access_size; ++i) {
-        // check if the bit is set
-        if (*shadow & (1 << bit)) {
-            // bit is set, report error
+    // slow path
+
+    if (aligned.offset != 0) {
+        const uint8_t bits = MIN(n, (8 - aligned.offset));
+
+        const uint8_t mask = ((1 << bits) - 1) << aligned.offset;
+        if (*shadow & mask) {
             report_error(start, access_size, is_write, fatal);
             return;
         }
 
-        // move to next bit
-        bit++;
-        if (bit == 8) {
-            shadow++;
-            bit = 0;
+        n -= bits;
+    }
+
+    while (n >= 8) {
+        n -= 8;
+
+        if (*shadow != 0) {
+            report_error(start, access_size, is_write, fatal);
+            return;
+        }
+    }
+
+    if (n > 0) {
+        const uint8_t mask = (1 << n) - 1;
+
+        if (*shadow & mask) {
+            report_error(start, access_size, is_write, fatal);
+            return;
         }
     }
 }
 
-__nosanitize static inline void update_bits(uint8_t *address, uint8_t mask, bool set) {
-    if (set) {
-        *address |= mask;
-    } else {
-        *address &= ~mask;
-    }
-}
-
-__attribute__((optimize("-fno-tree-loop-distribute-patterns"))) // prevent memset replacing the loop
-__nosanitize static void
-update_region(uptr start, uptr size, bool poison) {
-    uptr n = size; // bits left to be updated
-
-    const uint8_t alignment  = 8;
-    const uptr    align_mask = alignment - 1;
-
-    // eg: start=0x203 -> aligned=0x200, offset=3
-    const uptr    aligned = start & ~align_mask;
-    const uint8_t offset  = start & align_mask;
-
-    uint8_t *shadow = addr_to_shadow((void *)aligned);
-    if (shadow == NULL) {
-        return;
-    }
-
-    // handle first byte
-    if (offset != 0) {
-        // at most, we can update (8 - offset) bits
-        // number of bits to update is the minimum between that and n
-        const uint8_t bits = MIN(n, (8 - offset));
-        const uint8_t mask = ((1 << bits) - 1) << offset;
-
-        update_bits(shadow, mask, poison);
-        n -= bits;
-    }
-
-    // TODO: in one go uing memset (?)
-    // packs of 8 bytes updated in batches
-    while (n >= 8) {
-        *shadow = poison ? 0xFF : 0;
-        n -= 8;
-    }
-
-    // update leftover bits
-    if (n > 0) {
-        const uint8_t mask = (1 << n) - 1;
-        update_bits(shadow, mask, poison);
-    }
-}
-
 __nosanitize void poison_global(__asan_global *global) {
-    update_region(global->beg, global->n, false);
-    update_region(global->beg + global->n, global->n_with_redzone, true);
+    set_region(global->beg, global->n, false);
+    set_region(global->beg + global->n, global->n_with_redzone, true);
 }
 
 __nosanitize void unpoison_global(__asan_global *global) {
-    update_region(global->beg, global->n, true);
-    update_region(global->beg + global->n, global->n_with_redzone, false);
+    set_region(global->beg, global->n, true);
+    set_region(global->beg + global->n, global->n_with_redzone, false);
 }
 
 //
 // macros for repetitive functions
 //
 
-#define ASAN_REPORT_LOAD_STORE(size)                                      \
-    void __asan_load##size##_noabort(void *addr) {                        \
-        check_region(addr, size, /*is_write=*/false, /*is_fatal=*/false); \
-    }                                                                     \
-    void __asan_store##size##_noabort(void *addr) {                       \
-        check_region(addr, size, /*is_write=*/true, /*is_fatal=*/false);  \
+#define ASAN_REPORT_LOAD_STORE(size)                                            \
+    void __asan_load##size##_noabort(void *addr) {                              \
+        check_region((uptr)addr, size, /*is_write=*/false, /*is_fatal=*/false); \
+    }                                                                           \
+    void __asan_store##size##_noabort(void *addr) {                             \
+        check_region((uptr)addr, size, /*is_write=*/true, /*is_fatal=*/false);  \
     }
 
 //
@@ -221,12 +251,12 @@ void __asan_unregister_globals(void *globals, uptr n) {
 
 // poison alloca
 void __asan_alloca_poison(void *start, uintptr_t n) {
-    update_region((uptr)start, n, true);
+    set_region((uptr)start, n, true);
 }
 
 // unpoison alloca
 void __asan_allocas_unpoison(void *addr, uintptr_t n) {
-    update_region((uptr)addr, n, false);
+    set_region((uptr)addr, n, false);
 }
 
 ASAN_REPORT_LOAD_STORE(1)
@@ -236,9 +266,9 @@ ASAN_REPORT_LOAD_STORE(8)
 ASAN_REPORT_LOAD_STORE(16)
 
 void __asan_loadN_noabort(void *start, uptr size) {
-    check_region(start, size, /*is_write=*/false, /*fatal=*/false);
+    check_region((uptr)start, size, /*is_write=*/false, /*fatal=*/false);
 }
 
 void __asan_storeN_noabort(void *start, uptr size) {
-    check_region(start, size, /*is_write=*/true, /*fatal=*/false);
+    check_region((uptr)start, size, /*is_write=*/true, /*fatal=*/false);
 }
