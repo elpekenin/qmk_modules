@@ -18,10 +18,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <sys/cdefs.h>
 
 #include "printf/printf.h"
+
+/* can't use __nosanitizeaddress from <sys/cdefs.h> because it is clang-only and noop for GCC */
+#define __nosanitize __attribute__((no_sanitize_address))
 
 /**
  * Memory address where RAM starts.
@@ -70,7 +71,7 @@ typedef struct {
 
 static uint8_t shadow_mem[ASAN_MEMORY_SIZE / 8];
 
-__nosanitizeaddress static void report_error(void *start, uptr access_size, bool is_write, bool fatal) {
+__nosanitize static void report_error(void *start, uptr access_size, bool is_write, bool fatal) {
     printf("[ERROR] asan: %s at %p\n", is_write ? "writing" : "loading", start);
 
     if (!fatal) return;
@@ -88,7 +89,7 @@ static uint8_t *addr_to_shadow(void *addr) {
     return shadow_mem + (offset / 8);
 }
 
-__nosanitizeaddress static void access_check(void *start, uptr access_size, bool is_write, bool fatal) {
+__nosanitize static void check_region(void *start, uptr access_size, bool is_write, bool fatal) {
     uint8_t *shadow = addr_to_shadow(start);
     if (shadow == NULL) {
         return;
@@ -123,7 +124,7 @@ __nosanitizeaddress static void access_check(void *start, uptr access_size, bool
     }
 }
 
-__nosanitizeaddress static inline void update_bits(uint8_t *address, uint8_t mask, bool set) {
+__nosanitize static inline void update_bits(uint8_t *address, uint8_t mask, bool set) {
     if (set) {
         *address |= mask;
     } else {
@@ -131,7 +132,9 @@ __nosanitizeaddress static inline void update_bits(uint8_t *address, uint8_t mas
     }
 }
 
-__nosanitizeaddress static void update_region(uptr start, uptr size, bool poison) {
+__attribute__((optimize("-fno-tree-loop-distribute-patterns"))) // prevent memset replacing the loop
+__nosanitize static void
+update_region(uptr start, uptr size, bool poison) {
     uptr n = size; // bits left to be updated
 
     const uint8_t alignment  = 8;
@@ -171,71 +174,31 @@ __nosanitizeaddress static void update_region(uptr start, uptr size, bool poison
     }
 }
 
-__nosanitizeaddress void poison_global(__asan_global *global) {
+__nosanitize void poison_global(__asan_global *global) {
     update_region(global->beg, global->n, false);
     update_region(global->beg + global->n, global->n_with_redzone, true);
 }
 
-__nosanitizeaddress void unpoison_global(__asan_global *global) {
+__nosanitize void unpoison_global(__asan_global *global) {
     update_region(global->beg, global->n, true);
     update_region(global->beg + global->n, global->n_with_redzone, false);
-}
-
-static void *stack_malloc(__unused int id, uptr size) {
-    void *ptr = malloc(size);
-    if (ptr == NULL) {
-        return NULL;
-    }
-
-    update_region((uptr)ptr, size, false);
-
-    return ptr;
-}
-
-static void stack_free(__unused int id, void *ptr, uptr size) {
-    if (ptr == NULL) {
-        return;
-    }
-
-    update_region((uptr)ptr, size, true);
-
-    free(ptr);
 }
 
 //
 // macros for repetitive functions
 //
-#define ASAN_REPORT_LOAD_STORE(size)                                     \
-    __noinline void __asan_report_load##size(void *addr) {               \
-        report_error(addr, size, /*is_write=*/false, /*is_fatal=*/true); \
-        __unreachable();                                                 \
-    }                                                                    \
-    __noinline void __asan_report_store##size(void *addr) {              \
-        report_error(addr, size, /*is_write=*/true, /*is_fatal=*/true);  \
-        __unreachable();                                                 \
-    }
 
-#define ASAN_STACK_MALLOC_FREE_ID(id)                              \
-    __noinline void *__asan_stack_malloc_##id(uptr size) {         \
-        return stack_malloc(id, size);                             \
-    }                                                              \
-    __noinline void __asan_stack_free_##id(void *ptr, uptr size) { \
-        return stack_free(id, ptr, size);                          \
+#define ASAN_REPORT_LOAD_STORE(size)                                      \
+    void __asan_load##size##_noabort(void *addr) {                        \
+        check_region(addr, size, /*is_write=*/false, /*is_fatal=*/false); \
+    }                                                                     \
+    void __asan_store##size##_noabort(void *addr) {                       \
+        check_region(addr, size, /*is_write=*/true, /*is_fatal=*/false);  \
     }
 
 //
 // required API
 //
-
-// whether we want to detect stack use after return
-// not sure how to even implement this, so we disable it regardless of compiler flags
-int __asan_option_detect_stack_use_after_return = 0;
-
-// no-op, causes link error if compiler references a different version than implemented on this runtime
-void __asan_version_mismatch_check_v8(void) {}
-
-// runs before any instrumented code, no-op for now
-void __asan_init(void) {}
 
 // perform cleanup before a noreturn function
 void __asan_handle_no_return(void) {}
@@ -256,11 +219,6 @@ void __asan_unregister_globals(void *globals, uptr n) {
     }
 }
 
-// poison stack
-void __asan_poison_stack_memory(void *start, uintptr_t n) {
-    update_region((uptr)start, n, true);
-}
-
 // poison alloca
 void __asan_alloca_poison(void *start, uintptr_t n) {
     update_region((uptr)start, n, true);
@@ -271,35 +229,16 @@ void __asan_allocas_unpoison(void *addr, uintptr_t n) {
     update_region((uptr)addr, n, false);
 }
 
-// not used :/
-// __noinline void __asan_report_ ## type ## size ## _noabort(void *addr) {
-//     report_error(addr, is_write, size, 0, false);
-// }
-
 ASAN_REPORT_LOAD_STORE(1)
 ASAN_REPORT_LOAD_STORE(2)
 ASAN_REPORT_LOAD_STORE(4)
 ASAN_REPORT_LOAD_STORE(8)
 ASAN_REPORT_LOAD_STORE(16)
 
-__noinline void __asan_report_load_n(void *start, uptr size) {
-    access_check(start, size, /*is_write=*/false, /*fatal=*/true);
-    __unreachable();
+void __asan_loadN_noabort(void *start, uptr size) {
+    check_region(start, size, /*is_write=*/false, /*fatal=*/false);
 }
 
-__noinline void __asan_report_store_n(void *start, uptr size) {
-    access_check(start, size, /*is_write=*/true, /*fatal=*/true);
-    __unreachable();
+void __asan_storeN_noabort(void *start, uptr size) {
+    check_region(start, size, /*is_write=*/true, /*fatal=*/false);
 }
-
-ASAN_STACK_MALLOC_FREE_ID(0)
-ASAN_STACK_MALLOC_FREE_ID(1)
-ASAN_STACK_MALLOC_FREE_ID(2)
-ASAN_STACK_MALLOC_FREE_ID(3)
-ASAN_STACK_MALLOC_FREE_ID(4)
-ASAN_STACK_MALLOC_FREE_ID(5)
-ASAN_STACK_MALLOC_FREE_ID(6)
-ASAN_STACK_MALLOC_FREE_ID(7)
-ASAN_STACK_MALLOC_FREE_ID(8)
-ASAN_STACK_MALLOC_FREE_ID(9)
-ASAN_STACK_MALLOC_FREE_ID(10)
