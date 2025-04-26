@@ -6,7 +6,7 @@
  *   - https://github.com/llvm/llvm-project/tree/main/compiler-rt/lib/asan
  *
  * Notes:
- *  - Had to change between `uintptr_t` and `void *` in several places
+ *  - Had to change between `uptr` and `void *` in several places
  */
 
 /**
@@ -15,11 +15,10 @@
 
 // -- barrier --
 
-// TODO: Optimize using multi-bit read/write
-
 #include <stdbool.h>
-#include <stddef.h> // NULL
-#include <stdint.h> // uintptr_t
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <sys/cdefs.h>
 
 #include "printf/printf.h"
@@ -42,17 +41,11 @@ extern uint8_t __ram0_base__;
 #endif
 _Static_assert(ASAN_MEMORY_SIZE % 8 == 0, "ASAN_MEMORY_SIZE must be a multiple of 8");
 
-#define ASAN_MEMORY_END_ADDRESS ((void *)((uintptr_t)ASAN_MEMORY_START_ADDRESS + ASAN_MEMORY_SIZE))
-#define ASAN_SHADOW_MEMORY_SIZE (ASAN_MEMORY_SIZE / 8)
-
 //
 // types
 //
 
-typedef enum {
-    ASAN_LOAD,
-    ASAN_STORE,
-} asan_operation_t;
+typedef uintptr_t uptr;
 
 typedef struct {
     const char *filename;
@@ -61,122 +54,182 @@ typedef struct {
 } __asan_global_source_location;
 
 typedef struct {
-    uintptr_t                      beg;
-    uintptr_t                      n;
-    uintptr_t                      n_with_redzone;
+    uptr                           beg;
+    uptr                           n;
+    uptr                           n_with_redzone;
     const char                    *name;
     const char                    *module_name;
-    uintptr_t                      has_dynamic_init;
+    uptr                           has_dynamic_init;
     __asan_global_source_location *gcc_location;
-    uintptr_t                      odr_indicator;
+    uptr                           odr_indicator;
 } __asan_global;
-
-typedef struct {
-    uintptr_t byte;
-    uint8_t   bit;
-} shadow_pos_t;
 
 //
 // internal
 //
 
-static uint8_t shadow[ASAN_SHADOW_MEMORY_SIZE] = {
-    [0 ... ASAN_SHADOW_MEMORY_SIZE - 1] = 0xFF,
-};
+static uint8_t shadow_mem[ASAN_MEMORY_SIZE / 8];
 
-static const char *operation_as_str(asan_operation_t type) {
-    switch (type) {
-        case ASAN_LOAD:
-            return "reading";
+__nosanitizeaddress static void report_error(void *start, uptr access_size, bool is_write, bool fatal) {
+    printf("[ERROR] asan: %s at %p\n", is_write ? "writing" : "loading", start);
 
-        case ASAN_STORE:
-            return "storing";
+    if (!fatal) return;
 
-        default:
-            __unreachable();
+    while (true) {
     }
 }
 
-_Noreturn static void asan_error(asan_operation_t type, void *addr, uintptr_t size) {
-    printf("[ERROR] asan: %s %d byte(s) at %p\n", operation_as_str(type), size, addr);
-    while (1) {
-        // deadloop
-    }
+static uint8_t *addr_to_shadow(void *addr) {
+    // out-of-bounds
+    if (addr < ASAN_MEMORY_START_ADDRESS) return NULL;
+    if (addr > (void *)((uptr)ASAN_MEMORY_START_ADDRESS + ASAN_MEMORY_SIZE)) return NULL;
+
+    uptr offset = addr - ASAN_MEMORY_START_ADDRESS;
+    return shadow_mem + (offset / 8);
 }
 
-static bool is_in_shadow_region(void *addr) {
-    return ASAN_MEMORY_START_ADDRESS <= addr && addr <= ASAN_MEMORY_END_ADDRESS;
-}
-
-static shadow_pos_t addr_to_shadow(void *addr) {
-    uintptr_t offset = addr - ASAN_MEMORY_START_ADDRESS;
-
-    return (shadow_pos_t){
-        .byte = offset / 8,
-        .bit  = offset % 8,
-    };
-}
-
-static bool is_poisoned(void *addr) {
-    if (!is_in_shadow_region(addr)) {
-        return false;
-    }
-
-    shadow_pos_t pos = addr_to_shadow(addr);
-    return (shadow[pos.byte] & (1 << pos.bit)) != 0;
-}
-
-static void poison_addr(void *addr) {
-    if (!is_in_shadow_region(addr)) {
+__nosanitizeaddress static void access_check(void *start, uptr access_size, bool is_write, bool fatal) {
+    uint8_t *shadow = addr_to_shadow(start);
+    if (shadow == NULL) {
         return;
     }
 
-    if (is_poisoned(addr)) {
-        // printf("[ERROR] asan: %p was already poisoned\n", addr);
-    }
+    // fast path, no bits set
+    if (*shadow == 0) return;
 
-    shadow_pos_t pos = addr_to_shadow(addr);
-    shadow[pos.byte] |= (1 << pos.bit);
-}
-
-static void poison_region(void *start, uintptr_t n) {
-    for (uintptr_t i = 0; i < n; i++) {
-        poison_addr(start + i);
-    }
-}
-
-static void unpoison_addr(void *addr) {
-    if (!is_in_shadow_region(addr)) {
+    // fast path, all bits set -> poison for sure
+    if (*shadow == 0xFF) {
+        report_error(start, access_size, is_write, fatal);
         return;
     }
 
-    shadow_pos_t pos = addr_to_shadow(addr);
-    shadow[pos.byte] &= ~(1 << pos.bit);
-}
+    // TODO: speed this up
+    // TODO: handle start being in shadow, but (start+access_size) outside
+    uint8_t bit = 0;
+    for (uptr i = 0; i < access_size; ++i) {
+        // check if the bit is set
+        if (*shadow & (1 << bit)) {
+            // bit is set, report error
+            report_error(start, access_size, is_write, fatal);
+            return;
+        }
 
-static void unpoison_region(void *start, uintptr_t n) {
-    for (uintptr_t i = 0; i < n; i++) {
-        unpoison_addr(start + i);
+        // move to next bit
+        bit++;
+        if (bit == 8) {
+            shadow++;
+            bit = 0;
+        }
     }
 }
 
-static void *stack_malloc(__unused uintptr_t id, __unused uintptr_t n) {
-    return NULL;
+__nosanitizeaddress static inline void update_bits(uint8_t *address, uint8_t mask, bool set) {
+    if (set) {
+        *address |= mask;
+    } else {
+        *address &= ~mask;
+    }
 }
 
-static void stack_free(__unused uintptr_t id, __unused void *addr, __unused uintptr_t n) {}
+__nosanitizeaddress static void update_region(uptr start, uptr size, bool poison) {
+    uptr n = size; // bits left to be updated
+
+    const uint8_t alignment  = 8;
+    const uptr    align_mask = alignment - 1;
+
+    // eg: start=0x203 -> aligned=0x200, offset=3
+    const uptr    aligned = start & ~align_mask;
+    const uint8_t offset  = start & align_mask;
+
+    uint8_t *shadow = addr_to_shadow((void *)aligned);
+    if (shadow == NULL) {
+        return;
+    }
+
+    // handle first byte
+    if (offset != 0) {
+        // at most, we can update (8 - offset) bits
+        // number of bits to update is the minimum between that and n
+        const uint8_t bits = MIN(n, (8 - offset));
+        const uint8_t mask = ((1 << bits) - 1) << offset;
+
+        update_bits(shadow, mask, poison);
+        n -= bits;
+    }
+
+    // TODO: in one go uing memset (?)
+    // packs of 8 bytes updated in batches
+    while (n >= 8) {
+        *shadow = poison ? 0xFF : 0;
+        n -= 8;
+    }
+
+    // update leftover bits
+    if (n > 0) {
+        const uint8_t mask = (1 << n) - 1;
+        update_bits(shadow, mask, poison);
+    }
+}
+
+__nosanitizeaddress void poison_global(__asan_global *global) {
+    update_region(global->beg, global->n, false);
+    update_region(global->beg + global->n, global->n_with_redzone, true);
+}
+
+__nosanitizeaddress void unpoison_global(__asan_global *global) {
+    update_region(global->beg, global->n, true);
+    update_region(global->beg + global->n, global->n_with_redzone, false);
+}
+
+static void *stack_malloc(__unused int id, uptr size) {
+    void *ptr = malloc(size);
+    if (ptr == NULL) {
+        return NULL;
+    }
+
+    update_region((uptr)ptr, size, false);
+
+    return ptr;
+}
+
+static void stack_free(__unused int id, void *ptr, uptr size) {
+    if (ptr == NULL) {
+        return;
+    }
+
+    update_region((uptr)ptr, size, true);
+
+    free(ptr);
+}
 
 //
-// config flags
+// macros for repetitive functions
+//
+#define ASAN_REPORT_LOAD_STORE(size)                                     \
+    __noinline void __asan_report_load##size(void *addr) {               \
+        report_error(addr, size, /*is_write=*/false, /*is_fatal=*/true); \
+        __unreachable();                                                 \
+    }                                                                    \
+    __noinline void __asan_report_store##size(void *addr) {              \
+        report_error(addr, size, /*is_write=*/true, /*is_fatal=*/true);  \
+        __unreachable();                                                 \
+    }
+
+#define ASAN_STACK_MALLOC_FREE_ID(id)                              \
+    __noinline void *__asan_stack_malloc_##id(uptr size) {         \
+        return stack_malloc(id, size);                             \
+    }                                                              \
+    __noinline void __asan_stack_free_##id(void *ptr, uptr size) { \
+        return stack_free(id, ptr, size);                          \
+    }
+
+//
+// required API
 //
 
 // whether we want to detect stack use after return
 // not sure how to even implement this, so we disable it regardless of compiler flags
 int __asan_option_detect_stack_use_after_return = 0;
-
-//
-// required API
-//
 
 // no-op, causes link error if compiler references a different version than implemented on this runtime
 void __asan_version_mismatch_check_v8(void) {}
@@ -187,93 +240,66 @@ void __asan_init(void) {}
 // perform cleanup before a noreturn function
 void __asan_handle_no_return(void) {}
 
-// track an array of `n` global variables
-__nosanitizeaddress void __asan_register_globals(void *globals, uintptr_t n) {
+// poison `n` global variables
+void __asan_register_globals(void *globals, uptr n) {
     __asan_global *g = globals;
-    for (uintptr_t i = 0; i < n; i++) {
-        __asan_global global = g[i];
-        unpoison_region((void *)global.beg, global.n);
+    for (uptr i = 0; i < n; i++) {
+        poison_global(g + i);
     }
 }
 
-// stop tracking an array of `n` global variables
-__nosanitizeaddress void __asan_unregister_globals(void *globals, uintptr_t n) {
+// unpoison `n` global variables
+void __asan_unregister_globals(void *globals, uptr n) {
     __asan_global *g = globals;
-    for (uintptr_t i = 0; i < n; i++) {
-        __asan_global global = g[i];
-        poison_region((void *)global.beg, global.n);
+    for (uptr i = 0; i < n; i++) {
+        unpoison_global(g + i);
     }
 }
 
 // poison stack
-void __asan_poison_stack_memory(void *addr, uintptr_t n) {
-    poison_region(addr, n);
+void __asan_poison_stack_memory(void *start, uintptr_t n) {
+    update_region((uptr)start, n, true);
 }
 
-// poison for alloca (?)
-void __asan_alloca_poison(void *addr, uintptr_t n) {
-    poison_region(addr, n);
+// poison alloca
+void __asan_alloca_poison(void *start, uintptr_t n) {
+    update_region((uptr)start, n, true);
 }
 
-// clear poison
+// unpoison alloca
 void __asan_allocas_unpoison(void *addr, uintptr_t n) {
-    unpoison_region(addr, n);
+    update_region((uptr)addr, n, false);
 }
 
-#define REPORT_LOAD_FUNC(size)                            \
-    _Noreturn void __asan_report_load##size(void *addr) { \
-        asan_error(ASAN_LOAD, addr, size);                \
-    }
-REPORT_LOAD_FUNC(1)
-REPORT_LOAD_FUNC(2)
-REPORT_LOAD_FUNC(4)
-REPORT_LOAD_FUNC(8)
-REPORT_LOAD_FUNC(16)
-_Noreturn void __asan_report_load_n(void *addr, uintptr_t size) {
-    asan_error(ASAN_LOAD, addr, size);
+// not used :/
+// __noinline void __asan_report_ ## type ## size ## _noabort(void *addr) {
+//     report_error(addr, is_write, size, 0, false);
+// }
+
+ASAN_REPORT_LOAD_STORE(1)
+ASAN_REPORT_LOAD_STORE(2)
+ASAN_REPORT_LOAD_STORE(4)
+ASAN_REPORT_LOAD_STORE(8)
+ASAN_REPORT_LOAD_STORE(16)
+
+__noinline void __asan_report_load_n(void *start, uptr size) {
+    access_check(start, size, /*is_write=*/false, /*fatal=*/true);
+    __unreachable();
 }
 
-#define REPORT_STORE_FUNC(size)                            \
-    _Noreturn void __asan_report_store##size(void *addr) { \
-        asan_error(ASAN_STORE, addr, size);                \
-    }
-REPORT_STORE_FUNC(1)
-REPORT_STORE_FUNC(2)
-REPORT_STORE_FUNC(4)
-REPORT_STORE_FUNC(8)
-REPORT_STORE_FUNC(16)
-_Noreturn void __asan_report_store_n(void *addr, uintptr_t size) {
-    asan_error(ASAN_STORE, addr, size);
+__noinline void __asan_report_store_n(void *start, uptr size) {
+    access_check(start, size, /*is_write=*/true, /*fatal=*/true);
+    __unreachable();
 }
 
-#define STACK_MALLOC_FUNC(id)                    \
-    void __asan_stack_malloc_##id(uintptr_t n) { \
-        stack_malloc(id, n);                     \
-    }
-STACK_MALLOC_FUNC(0)
-STACK_MALLOC_FUNC(1)
-STACK_MALLOC_FUNC(2)
-STACK_MALLOC_FUNC(3)
-STACK_MALLOC_FUNC(4)
-STACK_MALLOC_FUNC(5)
-STACK_MALLOC_FUNC(6)
-STACK_MALLOC_FUNC(7)
-STACK_MALLOC_FUNC(8)
-STACK_MALLOC_FUNC(9)
-STACK_MALLOC_FUNC(10)
-
-#define STACK_FREE_FUNC(id)                                \
-    void __asan_stack_free_##id(void *addr, uintptr_t n) { \
-        stack_free(id, addr, n);                           \
-    }
-STACK_FREE_FUNC(0)
-STACK_FREE_FUNC(1)
-STACK_FREE_FUNC(2)
-STACK_FREE_FUNC(3)
-STACK_FREE_FUNC(4)
-STACK_FREE_FUNC(5)
-STACK_FREE_FUNC(6)
-STACK_FREE_FUNC(7)
-STACK_FREE_FUNC(8)
-STACK_FREE_FUNC(9)
-STACK_FREE_FUNC(10)
+ASAN_STACK_MALLOC_FREE_ID(0)
+ASAN_STACK_MALLOC_FREE_ID(1)
+ASAN_STACK_MALLOC_FREE_ID(2)
+ASAN_STACK_MALLOC_FREE_ID(3)
+ASAN_STACK_MALLOC_FREE_ID(4)
+ASAN_STACK_MALLOC_FREE_ID(5)
+ASAN_STACK_MALLOC_FREE_ID(6)
+ASAN_STACK_MALLOC_FREE_ID(7)
+ASAN_STACK_MALLOC_FREE_ID(8)
+ASAN_STACK_MALLOC_FREE_ID(9)
+ASAN_STACK_MALLOC_FREE_ID(10)
