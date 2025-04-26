@@ -41,6 +41,10 @@
 
 #include <quantum/quantum.h>
 
+#if !defined(RGB_MATRIX_ENABLE)
+#    error RGB matrix must be enabled to use ledmap
+#endif
+
 #if defined(COMMUNITY_MODULE_TYPES_ENABLE)
 #    include "elpekenin/types.h"
 #else

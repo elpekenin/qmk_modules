@@ -12,6 +12,10 @@
 #include <quantum/quantum.h>
 #include <quantum/util.h>
 
+#if !defined(QUANTUM_PAINTER_ENABLE)
+#    error Quantum painter must be enabled to use scrolling_text
+#endif
+
 /**
  * How many scrolling texts can be drawn at the same time.
  */

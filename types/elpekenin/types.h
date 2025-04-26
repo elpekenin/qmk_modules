@@ -11,15 +11,9 @@
 
 #include <quantum/util.h>
 #include <stdbool.h>
+#include <sys/cdefs.h>
 
-// forward declare for circular dependency
-//   - `crash.h` returns `Option(crash_info_t)`
-//   - `types.h` uses `exception(char *reason)` on `unwrap`
-#if defined(COMMUNITY_MODULE_CRASH_ENABLE)
-_Noreturn void exception(const char *reason);
-#else
-#    error Must enable 'elpekenin/crash'
-#endif
+#include "printf/printf.h"
 
 #define _Result(T, E) result___##T##___##E
 
@@ -111,29 +105,35 @@ _Noreturn void exception(const char *reason);
 
 // -- barrier --
 
+_Noreturn static inline void _raise_err(const char *msg) {
+    printf("[ERROR] %s\n", msg);
+    while (true) {
+    }
+}
+
 /**
  * Get the inner value from an `Ok`/`Some` value. Panic if `Err`/`None`.
  */
-#define unwrap(v)                                            \
-    ({                                                       \
-        /* is_ok / is_some */                                \
-        /* relies on them being first element of struct */   \
-        bool *ptr = (bool *)&v;                              \
-        if (!(*ptr)) {                                       \
-            exception("called `unwrap` on `Err` or `None`"); \
-        }                                                    \
-                                                             \
-        v.__value;                                           \
+#define unwrap(v)                                             \
+    ({                                                        \
+        /* is_ok / is_some */                                 \
+        /* relies on them being first element of struct */    \
+        bool *ptr = (bool *)&v;                               \
+        if (!(*ptr)) {                                        \
+            _raise_err("called `unwrap` on `Err` or `None`"); \
+        }                                                     \
+                                                              \
+        v.__value;                                            \
     })
 
 /**
  * Get the inner value from an `Err`. Panic if `Ok`.
  */
-#define unwrap_err(v)                                 \
-    ({                                                \
-        if (v.is_ok) {                                \
-            exception("called `unwrap_err` on `Ok`"); \
-        }                                             \
-                                                      \
-        v.__error;                                    \
+#define unwrap_err(v)                                  \
+    ({                                                 \
+        if (v.is_ok) {                                 \
+            _raise_err("called `unwrap_err` on `Ok`"); \
+        }                                              \
+                                                       \
+        v.__error;                                     \
     })

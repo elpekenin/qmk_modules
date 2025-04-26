@@ -24,6 +24,10 @@
 
 #include <quantum/quantum.h>
 
+#if !defined(RGB_MATRIX_ENABLE)
+#    error RGB matrix must be enabled to use indicators
+#endif
+
 /**
  * .. hint::
  *    In general, you will use the :ref:`convenience macros <indicator-macros>`.

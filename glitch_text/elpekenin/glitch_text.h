@@ -11,6 +11,10 @@
 
 #include <stdint.h>
 
+#if !defined(QUANTUM_PAINTER_ENABLE)
+#    error Quantum painter must be enabled to use glitch_text
+#endif
+
 /**
  * How many glitch texts can be drawn at the same time.
  */
