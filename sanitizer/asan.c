@@ -21,7 +21,9 @@
 
 #include "printf/printf.h"
 
-/* can't use __nosanitizeaddress from <sys/cdefs.h> because it is clang-only and noop for GCC */
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
+// can't use __nosanitizeaddress from <sys/cdefs.h> because it is clang-only and noop for GCC
 #define __nosanitize __attribute__((no_sanitize_address))
 
 /**
@@ -62,7 +64,10 @@ typedef struct {
     const char                    *module_name;
     uptr                           has_dynamic_init;
     __asan_global_source_location *gcc_location;
-    uptr                           odr_indicator;
+#if GCC_VERSION > 70000
+    // new in GCC 7
+    uptr odr_indicator;
+#endif
 } __asan_global;
 
 typedef struct {
