@@ -13,8 +13,6 @@
 #    define scrolling_text_dprintf(...)
 #endif
 
-ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 0, 0);
-
 static deferred_executor_t    scrolling_text_executors[CONCURRENT_SCROLLING_TEXTS] = {0};
 static scrolling_text_state_t scrolling_text_states[CONCURRENT_SCROLLING_TEXTS]    = {0};
 
@@ -191,6 +189,12 @@ void stop_scrolling_text(deferred_token scrolling_token) {
 
     scrolling_text_dprintf("[ERROR] %s: Unknown scrolling token\n", __func__);
 }
+
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 0, 0);
 
 void housekeeping_task_scrolling_text(void) {
     static uint32_t timer = 0;

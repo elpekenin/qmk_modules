@@ -20,8 +20,6 @@
 #    define glitch_text_dprintf(...)
 #endif
 
-ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 0, 0);
-
 static deferred_executor_t glitch_text_executors[CONCURRENT_GLITCH_TEXTS] = {0};
 static glitch_text_state_t glitch_text_states[CONCURRENT_GLITCH_TEXTS]    = {0};
 
@@ -138,6 +136,12 @@ int glitch_text_start(const char *text, callback_fn_t callback) {
 
     return 0;
 }
+
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 0, 0);
 
 void housekeeping_task_glitch_text(void) {
     static uint32_t timer = 0;

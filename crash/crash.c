@@ -17,8 +17,6 @@
 /* When set into a known address, flags that the program has crashed. */
 #define MAGIC_VALUE (0xDEADA55)
 
-ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
-
 __noinit uint32_t magic;
 
 static uint32_t copied_magic = 0;
@@ -31,14 +29,6 @@ Option(crash_info_t) get_crash(void) {
     }
 
     return None(crash_info_t);
-}
-
-// copy magic from no-init variable
-// then clear it, so we dont report same crash twice after restart
-void keyboard_pre_init_crash(void) {
-    copied_magic = magic;
-
-    magic = 0;
 }
 
 // store crash's cause and reset the controller (instead of deadloop or w/e)
@@ -112,3 +102,17 @@ __interrupt void MemManage_Handler(void) {
 
 // defined by ChibiOS, for context swap (?)
 // HANDLER(NMI_Handler);
+
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
+
+// copy magic from no-init variable
+// then clear it, so we dont report same crash twice after restart
+void keyboard_pre_init_crash(void) {
+    copied_magic = magic;
+
+    magic = 0;
+}
