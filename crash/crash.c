@@ -24,7 +24,7 @@ static uint32_t copied_magic = 0;
 __noinit static crash_info_t crash_info;
 
 Option(crash_info_t) get_crash(void) {
-    if (copied_magic != MAGIC_VALUE) {
+    if (copied_magic == MAGIC_VALUE) {
         return Some(crash_info_t, crash_info);
     }
 

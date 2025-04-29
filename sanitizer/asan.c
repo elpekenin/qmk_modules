@@ -10,7 +10,8 @@
  *  - Similarly, globals' functions changed from `__asan_global *` to `void *`
  */
 
-// TODO: malloc/free
+// TODO: realloc
+// TODO: handle (start + size) going OOB
 
 /**
  * Small address sanitizer runtime.
@@ -21,28 +22,27 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "community_modules.h"
 #include "printf/printf.h"
 
-// can't use __nosanitizeaddress from <sys/cdefs.h> because it is clang-only and noop for GCC
-#define __nosanitize __attribute__((no_sanitize_address))
-
-// TODO?: Use linker to allocate the buffer's size, of exactly __ram0_size__ bytes
-/**
- * How big the (tracked) RAM is.
- */
-#ifndef ASAN_MEMORY_SIZE
-// default to RP2040's RAM size
-#    define ASAN_MEMORY_SIZE (264 * 1024)
+#if defined(COMMUNITY_MODULE_CRASH_ENABLE)
+#    include <backtrace.h>
 #endif
-_Static_assert(ASAN_MEMORY_SIZE % 8 == 0, "ASAN_MEMORY_SIZE must be a multiple of 8");
 
 /**
  * How big redzones are.
  */
-#ifndef ASAN_REDZONE_SIZE
-#    define ASAN_REDZONE_SIZE (4)
+#ifndef KASAN_REDZONE_SIZE
+#    define KASAN_REDZONE_SIZE (4)
+#endif
+
+/**
+ * How many malloc entries to track.
+ */
+#ifndef KASAN_MALLOC_ARRAY_SIZE
+#    define KASAN_MALLOC_ARRAY_SIZE (100)
 #endif
 
 //
@@ -71,217 +71,279 @@ struct __asan_global {
 };
 
 //
-// internal
+// sanitizer implementation
 //
-
-extern uint8_t __ram0_base__, __ram0_end__, __ram0_free__;
-extern uint8_t __main_stack_base__, __main_stack_end__;
-extern uint8_t __process_stack_base__, __process_stack_end__;
-
-static const uptr ram_start = (uptr)&__ram0_base__;
-static const uptr ram_end   = (uptr)&__ram0_end__;
-
-#if 0
-static const uptr ram_free  = (uptr)&__ram0_free__;
-
-static const uptr main_stack_start = (uptr)&__main_stack_base__;
-static const uptr main_stack_end   = (uptr)&__main_stack_end__;
-
-static const uptr process_stack_start = (uptr)&__process_stack_base__;
-static const uptr process_stack_end   = (uptr)&__process_stack_end__;
-#endif
 
 typedef struct {
     uptr    addr;
     uint8_t offset;
 } aligned_t;
 
-#define LOAD false
-#define WRITE true
+// custom symbols on linker
+extern uint8_t __kasan_shadow_base__, __kasan_shadow_end__;
+const uptr     shadow_base = (uptr)&__kasan_shadow_base__;
+const uptr     shadow_end  = (uptr)&__kasan_shadow_end__;
 
-#define NON_POISON false
-#define POISON true
+// ChibiOS
+extern uint8_t __ram0_base__, __ram0_end__;
+extern uint8_t __heap_base__, __heap_end__;
 
-#define NON_FATAL false
-#define FATAL true
+const uptr ram_base = (uptr)&__ram0_base__;
+const uptr ram_end  = (uptr)&__ram0_end__;
 
-// convert a pointer to given alignment
-// eg: start=0x203,alignment=8 -> aligned=0x200, offset=3
-static aligned_t align(uptr addr) {
-    const uptr alignment      = 8;
-    const uptr alignment_mask = alignment - 1;
+const uptr heap_base = (uptr)&__heap_base__;
+const uptr heap_end  = (uptr)&__heap_end__;
 
-    return (aligned_t){
-        .addr   = addr & ~alignment_mask,
-        .offset = addr & alignment_mask,
-    };
+static bool kasan_active = false;
+
+static inline uptr get_caller_pc(void) {
+    return (uptr)__builtin_extract_return_addr(__builtin_return_address(0));
 }
 
-static bool asan_active = false;
+static void report_error(uptr start, uptr access_size, uptr pc, bool is_write, bool fatal) {
+#if defined(COMMUNITY_MODULE_CRASH_ENABLE)
+    const char *const func = backtrace_function_name(pc);
+#else
+    const char *const func = "<unknown function>";
+    (void)pc;
+#endif
 
-static uint8_t shadow_mem[ASAN_MEMORY_SIZE / 8] = {0};
-
-__nosanitize static void report_error(uptr start, uptr access_size, bool is_write, bool fatal) {
-    printf("[ERROR] asan: %s %d byte(s) at %x\n", is_write ? "writing" : "loading", access_size, start);
+    printf("[ERROR] asan: invalid %s of %d byte(s) at 0x%X (in %s)\n", is_write ? "write" : "load", access_size, start, func);
 
     while (fatal) {
     }
 }
 
-static uint8_t *addr_to_shadow(uptr addr) {
-    // out-of-bounds
-    if (addr < ram_start || addr > ram_end) {
+static aligned_t get_aligned_shadow(uptr addr) {
+    const uptr alignment      = 8;
+    const uptr alignment_mask = alignment - 1;
+
+    aligned_t ret = {
+        .addr   = addr & ~alignment_mask,
+        .offset = addr & alignment_mask,
+    };
+
+    // not in the section of RAM we are monitoring
+    if (ret.addr < ram_base || ret.addr > ram_end) {
+        ret.addr = (uptr)NULL;
+        return ret;
+    }
+
+    // 1. compute offset in bytes between aligned-addr and start of RAM
+    // 2. convert it to a position in shadow mem by `/ 8` (each byte represented with a bit)
+    const uptr offset = ret.addr - ram_base;
+    ret.addr          = shadow_base + (offset / 8);
+
+    return ret;
+}
+
+static void set_region(uptr start, uptr size, bool poison) {
+    const aligned_t aligned_shadow = get_aligned_shadow(start);
+    if (aligned_shadow.addr == 0) {
+        return;
+    }
+
+    uint8_t *shadow = (void *)aligned_shadow.addr;
+    uint8_t  offset = aligned_shadow.offset;
+
+    // first bits
+    if (offset != 0) {
+        // at most, we can update (8 - offset) bits
+        // number of bits to update is the minimum between that and n
+        const uint8_t bits = MIN(size, (8 - offset));
+
+        const uint8_t mask = ((1 << bits) - 1) << offset;
+        if (poison) {
+            *shadow |= mask;
+        } else {
+            *shadow &= ~mask;
+        }
+
+        size -= bits;
+    }
+
+    // complete bytes
+    const uint8_t value   = poison ? 0xFF : 0;
+    const uptr    n_bytes = size / 8;
+    size                  = size % 8;
+    memset(shadow, value, n_bytes);
+
+    // last bits
+    if (size > 0) {
+        const uint8_t mask = (1 << size) - 1;
+
+        if (poison) {
+            *shadow |= mask;
+        } else {
+            *shadow &= ~mask;
+        }
+    }
+}
+
+static bool is_valid_access(uptr start, uptr access_size) {
+    if (__predict_false(!kasan_active)) {
+        return true;
+    }
+
+    const aligned_t aligned_shadow = get_aligned_shadow(start);
+    if (aligned_shadow.addr == 0) {
+        return true;
+    }
+
+    const uint8_t *shadow = (void *)aligned_shadow.addr;
+    const uint8_t  offset = aligned_shadow.offset;
+
+    // all bits unset, not hitting poison
+    if (*shadow == 0) {
+        return true;
+    }
+
+    // all bits set, hitting poison for sure
+    if (*shadow == 0xFF) {
+        return false;
+    }
+
+    /* at this point, we must perform actual check */
+
+    // first bits
+    if (offset != 0) {
+        const uint8_t bits = MIN(access_size, (8 - offset));
+
+        const uint8_t mask = ((1 << bits) - 1) << offset;
+        if (*shadow & mask) {
+            return false;
+        }
+
+        access_size -= bits;
+    }
+
+    // complete bytes
+    while (access_size >= 8) {
+        access_size -= 8;
+
+        if (*shadow != 0) {
+            return false;
+        }
+    }
+
+    // last bits
+    if (access_size > 0) {
+        const uint8_t mask = (1 << access_size) - 1;
+
+        if (*shadow & mask) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static void kasan_init(void) {
+    // initialize shadow with 0
+    memset((void *)shadow_base, 0, shadow_end - shadow_base);
+
+    // blacklist yet-unused RAM (aka: heap)
+    set_region(heap_base, heap_end - heap_base, /*poison=*/true);
+
+    kasan_active = true;
+}
+
+//
+// track heap operations
+//
+
+typedef struct {
+    void  *addr;
+    size_t n;
+} allocation_t;
+
+extern void *__real_malloc(size_t);
+extern void  __real_free(void *);
+
+static allocation_t allocations[KASAN_MALLOC_ARRAY_SIZE] = {0};
+
+static allocation_t *find_allocation(void *ptr) {
+    for (uint8_t i = 0; i < KASAN_MALLOC_ARRAY_SIZE; ++i) {
+        if (allocations[i].addr == ptr) {
+            return &allocations[i];
+        }
+    }
+
+    return NULL;
+}
+
+void *__wrap_malloc(size_t n) {
+    void *ptr = __real_malloc(n);
+    if (ptr == NULL) {
         return NULL;
     }
 
-    uptr offset = addr - ram_start;
-    return shadow_mem + (offset / 8);
+    allocation_t *alloc = find_allocation(NULL); // find empty slot
+    if (alloc != NULL) {
+        set_region((uptr)ptr, n, /*poison=*/false);
+
+        *alloc = (allocation_t){
+            .addr = ptr,
+            .n    = n,
+        };
+    }
+
+    return ptr;
 }
 
-__nosanitize static void set_region(uptr start, uptr size, bool poison) {
-    uptr n = size; // updates remaining
-
-    const aligned_t aligned = align(start);
-
-    uint8_t *shadow = addr_to_shadow(aligned.addr);
-    if (shadow == NULL) {
+void __wrap_free(void *ptr) {
+    if (ptr == NULL) {
         return;
     }
 
-    // handle first byte
-    if (aligned.offset != 0) {
-        // at most, we can update (8 - offset) bits
-        // number of bits to update is the minimum between that and n
-        const uint8_t bits = MIN(n, (8 - aligned.offset));
+    allocation_t *alloc = find_allocation(ptr);
+    if (alloc != NULL) {
+        set_region((uptr)ptr, alloc->n, /*poison=*/true);
 
-        const uint8_t mask = ((1 << bits) - 1) << aligned.offset;
-        if (poison) {
-            *shadow |= mask;
-        } else {
-            *shadow &= ~mask;
-        }
-
-        n -= bits;
+        *alloc = (allocation_t){
+            .addr = NULL,
+            .n    = 0,
+        };
     }
 
-    // packs of 8 bytes updated in batches
-    while (n >= 8) {
-        n -= 8;
-
-        *shadow = poison ? 0xFF : 0;
-    }
-
-    // update leftover bits
-    if (n > 0) {
-        const uint8_t mask = (1 << n) - 1;
-
-        if (poison) {
-            *shadow |= mask;
-        } else {
-            *shadow &= ~mask;
-        }
-    }
-}
-
-__nosanitize static void check_region(uptr start, uptr access_size, bool is_write, bool fatal) {
-    if (__predict_false(!asan_active)) {
-        return;
-    }
-
-    uptr n = access_size; // checked remaining
-
-    const aligned_t aligned = align(start);
-    const uint8_t  *shadow  = addr_to_shadow(aligned.addr);
-    if (shadow == NULL) {
-        return;
-    }
-
-    // fast path, no bits set
-    if (*shadow == 0) {
-        return;
-    }
-
-    // fast path, all bits set -> poison for sure
-    if (*shadow == 0xFF) {
-        report_error(start, access_size, is_write, fatal);
-        return;
-    }
-
-    // slow path
-
-    if (aligned.offset != 0) {
-        const uint8_t bits = MIN(n, (8 - aligned.offset));
-
-        const uint8_t mask = ((1 << bits) - 1) << aligned.offset;
-        if (*shadow & mask) {
-            report_error(start, access_size, is_write, fatal);
-            return;
-        }
-
-        n -= bits;
-    }
-
-    while (n >= 8) {
-        n -= 8;
-
-        if (*shadow != 0) {
-            report_error(start, access_size, is_write, fatal);
-            return;
-        }
-    }
-
-    if (n > 0) {
-        const uint8_t mask = (1 << n) - 1;
-
-        if (*shadow & mask) {
-            report_error(start, access_size, is_write, fatal);
-            return;
-        }
-    }
+    __real_free(ptr);
 }
 
 //
 // required API
 //
 
-// perform cleanup before a noreturn function
+// perform cleanup before a noreturn function, no-op for now
 void __asan_handle_no_return(void) {}
 
+#if KASAN_GLOBALS
 // poison `n` global variables
-__nosanitize void __asan_register_globals(void *globals, uptr n) {
-    struct __asan_global *g = globals;
-
+void __asan_register_globals(void *globals, uptr n) {
     for (uptr i = 0; i < n; i++) {
-        struct __asan_global global = g[i];
-
-        // valid
-        set_region(global.beg, global.n, NON_POISON);
-
-        // redzone afterwards
-        set_region(global.beg + global.n, global.n_with_redzone, POISON);
+        struct __asan_global *global = (struct __asan_global *)globals + i;
+        set_region(global->beg, global->n, /*poison=*/false);                         // valid
+        set_region(global->beg + global->n, global->n_with_redzone, /*poison=*/true); // redzone
     }
 }
 
-// unpoison `n` global variables
-__nosanitize void __asan_unregister_globals(void *globals, uptr n) {
-    return;
+// unpoison `n` global variables, never called
+void __asan_unregister_globals(void *globals, uptr n) {}
+#endif
 
-    struct __asan_global *g = globals;
-
-    for (uptr i = 0; i < n; i++) {
-        struct __asan_global global = g[i];
-
-        set_region(global.beg, global.n, POISON);
-        set_region(global.beg + global.n, global.n_with_redzone, NON_POISON);
-    }
-}
-
-#define ASAN_REPORT_LOAD_STORE(size)                      \
-    void __asan_load##size##_noabort(void *addr) {        \
-        check_region((uptr)addr, size, LOAD, NON_FATAL);  \
-    }                                                     \
-    void __asan_store##size##_noabort(void *addr) {       \
-        check_region((uptr)addr, size, WRITE, NON_FATAL); \
+#define ASAN_REPORT_LOAD_STORE(size)                                                     \
+    void __asan_load##size##_noabort(void *addr) {                                       \
+        const uptr s = (uptr)addr;                                                       \
+                                                                                         \
+        if (!is_valid_access(s, size)) {                                                 \
+            report_error(s, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false); \
+        }                                                                                \
+    }                                                                                    \
+    void __asan_store##size##_noabort(void *addr) {                                      \
+        const uptr s = (uptr)addr;                                                       \
+                                                                                         \
+        if (!is_valid_access(s, size)) {                                                 \
+            report_error(s, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);  \
+        }                                                                                \
     }
 
 ASAN_REPORT_LOAD_STORE(1)
@@ -291,27 +353,37 @@ ASAN_REPORT_LOAD_STORE(8)
 ASAN_REPORT_LOAD_STORE(16)
 
 void __asan_loadN_noabort(void *start, uptr size) {
-    check_region((uptr)start, size, LOAD, NON_FATAL);
+    const uptr s = (uptr)start;
+
+    if (!is_valid_access(s, size)) {
+        report_error(s, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false);
+    }
 }
 
 void __asan_storeN_noabort(void *start, uptr size) {
-    check_region((uptr)start, size, WRITE, NON_FATAL);
+    const uptr s = (uptr)start;
+
+    if (!is_valid_access(s, size)) {
+        report_error(s, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);
+    }
 }
 
+#if KASAN_ALLOCAS
 // poison alloca
 void __asan_alloca_poison(void *start, uintptr_t n) {
     // valid
-    set_region((uptr)start, n, NON_POISON);
+    set_region((uptr)start, n, /*poison=*/false);
 
     // redzone on both sides (out-of-bounds access)
-    set_region((uptr)start - ASAN_REDZONE_SIZE, ASAN_REDZONE_SIZE, POISON);
-    set_region((uptr)start + n, ASAN_REDZONE_SIZE, POISON);
+    set_region((uptr)start - KASAN_REDZONE_SIZE, KASAN_REDZONE_SIZE, /*poison=*/true);
+    set_region((uptr)start + n, KASAN_REDZONE_SIZE, /*poison=*/true);
 }
 
 // unpoison alloca
 void __asan_allocas_unpoison(void *start, uintptr_t n) {
-    set_region((uptr)start, n, NON_POISON);
+    set_region((uptr)start, n, /*poison=*/false);
 }
+#endif
 
 //
 // QMK hooks
@@ -320,16 +392,5 @@ void __asan_allocas_unpoison(void *start, uintptr_t n) {
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
 void keyboard_post_init_sanitizer(void) {
-    // FIXME:
-#if 0
-    // backlist unused RAM
-    set_region(ram_free, ram_end - ram_free, POISON);
-
-    // ... but not the stack
-    set_region(main_stack_end, main_stack_end - main_stack_start, NON_POISON);
-    set_region(process_stack_start, process_stack_end - main_stack_start, NON_POISON);
-#endif
-
-    asan_active = true;
-    printf("asan: started\n");
+    kasan_init();
 }

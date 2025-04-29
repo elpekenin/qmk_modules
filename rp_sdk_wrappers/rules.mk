@@ -9,12 +9,12 @@ OPT_DEFS += \
 # bit
 SRC += $(PICOSDKROOT)/src/rp2_common/pico_bit_ops/bit_ops_aeabi.S
 EXTRALDFLAGS += \
-	-Wl,--wrap=__clzsi2 \
-	-Wl,--wrap=__clzdi2 \
-	-Wl,--wrap=__ctzsi2 \
-	-Wl,--wrap=__ctzdi2 \
-	-Wl,--wrap=__popcountsi2 \
-	-Wl,--wrap=__popcountdi2
+    -Wl,--wrap=__clzsi2 \
+    -Wl,--wrap=__clzdi2 \
+    -Wl,--wrap=__ctzsi2 \
+    -Wl,--wrap=__ctzdi2 \
+    -Wl,--wrap=__popcountsi2 \
+    -Wl,--wrap=__popcountdi2
 
 # double
 VPATH += $(PICOSDKROOT)/src/rp2_common/pico_double/include

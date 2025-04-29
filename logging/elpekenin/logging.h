@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <quantum/quantum.h> // sendchar_func_t
-
 #include "printf/printf.h" // ATTR_PRINTF
 
 #ifndef LOGGING_FORMAT
