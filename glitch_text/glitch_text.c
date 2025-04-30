@@ -15,6 +15,7 @@
 #endif
 
 #ifdef GLITCH_TEXT_DEBUG
+#    include "quantum/logging/debug.h"
 #    define glitch_text_dprintf dprintf
 #else
 #    define glitch_text_dprintf(...)

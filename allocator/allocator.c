@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #ifdef ALLOCATOR_DEBUG
+#    include "quantum/logging/debug.h"
 #    define allocator_dprintf dprintf
 #else
 #    define allocator_dprintf(...)

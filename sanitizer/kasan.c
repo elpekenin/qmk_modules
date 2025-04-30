@@ -23,8 +23,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 #include "community_modules.h"
+#include "deferred_exec.h"
 #include "printf/printf.h"
 
 #if defined(COMMUNITY_MODULE_CRASH_ENABLE)
@@ -42,8 +44,17 @@
  * How many malloc entries to track.
  */
 #ifndef KASAN_MALLOC_ARRAY_SIZE
-#    define KASAN_MALLOC_ARRAY_SIZE (100)
+#    define KASAN_MALLOC_ARRAY_SIZE (300)
 #endif
+
+#ifdef KASAN_DEBUG
+#    include "quantum/logging/debug.h"
+#    define kasan_dprintf dprintf
+#else
+#    define kasan_dprintf(...)
+#endif
+
+#define __nosan __attribute__((no_sanitize("address", "kernel-address")))
 
 //
 // types
@@ -76,7 +87,7 @@ struct __asan_global {
 
 typedef struct {
     uptr    addr;
-    uint8_t offset;
+    uint8_t offset; // 0-7, u8 is enough
 } aligned_t;
 
 // custom symbols on linker
@@ -96,7 +107,7 @@ const uptr heap_end  = (uptr)&__heap_end__;
 
 static bool kasan_active = false;
 
-static inline uptr get_caller_pc(void) {
+static inline __always_inline uptr get_caller_pc(void) {
     return (uptr)__builtin_extract_return_addr(__builtin_return_address(0));
 }
 
@@ -114,7 +125,7 @@ static void report_error(uptr start, uptr access_size, uptr pc, bool is_write, b
     }
 }
 
-static aligned_t get_aligned_shadow(uptr addr) {
+__nosan static aligned_t get_aligned_shadow(uptr addr) {
     const uptr alignment      = 8;
     const uptr alignment_mask = alignment - 1;
 
@@ -137,7 +148,7 @@ static aligned_t get_aligned_shadow(uptr addr) {
     return ret;
 }
 
-static void set_region(uptr start, uptr size, bool poison) {
+__nosan static void set_region(uptr start, uptr size, bool poison) {
     const aligned_t aligned_shadow = get_aligned_shadow(start);
     if (aligned_shadow.addr == 0) {
         return;
@@ -239,13 +250,14 @@ static bool is_valid_access(uptr start, uptr access_size) {
 }
 
 static void kasan_init(void) {
-    // initialize shadow with 0
+    kasan_dprintf("initializing shadow with 0s\n");
     memset((void *)shadow_base, 0, shadow_end - shadow_base);
 
-    // blacklist yet-unused RAM (aka: heap)
+    kasan_dprintf("poisoning unused RAM (heap)\n");
     set_region(heap_base, heap_end - heap_base, /*poison=*/true);
 
     kasan_active = true;
+    kasan_dprintf("kasan enabled\n");
 }
 
 //
@@ -262,19 +274,20 @@ extern void  __real_free(void *);
 
 static allocation_t allocations[KASAN_MALLOC_ARRAY_SIZE] = {0};
 
-static allocation_t *find_allocation(void *ptr) {
-    for (uint8_t i = 0; i < KASAN_MALLOC_ARRAY_SIZE; ++i) {
+__nosan static allocation_t *find_allocation(void *ptr) {
+    for (uptr i = 0; i < KASAN_MALLOC_ARRAY_SIZE; ++i) {
         if (allocations[i].addr == ptr) {
-            return &allocations[i];
+            return allocations + i;
         }
     }
 
+    kasan_dprintf("could not find allocation slot with ptr=%p\n", ptr);
     return NULL;
 }
 
-void *__wrap_malloc(size_t n) {
+__nosan void *__wrap_malloc(size_t n) {
     void *ptr = __real_malloc(n);
-    if (ptr == NULL) {
+    if (__predict_false(ptr == NULL)) {
         return NULL;
     }
 
@@ -291,8 +304,9 @@ void *__wrap_malloc(size_t n) {
     return ptr;
 }
 
-void __wrap_free(void *ptr) {
-    if (ptr == NULL) {
+__nosan void __wrap_free(void *ptr) {
+    __real_free(ptr);
+    if (__predict_false(ptr == NULL)) {
         return;
     }
 
@@ -305,8 +319,6 @@ void __wrap_free(void *ptr) {
             .n    = 0,
         };
     }
-
-    __real_free(ptr);
 }
 
 //
@@ -314,11 +326,17 @@ void __wrap_free(void *ptr) {
 //
 
 // perform cleanup before a noreturn function, no-op for now
-void __asan_handle_no_return(void) {}
+void __asan_handle_no_return(void) {
+    kasan_dprintf("no-return cleanup invoked\n");
+}
 
 #if KASAN_GLOBALS
+// TODO?: store [redzone_start, redzone_end] range and global's name for reporting
+
 // poison `n` global variables
-void __asan_register_globals(void *globals, uptr n) {
+__nosan void __asan_register_globals(void *globals, uptr n) {
+    kasan_dprintf("registering %d globals\n", n);
+
     for (uptr i = 0; i < n; i++) {
         struct __asan_global *global = (struct __asan_global *)globals + i;
         set_region(global->beg, global->n, /*poison=*/false);                         // valid
@@ -327,21 +345,22 @@ void __asan_register_globals(void *globals, uptr n) {
 }
 
 // unpoison `n` global variables, never called
-void __asan_unregister_globals(void *globals, uptr n) {}
+void __asan_unregister_globals(void *globals, uptr n) {
+    kasan_dprintf("unregistering of %d globals was ignored\n", n);
+}
 #endif
 
 #define ASAN_REPORT_LOAD_STORE(size)                                                     \
     void __asan_load##size##_noabort(void *addr) {                                       \
         const uptr s = (uptr)addr;                                                       \
-                                                                                         \
-        if (!is_valid_access(s, size)) {                                                 \
+        if (__predict_false(!is_valid_access(s, size))) {                                \
             report_error(s, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false); \
         }                                                                                \
     }                                                                                    \
+                                                                                         \
     void __asan_store##size##_noabort(void *addr) {                                      \
         const uptr s = (uptr)addr;                                                       \
-                                                                                         \
-        if (!is_valid_access(s, size)) {                                                 \
+        if (__predict_false(!is_valid_access(s, size))) {                                \
             report_error(s, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);  \
         }                                                                                \
     }
@@ -355,7 +374,7 @@ ASAN_REPORT_LOAD_STORE(16)
 void __asan_loadN_noabort(void *start, uptr size) {
     const uptr s = (uptr)start;
 
-    if (!is_valid_access(s, size)) {
+    if (__predict_false(!is_valid_access(s, size))) {
         report_error(s, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false);
     }
 }
@@ -363,24 +382,24 @@ void __asan_loadN_noabort(void *start, uptr size) {
 void __asan_storeN_noabort(void *start, uptr size) {
     const uptr s = (uptr)start;
 
-    if (!is_valid_access(s, size)) {
+    if (__predict_false(!is_valid_access(s, size))) {
         report_error(s, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);
     }
 }
 
 #if KASAN_ALLOCAS
 // poison alloca
-void __asan_alloca_poison(void *start, uintptr_t n) {
-    // valid
-    set_region((uptr)start, n, /*poison=*/false);
+void __asan_alloca_poison(void *start, uptr n) {
+    kasan_dprintf("poison alloca\n");
 
-    // redzone on both sides (out-of-bounds access)
-    set_region((uptr)start - KASAN_REDZONE_SIZE, KASAN_REDZONE_SIZE, /*poison=*/true);
-    set_region((uptr)start + n, KASAN_REDZONE_SIZE, /*poison=*/true);
+    set_region((uptr)start - KASAN_REDZONE_SIZE, KASAN_REDZONE_SIZE, /*poison=*/true); // redzone
+    set_region((uptr)start, n, /*poison=*/false);                                      // valid
+    set_region((uptr)start + n, KASAN_REDZONE_SIZE, /*poison=*/true);                  // redzone
 }
 
 // unpoison alloca
-void __asan_allocas_unpoison(void *start, uintptr_t n) {
+void __asan_allocas_unpoison(void *start, uptr n) {
+    kasan_dprintf("unpoison alloca\n");
     set_region((uptr)start, n, /*poison=*/false);
 }
 #endif
@@ -391,6 +410,14 @@ void __asan_allocas_unpoison(void *start, uintptr_t n) {
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
-void keyboard_post_init_sanitizer(void) {
+static uint32_t delayed_kasan_init(uint32_t tt, void *a) {
     kasan_init();
+    return 0;
+}
+
+// This is a funny one...
+//   * Initializing kasan eagerly (on post_init) caused device to not even enumerate USB
+//   * Same logic with `housekeeping` + `timer_read()` doesn't work either WTF, leave as is
+void keyboard_post_init_sanitizer(void) {
+    defer_exec(3000, delayed_kasan_init, NULL);
 }

@@ -1,5 +1,5 @@
 KASAN_GLOBALS ?= 1
-KASAN_STACK ?= 0  # seems to cause crash
+KASAN_STACK ?= 0  # TODO: seems to cause crash
 KASAN_ALLOCAS ?= 1
 
 # params in the order seen at https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
@@ -15,13 +15,13 @@ CFLAGS += \
 
 # FIXME: crashes
 # needed to track dynamic memory allocation, (un)poisoning affected regions
-# EXTRALDFLAGS += \
-#     -Wl,--wrap=free \
-#     -Wl,--wrap=malloc
+EXTRALDFLAGS += \
+    -Wl,--wrap=free \
+    -Wl,--wrap=malloc
 
 OPT_DEFS += \
     -DKASAN_GLOBALS=$(KASAN_GLOBALS) \
     -DKASAN_STACK=$(KASAN_STACK) \
     -DKASAN_ALLOCAS=$(KASAN_ALLOCAS)
 
-SRC += $(MODULE_PATH_SANITIZER)/asan.c
+SRC += $(MODULE_PATH_SANITIZER)/kasan.c
