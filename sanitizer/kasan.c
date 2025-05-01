@@ -8,16 +8,12 @@
  * Notes:
  *  - Had to change between `uptr` and `void *` in several places
  *  - Similarly, globals' functions changed from `__asan_global *` to `void *`
+ *
+ * TODO:
+ *  - Check if start+size goes OOB
  */
 
-// TODO: realloc
-// TODO: handle (start + size) going OOB
-
-/**
- * Small address sanitizer runtime.
- */
-
-// -- barrier --
+#include "elpekenin/sanitizer/kasan.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,26 +21,10 @@
 #include <string.h>
 #include <sys/cdefs.h>
 
-#include "community_modules.h"
-#include "deferred_exec.h"
 #include "printf/printf.h"
 
 #if defined(COMMUNITY_MODULE_CRASH_ENABLE)
 #    include <backtrace.h>
-#endif
-
-/**
- * How big redzones are.
- */
-#ifndef KASAN_REDZONE_SIZE
-#    define KASAN_REDZONE_SIZE (4)
-#endif
-
-/**
- * How many malloc entries to track.
- */
-#ifndef KASAN_MALLOC_ARRAY_SIZE
-#    define KASAN_MALLOC_ARRAY_SIZE (300)
 #endif
 
 #ifdef KASAN_DEBUG
@@ -125,31 +105,43 @@ static void report_error(uptr start, uptr access_size, uptr pc, bool is_write, b
     }
 }
 
-__nosan static aligned_t get_aligned_shadow(uptr addr) {
+__nosan static aligned_t get_aligned_shadow(uptr start, uptr size) {
+    const uptr end = start + size;
+
+    // not in the address range we are monitoring
+    if (start < ram_base || end > ram_end) {
+        return (aligned_t){
+            .addr   = 0,
+            .offset = 0,
+        };
+    }
+
+    // end is out of shadow mem
+    const uptr shadow_size = shadow_end - shadow_base;
+    if ((size / 8) > shadow_size) {
+        return (aligned_t){
+            .addr   = 0,
+            .offset = 0,
+        };
+    }
+
     const uptr alignment      = 8;
     const uptr alignment_mask = alignment - 1;
 
-    aligned_t ret = {
-        .addr   = addr & ~alignment_mask,
-        .offset = addr & alignment_mask,
+    const uptr aligned = start & ~alignment_mask;
+    const uptr offset  = start & alignment_mask;
+
+    const uptr sh_offset = aligned - ram_base;
+    const uptr sh_addr   = shadow_base + (sh_offset / 8);
+
+    return (aligned_t){
+        .addr   = sh_addr,
+        .offset = offset,
     };
-
-    // not in the section of RAM we are monitoring
-    if (ret.addr < ram_base || ret.addr > ram_end) {
-        ret.addr = (uptr)NULL;
-        return ret;
-    }
-
-    // 1. compute offset in bytes between aligned-addr and start of RAM
-    // 2. convert it to a position in shadow mem by `/ 8` (each byte represented with a bit)
-    const uptr offset = ret.addr - ram_base;
-    ret.addr          = shadow_base + (offset / 8);
-
-    return ret;
 }
 
 __nosan static void set_region(uptr start, uptr size, bool poison) {
-    const aligned_t aligned_shadow = get_aligned_shadow(start);
+    const aligned_t aligned_shadow = get_aligned_shadow(start, size);
     if (aligned_shadow.addr == 0) {
         return;
     }
@@ -196,7 +188,7 @@ static bool is_valid_access(uptr start, uptr access_size) {
         return true;
     }
 
-    const aligned_t aligned_shadow = get_aligned_shadow(start);
+    const aligned_t aligned_shadow = get_aligned_shadow(start, access_size);
     if (aligned_shadow.addr == 0) {
         return true;
     }
@@ -249,32 +241,23 @@ static bool is_valid_access(uptr start, uptr access_size) {
     return true;
 }
 
-static void kasan_init(void) {
-    kasan_dprintf("initializing shadow with 0s\n");
-    memset((void *)shadow_base, 0, shadow_end - shadow_base);
-
-    kasan_dprintf("poisoning unused RAM (heap)\n");
-    set_region(heap_base, heap_end - heap_base, /*poison=*/true);
-
-    kasan_active = true;
-    kasan_dprintf("kasan enabled\n");
-}
-
 //
 // track heap operations
 //
 
 typedef struct {
-    void  *addr;
-    size_t n;
+    const void *addr;
+    size_t      n;
 } allocation_t;
 
 extern void *__real_malloc(size_t);
 extern void  __real_free(void *);
+extern void *__real_calloc(size_t, size_t);
+extern void *__real_realloc(void *, size_t);
 
 static allocation_t allocations[KASAN_MALLOC_ARRAY_SIZE] = {0};
 
-__nosan static allocation_t *find_allocation(void *ptr) {
+__nosan static allocation_t *find_allocation(const void *ptr) {
     for (uptr i = 0; i < KASAN_MALLOC_ARRAY_SIZE; ++i) {
         if (allocations[i].addr == ptr) {
             return allocations + i;
@@ -285,22 +268,41 @@ __nosan static allocation_t *find_allocation(void *ptr) {
     return NULL;
 }
 
+__nosan void push_allocation(const void *ptr, size_t n) {
+    allocation_t *alloc = find_allocation(NULL); // find empty slot
+    if (alloc == NULL) {
+        return;
+    }
+
+    set_region((uptr)ptr, n, /*poison=*/false);
+
+    *alloc = (allocation_t){
+        .addr = ptr,
+        .n    = n,
+    };
+}
+
+__nosan void pop_allocation(const void *ptr) {
+    allocation_t *alloc = find_allocation(ptr);
+    if (alloc == NULL) {
+        return;
+    }
+
+    set_region((uptr)ptr, alloc->n, /*poison=*/true);
+
+    *alloc = (allocation_t){
+        .addr = NULL,
+        .n    = 0,
+    };
+}
+
 __nosan void *__wrap_malloc(size_t n) {
     void *ptr = __real_malloc(n);
     if (__predict_false(ptr == NULL)) {
         return NULL;
     }
 
-    allocation_t *alloc = find_allocation(NULL); // find empty slot
-    if (alloc != NULL) {
-        set_region((uptr)ptr, n, /*poison=*/false);
-
-        *alloc = (allocation_t){
-            .addr = ptr,
-            .n    = n,
-        };
-    }
-
+    push_allocation(ptr, n);
     return ptr;
 }
 
@@ -310,19 +312,32 @@ __nosan void __wrap_free(void *ptr) {
         return;
     }
 
-    allocation_t *alloc = find_allocation(ptr);
-    if (alloc != NULL) {
-        set_region((uptr)ptr, alloc->n, /*poison=*/true);
+    pop_allocation(ptr);
+}
 
-        *alloc = (allocation_t){
-            .addr = NULL,
-            .n    = 0,
-        };
+__nosan void *__wrap_calloc(size_t nmemb, size_t size) {
+    void *ptr = __real_calloc(nmemb, size);
+    if (__predict_false(ptr == NULL)) {
+        return NULL;
     }
+
+    push_allocation(ptr, nmemb * size);
+    return ptr;
+}
+
+__nosan void *__wrap_realloc(void *ptr, size_t size) {
+    void *new_ptr = __real_realloc(ptr, size);
+    if (__predict_false(new_ptr == NULL)) {
+        return NULL;
+    }
+
+    pop_allocation(ptr);
+    push_allocation(new_ptr, size);
+    return ptr;
 }
 
 //
-// required API
+// required by runtime
 //
 
 // perform cleanup before a noreturn function, no-op for now
@@ -331,8 +346,6 @@ void __asan_handle_no_return(void) {
 }
 
 #if KASAN_GLOBALS
-// TODO?: store [redzone_start, redzone_end] range and global's name for reporting
-
 // poison `n` global variables
 __nosan void __asan_register_globals(void *globals, uptr n) {
     kasan_dprintf("registering %d globals\n", n);
@@ -405,19 +418,16 @@ void __asan_allocas_unpoison(void *start, uptr n) {
 #endif
 
 //
-// QMK hooks
+// exposed API
 //
 
-ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
+void kasan_init(void) {
+    kasan_dprintf("initializing shadow with 0s\n");
+    memset((void *)shadow_base, 0, shadow_end - shadow_base);
 
-static uint32_t delayed_kasan_init(uint32_t tt, void *a) {
-    kasan_init();
-    return 0;
-}
+    kasan_dprintf("poisoning unused RAM (heap)\n");
+    set_region(heap_base, heap_end - heap_base, /*poison=*/true);
 
-// This is a funny one...
-//   * Initializing kasan eagerly (on post_init) caused device to not even enumerate USB
-//   * Same logic with `housekeeping` + `timer_read()` doesn't work either WTF, leave as is
-void keyboard_post_init_sanitizer(void) {
-    defer_exec(3000, delayed_kasan_init, NULL);
+    kasan_active = true;
+    kasan_dprintf("kasan enabled\n");
 }
