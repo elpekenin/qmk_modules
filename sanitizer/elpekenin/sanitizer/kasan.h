@@ -8,7 +8,7 @@
  *
  * You can tweak this module's behavior with the following flags on your makefile (set them to either ``0`` or ``1``)
  *   - ``KASAN_GLOBALS``: track global variables
- *   - ``KASAN_STACK``: extra checks on stack variable... Seems to crash as of now
+ *   - ``KASAN_STACK``: extra checks on stack variables... Seems to crash as of now
  *   - ``KASAN_ALLOCAS``: extra checks for ``alloca()`` and VLA
  *   - ``KASAN_MALLOC``: wrap dynamic memory allocation, to mark it as available
  *
@@ -18,13 +18,13 @@
  *
  *     To do that on my RP2040, i've edited ChibiOS' linker script such that ram0 is now 8/9 of its original size, and the last 1/9 (now ram2) is used by sanitizer.
  *
- *     These numbers come from the fact that tracking each memory location (byte) to check whether it is available is stored on a single bit.
+ *     These numbers come from the fact that for tracking whether each memory location (byte) is available, we use a single bit.
  *     As such, the memory needed would be 1/8 of total RAM, but since we dont want to track this memory itself, we can do 1/9.
  *
  * .. danger::
  *    Adds significant RAM usage and some code slow down.
  *
- *    Only use it for debugging, or if your MCU is powerful enough.
+ *    Only use it for debugging, or if your MCU has enough resources.
  */
 
 // -- barrier --
