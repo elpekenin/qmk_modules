@@ -12,7 +12,7 @@
 #include "qmk.h"
 
 #if defined(RGB_MATRIX_ENABLE) || COLLECTING_QSTR == 1
-typedef struct _qmk_rgb_t {
+typedef struct qmk_rgb_t {
     mp_obj_base_t base;
     rgb_t         inner;
 } qmk_rgb_t;
@@ -25,7 +25,7 @@ typedef enum {
 } color_channel_t;
 
 static inline mp_int_t validate_color(mp_int_t color) {
-    if (color < 0 || color > 255) {
+    if (color < 0 || color > UINT8_MAX) {
         mp_raise_ValueError(MP_ERROR_TEXT("color must be in [0, 255]"));
     }
 
@@ -36,12 +36,13 @@ static inline mp_int_t validate_color(mp_int_t color) {
 static void qmk_rgb_RGB_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     color_channel_t channel = none;
 
-    if (attr == MP_QSTR_r)
+    if (attr == MP_QSTR_r) {
         channel = r;
-    else if (attr == MP_QSTR_g)
+    } else if (attr == MP_QSTR_g) {
         channel = g;
-    else if (attr == MP_QSTR_b)
+    } else if (attr == MP_QSTR_b) {
         channel = b;
+    }
 
     // attribute not found, continue lookup in locals dict.
     if (channel == none) {

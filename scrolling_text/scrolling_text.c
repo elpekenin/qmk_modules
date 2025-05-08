@@ -28,7 +28,7 @@ static int render_scrolling_text_state(scrolling_text_state_t *state) {
     memset(slice, 0, state->n_chars + 1);
 
     uint8_t len = strlen(state->str);
-    for (int8_t i = 0; i < state->n_chars; ++i) {
+    for (uint8_t i = 0; i < state->n_chars; ++i) {
         uint8_t index = (state->char_number + i);
 
         // wrap to string length (plus spaces)
@@ -66,7 +66,7 @@ static int render_scrolling_text_state(scrolling_text_state_t *state) {
     return ret;
 }
 
-static uint32_t scrolling_text_callback(uint32_t trigger_time, void *cb_arg) {
+static uint32_t scrolling_text_callback(__unused uint32_t trigger_time, void *cb_arg) {
     scrolling_text_state_t *state = (scrolling_text_state_t *)cb_arg;
     int                     ret   = render_scrolling_text_state(state);
 
@@ -111,6 +111,9 @@ deferred_token draw_scrolling_text_recolor(painter_device_t device, uint16_t x, 
     // note, len is the buffer size we allocated right above (strlen(str) + 1)
     strlcpy(scrolling_state->str, str, len);
 
+    // TODO: Receive as argument?
+    const uint8_t spaces = 5;
+
     // Prepare the scrolling state
     scrolling_state->device      = device;
     scrolling_state->x           = x;
@@ -119,7 +122,7 @@ deferred_token draw_scrolling_text_recolor(painter_device_t device, uint16_t x, 
     scrolling_state->n_chars     = n_chars;
     scrolling_state->delay       = delay;
     scrolling_state->char_number = 0;
-    scrolling_state->spaces      = 5; // TODO: Receive as argument?
+    scrolling_state->spaces      = spaces;
     scrolling_state->fg          = (qp_pixel_t){.hsv888 = {.h = hue_fg, .s = sat_fg, .v = val_fg}};
     scrolling_state->bg          = (qp_pixel_t){.hsv888 = {.h = hue_bg, .s = sat_bg, .v = val_bg}};
 

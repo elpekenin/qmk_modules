@@ -10,8 +10,7 @@
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
 // ChibiOS-specific
-extern uint8_t __main_stack_end__;
-extern uint8_t __main_stack_base__;
+extern uint8_t __main_stack_base__, __main_stack_end__;
 
 static uint8_t py_heap[MICROPY_HEAP_SIZE] = {0};
 

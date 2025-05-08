@@ -23,4 +23,4 @@
  *     spi_mode: SPI mode to use when communicating with the display
  *     buf: Address of the buffer where data will be stored
  */
-painter_device_t qp_ls0xx_device_t_make_spi_device(uint16_t panel_width, uint16_t panel_height, pin_t chip_select_pin, uint16_t spi_divisor, int spi_mode, void *buf);
+painter_device_t qp_ls0xx_device_t_make_spi_device(uint16_t panel_width, uint16_t panel_height, pin_t chip_select_pin, uint16_t spi_divisor, int8_t spi_mode, void *buf);

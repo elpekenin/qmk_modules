@@ -6,6 +6,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+#define BIT(x) ((uint8_t)1 << (x))
+
 size_t str_available(string_t str) {
     return str.size - str.used;
 }
@@ -32,22 +34,21 @@ int str_printf(string_t *str, const char *fmt, ...) {
 
 int pretty_bytes(string_t *str, size_t n) {
     // space for b to align with kb/mb/gb
-    const static char *magnitudes[] = {" b", "kb", "mb", "gb"};
+    const static char *magnitudes[] = {" b", "kb", "mb", "gb", "tb", "pb"};
 
     int8_t index = 0;
-    size_t copy  = n / 1024;
-    while (copy >= 1024) {
-        copy /= 1024;
+    while (n >= 1024) {
+        n /= 1024;
         index++;
     }
 
-    return str_printf(str, "%3d%s", (int)copy, magnitudes[index]);
+    return str_printf(str, "%3d%s", (int)n, magnitudes[index]);
 }
 
-bool is_utf8(char c) {
-    return c & (1 << 7); // 1xxx xxxx
+bool is_utf8(char chr) {
+    return chr & BIT(7); // 1xxx xxxx
 }
 
-bool is_utf8_continuation(char c) {
-    return is_utf8(c) && !(c & (1 << 6)); // 10xx xxxx
+bool is_utf8_continuation(char chr) {
+    return is_utf8(chr) && !BIT(6); // 10xx xxxx
 }

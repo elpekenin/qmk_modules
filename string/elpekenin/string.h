@@ -66,9 +66,9 @@ static inline __always_inline string_t str_new(size_t n) {
 /**
  * Create a ``string_t`` wrapper for the given buffer.
  */
-#define str_from_buffer(buffer)                               \
-    (string_t) {                                              \
-        .size = ARRAY_SIZE(buffer), .used = 0, .ptr = buffer, \
+#define str_from_buffer(buffer)                                 \
+    (string_t) {                                                \
+        .size = ARRAY_SIZE(buffer), .used = 0, .ptr = (buffer), \
     }
 
 /**
@@ -99,9 +99,9 @@ int pretty_bytes(string_t *str, size_t n);
 /**
  * Check whether a char is UTF8.
  */
-bool is_utf8(char c);
+bool is_utf8(char chr);
 
 /**
  * Check whether a char is a UTF8-continuation byte.
  */
-bool is_utf8_continuation(char c);
+bool is_utf8_continuation(char chr);

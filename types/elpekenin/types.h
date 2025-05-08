@@ -43,17 +43,17 @@
 /**
  * Create a result with the given value.
  */
-#define Ok(T, E, v)                  \
-    (Result(T, E)) {                 \
-        .is_ok = true, .__value = v, \
+#define Ok(T, E, v)                    \
+    (Result(T, E)) {                   \
+        .is_ok = true, .__value = (v), \
     }
 
 /**
  * Create a result instance with the given error.
  */
-#define Err(T, E, e)                  \
-    (Result(T, E)) {                  \
-        .is_ok = false, .__error = e, \
+#define Err(T, E, e)                    \
+    (Result(T, E)) {                    \
+        .is_ok = false, .__error = (e), \
     }
 
 /**
@@ -86,9 +86,9 @@
 /**
  * Create an option with the given value.
  */
-#define Some(T, v)                     \
-    (Option(T)) {                      \
-        .is_some = true, .__value = v, \
+#define Some(T, v)                       \
+    (Option(T)) {                        \
+        .is_some = true, .__value = (v), \
     }
 
 /**
@@ -105,7 +105,7 @@
 
 // -- barrier --
 
-_Noreturn static inline void _raise_err(const char *msg) {
+_Noreturn static inline void raise_error(const char *msg) {
     printf("[ERROR] %s\n", msg);
     while (true) {
     }
@@ -114,26 +114,26 @@ _Noreturn static inline void _raise_err(const char *msg) {
 /**
  * Get the inner value from an `Ok`/`Some` value. Panic if `Err`/`None`.
  */
-#define unwrap(v)                                             \
-    ({                                                        \
-        /* is_ok / is_some */                                 \
-        /* relies on them being first element of struct */    \
-        bool *ptr = (bool *)&v;                               \
-        if (!(*ptr)) {                                        \
-            _raise_err("called `unwrap` on `Err` or `None`"); \
-        }                                                     \
-                                                              \
-        v.__value;                                            \
+#define unwrap(v)                                              \
+    ({                                                         \
+        /* is_ok / is_some */                                  \
+        /* relies on them being first element of struct */     \
+        bool *ptr = (bool *)&(v);                              \
+        if (!(*ptr)) {                                         \
+            raise_error("called `unwrap` on `Err` or `None`"); \
+        }                                                      \
+                                                               \
+        (v).__value;                                           \
     })
 
 /**
  * Get the inner value from an `Err`. Panic if `Ok`.
  */
-#define unwrap_err(v)                                  \
-    ({                                                 \
-        if (v.is_ok) {                                 \
-            _raise_err("called `unwrap_err` on `Ok`"); \
-        }                                              \
-                                                       \
-        v.__error;                                     \
+#define unwrap_err(v)                                   \
+    ({                                                  \
+        if ((v).is_ok) {                                \
+            raise_error("called `unwrap_err` on `Ok`"); \
+        }                                               \
+                                                        \
+        (v).__error;                                    \
     })

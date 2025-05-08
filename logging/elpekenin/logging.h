@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include "printf/printf.h" // ATTR_PRINTF
 
 #ifndef LOGGING_FORMAT

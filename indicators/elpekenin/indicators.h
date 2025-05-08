@@ -111,7 +111,7 @@ typedef struct PACKED {
     (indicator_t) {                       \
         .color = {rgb}, .flags = KEYCODE, \
         .conditions = {                   \
-            .keycode = _keycode,          \
+            .keycode = (_keycode),        \
         },                                \
     }
 
@@ -126,7 +126,7 @@ typedef struct PACKED {
     (indicator_t) {                     \
         .color = {rgb}, .flags = LAYER, \
         .conditions = {                 \
-            .layer = _layer,            \
+            .layer = (_layer),          \
         },                              \
     }
 
@@ -142,8 +142,8 @@ typedef struct PACKED {
     (indicator_t) {                                       \
         .color = {rgb}, .flags = KEYCODE | LAYER,         \
         .conditions = {                                   \
-            .keycode = _keycode,                          \
-            .layer   = _layer,                            \
+            .keycode = (_keycode),                        \
+            .layer   = (_layer),                          \
         },                                                \
     }
 
@@ -159,7 +159,7 @@ typedef struct PACKED {
         .color = {rgb}, .flags = LAYER | KC_GT_THAN,     \
         .conditions = {                                  \
             .keycode = KC_TRNS,                          \
-            .layer   = _layer,                           \
+            .layer   = (_layer),                         \
         },                                               \
     }
 
@@ -175,8 +175,8 @@ typedef struct PACKED {
     (indicator_t) {                                         \
         .color = {rgb}, .flags = KEYCODE | MODS,            \
         .conditions = {                                     \
-            .keycode = _keycode,                            \
-            .mods    = mod_mask,                            \
+            .keycode = (_keycode),                          \
+            .mods    = (mod_mask),                          \
         },                                                  \
     }
 
@@ -192,24 +192,11 @@ typedef struct PACKED {
         .color = {rgb}, .flags = LAYER | KC_GT_THAN,   \
         .conditions = {                                \
             .keycode = QK_USER,                        \
-            .layer   = _layer,                         \
+            .layer   = (_layer),                       \
         },                                             \
     }
-
-/**
- * Check conditions, drawing the indicator if they met, for all leds in the given range.
- *
- * Args:
- *     led_min: First LED to be drawn.
- *     led_max: Last LED to be drawn.
- *
- * .. warning::
- *    Since QMK does not (yet?) allow to hook modules into the RGB system,
- *    you need to call this function from within ``rgb_matrix_indicators_advanced_user``
- */
-bool draw_indicators(uint8_t led_min, uint8_t led_max);
 
 // Not intended to be used by users -> no docstring
 uint8_t indicators_count(void);
 
-indicator_t get_indicator(uint8_t i);
+indicator_t get_indicator(uint8_t index);

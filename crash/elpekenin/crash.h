@@ -15,23 +15,30 @@
 #include <backtrace.h>
 #include <stdint.h>
 
-#if defined(COMMUNITY_MODULE_TYPES_ENABLE)
-#    include "elpekenin/types.h"
-#else
-#    error Must enable 'elpekenin/types'
+#if !defined(COMMUNITY_MODULE_TYPES_ENABLE)
+#    error 'elpekenin/types' must be enabled
 #endif
+
+#include "elpekenin/types.h"
 
 /**
  * How big the array to store backtraces will be.
  */
-#ifndef UNWIND_DEPTH
-#    define UNWIND_DEPTH 100
+#ifndef CRASH_UNWIND_DEPTH
+#    define CRASH_UNWIND_DEPTH 100
+#endif
+
+/**
+ * How big the array to store a message will be.
+ */
+#ifndef CRASH_MESSAGE_LEN
+#    define CRASH_MESSAGE_LEN 200
 #endif
 
 typedef struct {
     uint8_t     stack_depth;
-    backtrace_t call_stack[UNWIND_DEPTH];
-    char        msg[256];
+    backtrace_t call_stack[CRASH_UNWIND_DEPTH];
+    char        msg[CRASH_MESSAGE_LEN];
 } crash_info_t;
 
 OptionImpl(crash_info_t);

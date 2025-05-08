@@ -11,10 +11,15 @@
  *
  * TODO:
  *  - Check if start+size goes OOB
+ *  - Configure shadow address range from user code with a function
+ *  - Same for RAM range to be checked
+ *  - Assert stuff like alignment 8 in base/end addresses
+ *  - When accessing a global OOB, print its name
  */
 
 #include "elpekenin/sanitizer/kasan.h"
 
+#include <quantum/util.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -91,17 +96,21 @@ static inline __always_inline uptr get_caller_pc(void) {
     return (uptr)__builtin_extract_return_addr(__builtin_return_address(0));
 }
 
-static void report_error(uptr start, uptr access_size, uptr pc, bool is_write, bool fatal) {
+static void report_error(uptr start, uptr access_size, uptr program_counter, bool is_write, bool fatal) {
 #if defined(COMMUNITY_MODULE_CRASH_ENABLE)
-    const char *const func = backtrace_function_name(pc);
+    const char *const func = backtrace_function_name(program_counter);
 #else
     const char *const func = "<unknown function>";
-    (void)pc;
+    (void)program_counter;
 #endif
 
     printf("[ERROR] asan: invalid %s of %d byte(s) at 0x%X (in %s)\n", is_write ? "write" : "load", access_size, start, func);
 
-    while (fatal) {
+    if (__predict_true(!fatal)) {
+        return;
+    }
+
+    while (true) {
     }
 }
 
@@ -117,8 +126,8 @@ __nosan static aligned_t get_aligned_shadow(uptr start, uptr size) {
     }
 
     // end is out of shadow mem
-    const uptr shadow_size = shadow_end - shadow_base;
-    if ((size / 8) > shadow_size) {
+    const uptr shadow_size = (shadow_end - shadow_base) * 8; // each shadow byte==8 addresses
+    if (size > shadow_size) {
         return (aligned_t){
             .addr   = 0,
             .offset = 0,
@@ -358,24 +367,24 @@ __nosan void __asan_register_globals(void *globals, uptr n) {
 }
 
 // unpoison `n` global variables, never called
-void __asan_unregister_globals(void *globals, uptr n) {
+void __asan_unregister_globals(__unused void *globals, __unused uptr n) {
     kasan_dprintf("unregistering of %d globals was ignored\n", n);
 }
 #endif
 
-#define ASAN_REPORT_LOAD_STORE(size)                                                     \
-    void __asan_load##size##_noabort(void *addr) {                                       \
-        const uptr s = (uptr)addr;                                                       \
-        if (__predict_false(!is_valid_access(s, size))) {                                \
-            report_error(s, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false); \
-        }                                                                                \
-    }                                                                                    \
-                                                                                         \
-    void __asan_store##size##_noabort(void *addr) {                                      \
-        const uptr s = (uptr)addr;                                                       \
-        if (__predict_false(!is_valid_access(s, size))) {                                \
-            report_error(s, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);  \
-        }                                                                                \
+#define ASAN_REPORT_LOAD_STORE(size)                                                        \
+    void __asan_load##size##_noabort(void *ptr) {                                           \
+        const uptr addr = (uptr)ptr;                                                        \
+        if (__predict_false(!is_valid_access(addr, size))) {                                \
+            report_error(addr, size, get_caller_pc(), /*is_write=*/false, /*fatal=*/false); \
+        }                                                                                   \
+    }                                                                                       \
+                                                                                            \
+    void __asan_store##size##_noabort(void *ptr) {                                          \
+        const uptr addr = (uptr)ptr;                                                        \
+        if (__predict_false(!is_valid_access(addr, size))) {                                \
+            report_error(addr, size, get_caller_pc(), /*is_write=*/true, /*fatal=*/false);  \
+        }                                                                                   \
     }
 
 ASAN_REPORT_LOAD_STORE(1)

@@ -84,7 +84,7 @@ __weak_symbol bool qp_ls0xx_init(painter_device_t device, painter_rotation_t rot
     return true;
 }
 
-bool qp_ls0xx_passthru_power(painter_device_t device, bool power_on) {
+bool qp_ls0xx_passthru_power(__unused painter_device_t device, __unused bool power_on) {
     // No-op
     return true;
 }
@@ -146,7 +146,8 @@ bool qp_ls0xx_flush(painter_device_t device) {
     uint8_t dummy = 0;
 
     // iterate over the lines
-    for (uint8_t i = 0; i < bottom + 1 - top; ++i) {
+    uint16_t range = bottom - top;
+    for (uint16_t i = 0; i < range - 1; ++i) {
         // set y-pos (counts from 1, needs the `+1`)
         uint8_t n_line = bitrev(i + top + 1);
         spi_transmit(&n_line, 1);
@@ -214,7 +215,7 @@ const painter_driver_vtable_t ls0xx_driver_vtable = {
     .append_pixdata  = qp_ls0xx_passthru_append_pixdata,
 };
 
-painter_device_t qp_ls0xx_device_t_make_spi_device(uint16_t panel_width, uint16_t panel_height, pin_t chip_select_pin, uint16_t spi_divisor, int spi_mode, void *buf) {
+painter_device_t qp_ls0xx_device_t_make_spi_device(uint16_t panel_width, uint16_t panel_height, pin_t chip_select_pin, uint16_t spi_divisor, int8_t spi_mode, void *buf) {
     for (uint32_t i = 0; i < LS0XX_NUM_DEVICES; ++i) {
         ls0xx_painter_device_t *driver = &ls0xx_device_t_drivers[i];
         if (!driver->base.driver_vtable) {

@@ -46,6 +46,6 @@
 #    define MP_PLAT_PRINT_STRN(str, len)          \
         do {                                      \
             extern int printf(const char *, ...); \
-            printf("%.*s", (int)len, str);        \
+            printf("%.*s", (int)(len), str);      \
         } while (0)
 #endif

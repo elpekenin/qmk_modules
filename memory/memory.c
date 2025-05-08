@@ -3,16 +3,14 @@
 
 #include "elpekenin/memory.h"
 
+#include <stdint.h>
+
 // from ChibiOS' ld
-extern uint8_t __main_stack_base__;
-extern uint8_t __main_stack_end__;
-extern uint8_t __process_stack_base__;
-extern uint8_t __process_stack_end__;
+extern uint8_t __main_stack_base__, __main_stack_end__;
+extern uint8_t __process_stack_base__, __process_stack_end__;
 extern uint8_t __bss_end__;
-extern uint8_t __flash_binary_start;
-extern uint8_t __flash_binary_end;
-extern uint8_t __flash1_base__;
-extern uint8_t __flash1_end__;
+extern uint8_t __flash_binary_start, __flash_binary_end;
+extern uint8_t __flash1_base__, __flash1_end__;
 
 bool ptr_in_heap(const void *ptr) {
     return (void *)&__bss_end__ <= ptr && ptr <= (void *)&__process_stack_end__;

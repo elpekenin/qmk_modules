@@ -35,7 +35,7 @@ static uint16_t gen_random_pos(uint16_t max, uint64_t *mask) {
     return pos;
 }
 
-static uint32_t glitch_text_callback(uint32_t trigger_time, void *cb_arg) {
+static uint32_t glitch_text_callback(__unused uint32_t trigger_time, void *cb_arg) {
     glitch_text_state_t *state = (glitch_text_state_t *)cb_arg;
 
     // strings converged, draw and quit

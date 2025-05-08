@@ -30,26 +30,22 @@ static uint8_t mod_config_8bit(uint8_t mod) {
         /** If both modifiers pressed or neither pressed, do nothing
          * Otherwise swap the values
          */
-        if (((mod & MOD_BIT(KC_LALT)) && !(mod & MOD_BIT(KC_LGUI))) ||
-            (!(mod & MOD_BIT(KC_LALT)) && (mod & MOD_BIT(KC_LGUI)))) {
+        if (((mod & MOD_BIT(KC_LALT)) && !(mod & MOD_BIT(KC_LGUI))) || (!(mod & MOD_BIT(KC_LALT)) && (mod & MOD_BIT(KC_LGUI)))) {
             mod ^= (MOD_BIT(KC_LALT) | MOD_BIT(KC_LGUI));
         }
     }
     if (keymap_config.swap_ralt_rgui) {
-        if (((mod & MOD_BIT(KC_RALT)) && !(mod & MOD_BIT(KC_RGUI))) ||
-            (!(mod & MOD_BIT(KC_RALT)) && (mod & MOD_BIT(KC_RGUI)))) {
+        if (((mod & MOD_BIT(KC_RALT)) && !(mod & MOD_BIT(KC_RGUI))) || (!(mod & MOD_BIT(KC_RALT)) && (mod & MOD_BIT(KC_RGUI)))) {
             mod ^= (MOD_BIT(KC_RALT) | MOD_BIT(KC_RGUI));
         }
     }
     if (keymap_config.swap_lctl_lgui) {
-        if (((mod & MOD_BIT(KC_LCTL)) && !(mod & MOD_BIT(KC_LGUI))) ||
-            (!(mod & MOD_BIT(KC_LCTL)) && (mod & MOD_BIT(KC_LGUI)))) {
+        if (((mod & MOD_BIT(KC_LCTL)) && !(mod & MOD_BIT(KC_LGUI))) || (!(mod & MOD_BIT(KC_LCTL)) && (mod & MOD_BIT(KC_LGUI)))) {
             mod ^= (MOD_BIT(KC_LCTL) | MOD_BIT(KC_LGUI));
         }
     }
     if (keymap_config.swap_rctl_rgui) {
-        if (((mod & MOD_BIT(KC_RCTL)) && !(mod & MOD_BIT(KC_RGUI))) ||
-            (!(mod & MOD_BIT(KC_RCTL)) && (mod & MOD_BIT(KC_RGUI)))) {
+        if (((mod & MOD_BIT(KC_RCTL)) && !(mod & MOD_BIT(KC_RGUI))) || (!(mod & MOD_BIT(KC_RCTL)) && (mod & MOD_BIT(KC_RGUI)))) {
             mod ^= (MOD_BIT(KC_RCTL) | MOD_BIT(KC_RGUI));
         }
     }
@@ -61,8 +57,13 @@ static uint8_t mod_config_8bit(uint8_t mod) {
     return mod;
 }
 
+//
+// QMK hooks
+//
 
-bool draw_indicators(uint8_t led_min, uint8_t led_max) {
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 1, 0);
+
+bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max) {
     uint8_t mods  = get_mods();
     uint8_t layer = get_highest_layer(layer_state);
 
@@ -89,7 +90,7 @@ bool draw_indicators(uint8_t led_min, uint8_t led_max) {
             args.keycode   = keymap_key_to_keycode(layer, (keypos_t){col, row});
 
             // iterate all indicators
-            for (int8_t i = 0; i < indicators_count(); ++i) {
+            for (size_t i = 0; i < indicators_count(); ++i) {
                 const indicator_t indicator = get_indicator(i);
 
                 if (should_draw_indicator(&indicator, &args)) {

@@ -7,7 +7,11 @@
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
-static uint32_t delayed_kasan_init(uint32_t tt, void *a) {
+#ifndef KASAN_INIT_DELAY
+#    define KASAN_INIT_DELAY 3000
+#endif
+
+static uint32_t delayed_kasan_init(__unused uint32_t trigger_time, __unused void *cb_arg) {
     kasan_init();
     return 0;
 }
@@ -16,5 +20,5 @@ static uint32_t delayed_kasan_init(uint32_t tt, void *a) {
 //   * Initializing kasan eagerly (on post_init) caused device to not even enumerate USB
 //   * Same logic with `housekeeping` + `timer_read()` doesn't work either WTF, leave as is
 void keyboard_post_init_sanitizer(void) {
-    defer_exec(3000, delayed_kasan_init, NULL);
+    defer_exec(KASAN_INIT_DELAY, delayed_kasan_init, NULL);
 }

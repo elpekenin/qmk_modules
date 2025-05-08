@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #if !defined(QUANTUM_PAINTER_ENABLE)
@@ -41,6 +42,8 @@ typedef enum {
  */
 typedef void (*callback_fn_t)(const char *, bool);
 
+#define MAX_TEXT_SIZE 64
+
 /**
  * Information about a glitch text.
  */
@@ -52,11 +55,11 @@ typedef struct {
     /**
      * Target text: what to draw after animation is complete.
      */
-    char dest[65]; // u64 mask + '\0'
+    char dest[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
     /**
      * Text to display at the moment.
      */
-    char curr[65]; // u64 mask + '\0'
+    char curr[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
     /**
      * Bitmask used internally to control chars to change.
      */

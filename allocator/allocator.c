@@ -35,7 +35,7 @@ static alloc_stats_t stats[ALLOC_STATS_POOL_SIZE] = {
         },
 };
 
-const allocator_t **get_known_allocators(int8_t *n) {
+const allocator_t **get_known_allocators(uint8_t *n) {
     *n = count.allocators;
     return allocators;
 }
@@ -102,19 +102,19 @@ static void push_new_stat(allocator_t *allocator, void *ptr, size_t size) {
     }
 }
 
-static void *calloc_shim(allocator_t *allocator, size_t nmemb, size_t size) {
+static void *calloc_shim(__unused allocator_t *allocator, size_t nmemb, size_t size) {
     return calloc(nmemb, size);
 }
 
-static void free_shim(allocator_t *allocator, void *ptr) {
+static void free_shim(__unused allocator_t *allocator, void *ptr) {
     return free(ptr);
 }
 
-static void *malloc_shim(allocator_t *allocator, size_t size) {
+static void *malloc_shim(__unused allocator_t *allocator, size_t size) {
     return malloc(size);
 }
 
-static void *realloc_shim(allocator_t *allocator, void *ptr, size_t size) {
+static void *realloc_shim(__unused allocator_t *allocator, void *ptr, size_t size) {
     return realloc(ptr, size);
 }
 
@@ -127,7 +127,7 @@ static const allocator_t c_runtime_allocator = {
 };
 
 #if defined(PROTOCOL_CHIBIOS)
-static void *ch_core_malloc(allocator_t *allocator, size_t size) {
+static void *ch_core_malloc(__unused allocator_t *allocator, size_t size) {
     return chCoreAlloc(size);
 }
 

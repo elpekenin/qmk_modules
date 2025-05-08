@@ -162,7 +162,7 @@ size_t get_used_heap(void);
  *
  * :c:var:`n` will be set to the number of allocators.
  */
-const allocator_t **get_known_allocators(int8_t *n);
+const allocator_t **get_known_allocators(uint8_t *n);
 
 /**
  * Get the allocator defined as "default".

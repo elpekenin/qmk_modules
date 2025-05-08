@@ -7,7 +7,7 @@
 #include <quantum/quantum.h>
 
 // clang-format off
-static const uint8_t color_to_hue[__LEDMAP_SEPARATOR__] = {
+static const uint8_t color_to_hue[LEDMAP_SPECIAL_SEPARATOR] = {
     [RED]        = 0,
     [ORANGE]     = 21,
     [YELLOW]     = 43,
@@ -40,7 +40,7 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
         .v = rgb_matrix_get_val(),
     };
 
-    if (color < __LEDMAP_SEPARATOR__) {
+    if (color < LEDMAP_SPECIAL_SEPARATOR) {
         hsv.h = color_to_hue[color];
     } else {
         switch (color) {
@@ -50,7 +50,7 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
                 }
 
                 // look up further down (only on active layers)
-                for (int8_t i = layer - 1; i > 0; --i) {
+                for (uint8_t i = layer - 1; i > 0; --i) {
                     if (layer_state & (1 << i)) {
                         return rgb_at_ledmap_location(i, row, col);
                     }
@@ -79,7 +79,13 @@ Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t co
     return Ok(rgb_t, int, hsv_to_rgb(hsv));
 }
 
-void draw_ledmap(uint8_t led_min, uint8_t led_max) {
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 1, 0);
+
+bool rgb_matrix_indicators_advanced_ledmap(uint8_t led_min, uint8_t led_max) {
     layer_state_t layer = get_highest_layer(layer_state | default_layer_state);
 
     // iterate all keys
@@ -98,4 +104,6 @@ void draw_ledmap(uint8_t led_min, uint8_t led_max) {
             }
         }
     }
+
+    return true;
 }

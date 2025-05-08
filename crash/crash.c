@@ -37,7 +37,7 @@ Option(crash_info_t) get_crash(void) {
 // but then, it wouldn't be possible to expose on the header
 _Noreturn void exception(const char *reason) {
     magic                  = MAGIC_VALUE;
-    crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, UNWIND_DEPTH);
+    crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, CRASH_UNWIND_DEPTH);
 
     if (reason != NULL) {
         strlcpy(crash_info.msg, reason, sizeof(crash_info.msg));
