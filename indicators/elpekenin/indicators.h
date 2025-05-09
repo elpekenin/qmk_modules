@@ -9,8 +9,8 @@
  * .. code-block:: c
  *
  *     const indicator_t PROGMEM indicators[] = {
- *        LAYER_INDICATOR(UTILS, RGB_OFF),
- *        KEYCODE_IN_LAYER_INDICATOR(QK_BOOT, UTILS, RGB_RED),
+ *         LAYER_INDICATOR(UTILS, RGB_OFF),
+ *         KEYCODE_IN_LAYER_INDICATOR(QK_BOOT, UTILS, RGB_RED),
  *     };
  *
  * Since indicators are checked (and applied) in the same order that you define them, this config is:

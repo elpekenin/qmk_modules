@@ -46,9 +46,9 @@ int pretty_bytes(string_t *str, size_t n) {
 }
 
 bool is_utf8(char chr) {
-    return chr & BIT(7); // 1xxx xxxx
+    return (chr & BIT(7)) != 0; // 1xxx xxxx
 }
 
 bool is_utf8_continuation(char chr) {
-    return is_utf8(chr) && !BIT(6); // 10xx xxxx
+    return is_utf8(chr) && (BIT(6) == 0); // 10xx xxxx
 }

@@ -116,8 +116,10 @@ int glitch_text_start(const char *text, callback_fn_t callback) {
         return -EINVAL;
     }
 
-    for (glitch_text_state_t *state = glitch_text_states; state < &glitch_text_states[CONCURRENT_GLITCH_TEXTS]; ++state) {
+    for (size_t i = 0; i < CONCURRENT_GLITCH_TEXTS; ++i) {
+        glitch_text_state_t *state = &glitch_text_states[i];
         if (state->phase == NOT_RUNNING) {
+            glitch_state = state;
             break;
         }
     }
