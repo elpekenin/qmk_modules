@@ -13,49 +13,82 @@
 #    define scrolling_text_dprintf(...)
 #endif
 
-static deferred_executor_t    scrolling_text_executors[CONCURRENT_SCROLLING_TEXTS] = {0};
-static scrolling_text_state_t scrolling_text_states[CONCURRENT_SCROLLING_TEXTS]    = {0};
+typedef struct {
+    /**
+     * How to draw the text
+     */
+    scrolling_text_config_t config;
+
+    /**
+     * Pixel width of current text, used to clean before next draw
+     */
+    int16_t width;
+
+    /**
+     * Position (offset) of first char to be drawn next iteration
+     */
+    uint8_t char_number;
+} scrolling_text_state_t;
+
+struct {
+    /**
+     * defer_exec configuration
+     */
+    deferred_executor_t executors[CONCURRENT_SCROLLING_TEXTS];
+
+    /**
+     * How to draw each text
+     */
+    scrolling_text_state_t states[CONCURRENT_SCROLLING_TEXTS];
+
+    /**
+     * Identifier of the task drawing each text.
+     */
+    deferred_token tokens[CONCURRENT_SCROLLING_TEXTS];
+} global_state = {0};
 
 static int render_scrolling_text_state(scrolling_text_state_t *state) {
     scrolling_text_dprintf("[DEBUG] %s: entry (char #%d)\n", __func__, (int)state->char_number);
 
+    scrolling_text_config_t *config = &state->config;
+
     // prepare string slice
-    char *slice = alloca(state->n_chars + 1); // +1 for null terminator
+    char *slice = alloca(config->n_chars + 1); // +1 for null terminator
     if (slice == NULL) {
         scrolling_text_dprintf("[ERROR] %s: could not allocate\n", __func__);
         return -ENOMEM;
     }
-    memset(slice, 0, state->n_chars + 1);
+    memset(slice, 0, config->n_chars + 1);
 
-    uint8_t len = strlen(state->str);
-    for (uint8_t i = 0; i < state->n_chars; ++i) {
+    uint8_t len = strlen(config->str);
+    for (uint8_t i = 0; i < config->n_chars; ++i) {
         uint8_t index = (state->char_number + i);
 
         // wrap to string length (plus spaces)
-        uint8_t wrapped = index % (len + state->spaces);
+        uint8_t wrapped = index % (len + config->spaces);
 
         // copy a char or add separator whitespaces
         if (wrapped < len) {
-            slice[i] = state->str[wrapped];
+            slice[i] = config->str[wrapped];
         } else {
             slice[i] = ' ';
         }
     }
 
-    int16_t width = qp_textwidth(state->font, (const char *)slice);
+    int16_t width = qp_textwidth(config->font, (const char *)slice);
     // clear previous rendering if needed
     if (state->width > 0) {
-        qp_rect(state->device, state->x, state->y, state->x + state->width, state->y + state->font->line_height, HSV_BLACK, true);
+        qp_rect(config->device, config->x, config->y, config->x + state->width, config->y + config->font->line_height, HSV_BLACK, true);
     }
     state->width = width;
 
     // draw it
-    bool ret = qp_drawtext_recolor(state->device, state->x, state->y, state->font, (const char *)slice, state->fg.hsv888.h, state->fg.hsv888.s, state->fg.hsv888.v, state->bg.hsv888.h, state->bg.hsv888.s, state->bg.hsv888.v);
+    bool ret = qp_drawtext_recolor(config->device, config->x, config->y, config->font, (const char *)slice, config->fg.hsv888.h, config->fg.hsv888.s, config->fg.hsv888.v, config->bg.hsv888.h, config->bg.hsv888.s, config->bg.hsv888.v);
 
     // update position
     if (ret) {
         ++state->char_number;
-        if (state->char_number == len + state->spaces) {
+        if (state->char_number == len + config->spaces) {
             state->char_number = 0;
         }
         scrolling_text_dprintf("[DEBUG] %s: updated\n", __func__);
@@ -72,119 +105,113 @@ static uint32_t scrolling_text_callback(__unused uint32_t trigger_time, void *cb
 
     // Setting the device to NULL clears the scrolling slot
     if (ret != 0) {
-        state->device = NULL;
+        state->config.device = NULL;
         return 0;
     }
 
-    return state->delay;
+    return state->config.delay;
 }
 
-deferred_token draw_scrolling_text(painter_device_t device, uint16_t x, uint16_t y, painter_font_handle_t font, const char *str, uint8_t n_chars, uint32_t delay) {
-    return draw_scrolling_text_recolor(device, x, y, font, str, n_chars, delay, 0, 0, 255, 0, 0, 0);
-}
-
-deferred_token draw_scrolling_text_recolor(painter_device_t device, uint16_t x, uint16_t y, painter_font_handle_t font, const char *str, uint8_t n_chars, uint32_t delay, uint8_t hue_fg, uint8_t sat_fg, uint8_t val_fg, uint8_t hue_bg, uint8_t sat_bg, uint8_t val_bg) {
+deferred_token scrolling_text_start(scrolling_text_config_t config) {
     scrolling_text_dprintf("[DEBUG] %s: entry\n", __func__);
 
-    scrolling_text_state_t *scrolling_state = NULL;
-    for (scrolling_text_state_t *state = scrolling_text_states; state < &scrolling_text_states[CONCURRENT_SCROLLING_TEXTS]; ++state) {
-        if (state->device == NULL) {
-            scrolling_state = state;
+    size_t index = SIZE_MAX;
+    for (size_t i = 0; i < CONCURRENT_SCROLLING_TEXTS; ++i) {
+        if (global_state.states[i].config.device == NULL) {
+            index = i;
             break;
         }
     }
 
-    if (scrolling_state == NULL) {
+    if (index == SIZE_MAX) {
         scrolling_text_dprintf("[ERROR] %s: fail (no free slot)\n", __func__);
         return INVALID_DEFERRED_TOKEN;
     }
 
+    scrolling_text_state_t *slot = &global_state.states[index];
+
     // make a copy of the string, to prevent issues if the original variable is removed
     // note: input is expected to end in null terminator
-    uint8_t len          = strlen(str) + 1; // add one to also allocate/copy the terminator
-    scrolling_state->str = malloc(len);
-    if (scrolling_state->str == NULL) {
+    uint8_t len = strlen(config.str) + 1; // add one to also allocate/copy the terminator
+
+    void *ptr = malloc(len);
+    if (ptr == NULL) {
         scrolling_text_dprintf("[ERROR] %s: fail (allocation)\n", __func__);
         return INVALID_DEFERRED_TOKEN;
     }
+    // note: len is the buffer size we allocated right above (strlen(str) + 1)
+    strlcpy(ptr, config.str, len);
 
-    // note, len is the buffer size we allocated right above (strlen(str) + 1)
-    strlcpy(scrolling_state->str, str, len);
-
-    // TODO: Receive as argument?
-    const uint8_t spaces = 5;
-
-    // Prepare the scrolling state
-    scrolling_state->device      = device;
-    scrolling_state->x           = x;
-    scrolling_state->y           = y;
-    scrolling_state->font        = font;
-    scrolling_state->n_chars     = n_chars;
-    scrolling_state->delay       = delay;
-    scrolling_state->char_number = 0;
-    scrolling_state->spaces      = spaces;
-    scrolling_state->fg          = (qp_pixel_t){.hsv888 = {.h = hue_fg, .s = sat_fg, .v = val_fg}};
-    scrolling_state->bg          = (qp_pixel_t){.hsv888 = {.h = hue_bg, .s = sat_bg, .v = val_bg}};
+    // prepare the scrolling state
+    slot->config      = config;
+    slot->config.str  = ptr;
+    slot->width       = 0;
+    slot->char_number = 0;
 
     // Draw the first string
-    if (render_scrolling_text_state(scrolling_state) != 0) {
+    if (render_scrolling_text_state(slot) != 0) {
         scrolling_text_dprintf("[ERROR] %s: fail (render 1st step)\n", __func__);
-
-        scrolling_state->device = NULL; // disregard the allocated scrolling slot
+        slot->config.device = NULL; // disregard the allocated scrolling slot
         return INVALID_DEFERRED_TOKEN;
     }
 
     // Set up the timer
-    scrolling_state->defer_token = defer_exec_advanced(scrolling_text_executors, CONCURRENT_SCROLLING_TEXTS, delay, scrolling_text_callback, scrolling_state);
-    if (scrolling_state->defer_token == INVALID_DEFERRED_TOKEN) {
+    deferred_token token = defer_exec_advanced(global_state.executors, CONCURRENT_SCROLLING_TEXTS, config.delay, scrolling_text_callback, slot);
+    if (token == INVALID_DEFERRED_TOKEN) {
         scrolling_text_dprintf("[ERROR] %s: fail (setup executor)\n", __func__);
-
-        scrolling_state->device = NULL; // disregard the allocated scrolling slot
+        slot->config.device = NULL; // disregard the allocated scrolling slot
         return INVALID_DEFERRED_TOKEN;
     }
 
+    global_state.tokens[index] = token;
+
     scrolling_text_dprintf("[DEBUG] %s: ok (deferred token = %d)\n", __func__, (int)scrolling_state->defer_token);
-    return scrolling_state->defer_token;
+    return token;
 }
 
-void extend_scrolling_text(deferred_token scrolling_token, const char *str) {
-    for (scrolling_text_state_t *state = scrolling_text_states; state < &scrolling_text_states[CONCURRENT_SCROLLING_TEXTS]; ++state) {
-        if (state->defer_token == scrolling_token) {
-            uint8_t cur_len = strlen(state->str);
-            uint8_t new_len = strlen(str);
-            uint8_t len     = cur_len + new_len + 1;
-            char   *new_pos = realloc(state->str, len);
+void scrolling_text_extend(deferred_token scrolling_token, const char *str) {
+    for (size_t i = 0; i < CONCURRENT_SCROLLING_TEXTS; ++i) {
+        if (global_state.tokens[i] == scrolling_token) {
+            scrolling_text_state_t *state = &global_state.states[i];
 
-            if (new_pos == NULL) {
+            uint8_t cur_len = strlen(state->config.str);
+            uint8_t add_len = strlen(str);
+            uint8_t new_len = cur_len + add_len + 1;
+            char   *new_ptr = realloc(state->config.str, new_len);
+
+            if (new_ptr == NULL) {
                 scrolling_text_dprintf("[ERROR] %s: fail (realloc)\n", __func__);
                 return;
             }
-            state->str = new_pos;
+            state->config.str = new_ptr;
 
-            strlcat(state->str, str, len);
+            strlcat(new_ptr, str, new_len);
 
             return;
         }
     }
 }
 
-void stop_scrolling_text(deferred_token scrolling_token) {
+void scrolling_text_stop(deferred_token scrolling_token) {
     if (scrolling_token == INVALID_DEFERRED_TOKEN) {
         return;
     }
 
-    for (scrolling_text_state_t *state = scrolling_text_states; state < &scrolling_text_states[CONCURRENT_SCROLLING_TEXTS]; ++state) {
-        if (state->defer_token == scrolling_token) {
-            // Clear screen and de-allocate
-            qp_rect(state->device, state->x, state->y, state->x + state->width, state->y + state->font->line_height, HSV_BLACK, true);
+    for (size_t i = 0; i < CONCURRENT_SCROLLING_TEXTS; ++i) {
+        if (global_state.tokens[i] == scrolling_token) {
+            // clear screen and de-allocate
+            scrolling_text_state_t  *state  = &global_state.states[i];
+            scrolling_text_config_t *config = &state->config;
 
-            free(state->str);
+            qp_rect(config->device, config->x, config->y, config->x + state->width, config->y + config->font->line_height, HSV_BLACK, true);
+
+            free(config->str);
 
             // Cleanup the state
-            state->device      = NULL;
-            state->defer_token = INVALID_DEFERRED_TOKEN;
+            config->device         = NULL;
+            global_state.tokens[i] = INVALID_DEFERRED_TOKEN;
 
-            cancel_deferred_exec_advanced(scrolling_text_executors, CONCURRENT_SCROLLING_TEXTS, scrolling_token);
+            cancel_deferred_exec_advanced(global_state.executors, CONCURRENT_SCROLLING_TEXTS, scrolling_token);
 
             return;
         }
@@ -208,5 +235,5 @@ void housekeeping_task_scrolling_text(void) {
         return;
     }
 
-    deferred_exec_advanced_task(scrolling_text_executors, CONCURRENT_SCROLLING_TEXTS, &timer);
+    deferred_exec_advanced_task(global_state.executors, CONCURRENT_SCROLLING_TEXTS, &timer);
 }
