@@ -83,7 +83,7 @@ typedef struct PACKED {
  *
  * Return: Token of the deferred executor taking care of drawing
  */
-deferred_token scrolling_text_start(scrolling_text_config_t config);
+deferred_token scrolling_text_start(const scrolling_text_config_t *config);
 
 /**
  * Stop a scrolling text.

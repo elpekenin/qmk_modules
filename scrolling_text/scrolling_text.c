@@ -50,61 +50,62 @@ struct {
 static int render_scrolling_text_state(scrolling_text_state_t *state) {
     scrolling_text_dprintf("[DEBUG] %s: entry (char #%d)\n", __func__, (int)state->char_number);
 
-    scrolling_text_config_t *config = &state->config;
+    const scrolling_text_config_t config = state->config;
 
     // prepare string slice
-    char *slice = alloca(config->n_chars + 1); // +1 for null terminator
+    char *slice = alloca(config.n_chars + 1); // +1 for null terminator
     if (slice == NULL) {
         scrolling_text_dprintf("[ERROR] %s: could not allocate\n", __func__);
         return -ENOMEM;
     }
-    memset(slice, 0, config->n_chars + 1);
+    memset(slice, 0, config.n_chars + 1);
 
-    uint8_t len = strlen(config->str);
-    for (uint8_t i = 0; i < config->n_chars; ++i) {
+    uint8_t len = strlen(config.str);
+    for (uint8_t i = 0; i < config.n_chars; ++i) {
         uint8_t index = (state->char_number + i);
 
         // wrap to string length (plus spaces)
-        uint8_t wrapped = index % (len + config->spaces);
+        uint8_t wrapped = index % (len + config.spaces);
 
         // copy a char or add separator whitespaces
         if (wrapped < len) {
-            slice[i] = config->str[wrapped];
+            slice[i] = config.str[wrapped];
         } else {
             slice[i] = ' ';
         }
     }
 
-    int16_t width = qp_textwidth(config->font, (const char *)slice);
+    int16_t width = qp_textwidth(config.font, (const char *)slice);
     // clear previous rendering if needed
     if (state->width > 0) {
-        qp_rect(config->device, config->x, config->y, config->x + state->width, config->y + config->font->line_height, HSV_BLACK, true);
+        qp_rect(config.device, config.x, config.y, config.x + state->width, config.y + config.font->line_height, HSV_BLACK, true);
     }
     state->width = width;
 
     // draw it
-    bool ret = qp_drawtext_recolor(config->device, config->x, config->y, config->font, (const char *)slice, config->fg.hsv888.h, config->fg.hsv888.s, config->fg.hsv888.v, config->bg.hsv888.h, config->bg.hsv888.s, config->bg.hsv888.v);
+    bool ret = qp_drawtext_recolor(config.device, config.x, config.y, config.font, (const char *)slice, config.fg.hsv888.h, config.fg.hsv888.s, config.fg.hsv888.v, config.bg.hsv888.h, config.bg.hsv888.s, config.bg.hsv888.v);
 
     // update position
-    if (ret) {
-        ++state->char_number;
-        if (state->char_number == len + config->spaces) {
-            state->char_number = 0;
-        }
-        scrolling_text_dprintf("[DEBUG] %s: updated\n", __func__);
-    } else {
+    if (!ret) {
         scrolling_text_dprintf("[ERROR] %s: drawing failed\n", __func__);
+        return -EIO;
     }
 
-    return ret;
+    state->char_number += 1;
+    if (state->char_number >= (len + config.spaces)) {
+        state->char_number = 0;
+    }
+    scrolling_text_dprintf("[DEBUG] %s: updated\n", __func__);
+
+    return 0;
 }
 
 static uint32_t scrolling_text_callback(__unused uint32_t trigger_time, void *cb_arg) {
     scrolling_text_state_t *state = (scrolling_text_state_t *)cb_arg;
-    int                     ret   = render_scrolling_text_state(state);
 
-    // Setting the device to NULL clears the scrolling slot
+    int ret = render_scrolling_text_state(state);
     if (ret != 0) {
+        // setting the device to NULL clears the scrolling slot
         state->config.device = NULL;
         return 0;
     }
@@ -112,7 +113,7 @@ static uint32_t scrolling_text_callback(__unused uint32_t trigger_time, void *cb
     return state->config.delay;
 }
 
-deferred_token scrolling_text_start(scrolling_text_config_t config) {
+deferred_token scrolling_text_start(const scrolling_text_config_t *config) {
     scrolling_text_dprintf("[DEBUG] %s: entry\n", __func__);
 
     size_t index = SIZE_MAX;
@@ -132,7 +133,7 @@ deferred_token scrolling_text_start(scrolling_text_config_t config) {
 
     // make a copy of the string, to prevent issues if the original variable is removed
     // note: input is expected to end in null terminator
-    uint8_t len = strlen(config.str) + 1; // add one to also allocate/copy the terminator
+    uint8_t len = strlen(config->str) + 1; // add one to also allocate/copy the terminator
 
     void *ptr = malloc(len);
     if (ptr == NULL) {
@@ -140,10 +141,10 @@ deferred_token scrolling_text_start(scrolling_text_config_t config) {
         return INVALID_DEFERRED_TOKEN;
     }
     // note: len is the buffer size we allocated right above (strlen(str) + 1)
-    strlcpy(ptr, config.str, len);
+    strlcpy(ptr, config->str, len);
 
     // prepare the scrolling state
-    slot->config      = config;
+    slot->config      = *config;
     slot->config.str  = ptr;
     slot->width       = 0;
     slot->char_number = 0;
@@ -156,7 +157,7 @@ deferred_token scrolling_text_start(scrolling_text_config_t config) {
     }
 
     // Set up the timer
-    deferred_token token = defer_exec_advanced(global_state.executors, CONCURRENT_SCROLLING_TEXTS, config.delay, scrolling_text_callback, slot);
+    deferred_token token = defer_exec_advanced(global_state.executors, CONCURRENT_SCROLLING_TEXTS, config->delay, scrolling_text_callback, slot);
     if (token == INVALID_DEFERRED_TOKEN) {
         scrolling_text_dprintf("[ERROR] %s: fail (setup executor)\n", __func__);
         slot->config.device = NULL; // disregard the allocated scrolling slot
@@ -165,7 +166,7 @@ deferred_token scrolling_text_start(scrolling_text_config_t config) {
 
     global_state.tokens[index] = token;
 
-    scrolling_text_dprintf("[DEBUG] %s: ok (deferred token = %d)\n", __func__, (int)scrolling_state->defer_token);
+    scrolling_text_dprintf("[DEBUG] %s: ok (deferred token = %d)\n", __func__, (int)token);
     return token;
 }
 
@@ -231,9 +232,9 @@ void housekeeping_task_scrolling_text(void) {
 
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
-    if (timer_elapsed32(timer) < 100) {
-        return;
+    if (timer_elapsed32(timer) >= 100) {
+        deferred_exec_advanced_task(global_state.executors, CONCURRENT_SCROLLING_TEXTS, &timer);
     }
 
-    deferred_exec_advanced_task(global_state.executors, CONCURRENT_SCROLLING_TEXTS, &timer);
+    housekeeping_task_scrolling_text_kb();
 }

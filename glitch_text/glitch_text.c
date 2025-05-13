@@ -151,9 +151,9 @@ void housekeeping_task_glitch_text(void) {
 
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
-    if (timer_elapsed32(timer) < 100) {
-        return;
+    if (timer_elapsed32(timer) >= 100) {
+        deferred_exec_advanced_task(glitch_text_executors, CONCURRENT_GLITCH_TEXTS, &timer);
     }
 
-    deferred_exec_advanced_task(glitch_text_executors, CONCURRENT_GLITCH_TEXTS, &timer);
+    housekeeping_task_glitch_text_kb();
 }
