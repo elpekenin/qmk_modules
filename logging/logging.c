@@ -189,6 +189,8 @@ int logging(log_level_t msg_level, const char *msg, ...) {
     }
 
 exit:
+    putchar_('\n');
+
     if (has_acquired_lock) {
         chMtxUnlock(&logging_mutex);
     }

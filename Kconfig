@@ -1,41 +1,51 @@
 menu "allocator"
     config ALLOC_ALLOCATORS_SIZE
         int "size of array where to track different allocators"
+        default 10
 
     config ALLOC_ALLOCATIONS_SIZE
         int "size of array where to track different allocations"
+        default 100
 endmenu
 
 menu "crash"
     config CRASH_UNWIND_DEPTH
         int "size of array where to unwind call-stack"
+        default 100
 
     config CRASH_MESAGE_LENGTH
         int "size of array to store a message"
+        default 200
 endmenu
 
 menu "glitch text"
     config GLITCH_TEXT_N_WORKERS
         int "maximum number of concurrent glitch texts"
+        default 15
 endmenu
 
 menu "logging"
     config LOGGING_FORMAT
         string "format"
+        default "[%LS] %M\\n"
 endmenu
 
 menu "sanitizer"
     config KASAN_INIT_DELAY
         int "kasan initialization delay (ms)"
+        default 3000
 
     config KASAN_REDZONE_SIZE
         int "size of redzones (bytes)"
+        default 4
 
     config KASAN_MALLOC_ARRAY_SIZE
         int "size of array tracking dynamic memory allocations"
+        default 300
 endmenu
 
 menu "scrolling text"
     config SCROLLING_TEXT_N_WORKERS
         int "maximum number of scrolling texts"
+        default 15
 endmenu

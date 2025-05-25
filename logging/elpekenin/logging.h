@@ -25,7 +25,7 @@
 /**
  * Default format for logging messages.
  */
-#    define CONFIG_LOGGING_FORMAT "[%LS] %M\n"
+#    define CONFIG_LOGGING_FORMAT "[%LS] %M"
 #endif
 
 /**
