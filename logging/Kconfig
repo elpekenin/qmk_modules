@@ -1,0 +1,7 @@
+menu "logging"
+
+config LOGGING_FORMAT
+    string "format"
+    default "[%LS] %M"
+
+endmenu

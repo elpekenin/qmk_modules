@@ -1,0 +1,7 @@
+menu "glitch text"
+
+config GLITCH_TEXT_N_WORKERS
+    int "maximum number of concurrent glitch texts"
+    default 15
+
+endmenu
