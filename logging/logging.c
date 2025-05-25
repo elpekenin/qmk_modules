@@ -145,7 +145,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
     // set msg lvel
     level.message = msg_level;
 
-    const char *format = LOGGING_FORMAT;
+    const char *format = CONFIG_LOGGING_FORMAT;
     while (true) {
         // order specs alphabetically, special cases first
         switch (get_token(&format)) {

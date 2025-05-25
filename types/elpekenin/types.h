@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <quantum/compiler_support.h>
 #include <quantum/util.h>
 #include <stdbool.h>
 #include <sys/cdefs.h>
@@ -31,7 +32,8 @@
             T __value;      \
             E __error;      \
         };                  \
-    } Result(T, E)
+    } Result(T, E);         \
+    STATIC_ASSERT(offsetof(Result(T, E), is_ok) == 0, "Invalid data layout")
 
 /**
  * Result type.
@@ -74,7 +76,8 @@
     typedef struct PACKED { \
         bool is_some;       \
         T    __value;       \
-    } Option(T)
+    } Option(T);            \
+    STATIC_ASSERT(offsetof(Option(T), is_some) == 0, "Invalid data layout")
 
 /**
  * Option type.

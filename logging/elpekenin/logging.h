@@ -16,15 +16,16 @@
 
 #pragma once
 
+#include <quantum/compiler_support.h>
 #include <stdbool.h>
 
 #include "printf/printf.h" // ATTR_PRINTF
 
-#ifndef LOGGING_FORMAT
+#ifndef CONFIG_LOGGING_FORMAT
 /**
  * Default format for logging messages.
  */
-#    define LOGGING_FORMAT "[%LS] %M\n"
+#    define CONFIG_LOGGING_FORMAT "[%LS] %M\n"
 #endif
 
 /**
@@ -134,4 +135,4 @@ const char *log_time(void);
  *
  * If not, compilation will error out.
  */
-#define ASSERT_LEVELS(__array) _Static_assert(ARRAY_SIZE(__array) == LOG_NONE + 1, "Wrong size")
+#define ASSERT_LEVELS(__array) STATIC_ASSERT(ARRAY_SIZE(__array) == LOG_NONE + 1, "Wrong size")

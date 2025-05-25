@@ -39,6 +39,7 @@
 
 #pragma once
 
+#include <quantum/compiler_support.h>
 #include <quantum/quantum.h>
 
 #if !defined(RGB_MATRIX_ENABLE)
@@ -95,8 +96,7 @@ typedef enum {
 
     N_LEDMAP_COLORS,
 } ledmap_color_t;
-
-_Static_assert(N_LEDMAP_COLORS <= UINT8_MAX, "Update code, reading uses `pgm_read_byte`");
+STATIC_ASSERT(N_LEDMAP_COLORS <= UINT8_MAX, "Update code, reading uses `pgm_read_byte`");
 
 ResultImpl(rgb_t, int);
 

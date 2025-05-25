@@ -264,10 +264,10 @@ extern void  __real_free(void *);
 extern void *__real_calloc(size_t, size_t);
 extern void *__real_realloc(void *, size_t);
 
-static allocation_t allocations[KASAN_MALLOC_ARRAY_SIZE] = {0};
+static allocation_t allocations[CONFIG_KASAN_MALLOC_ARRAY_SIZE] = {0};
 
 __nosan static allocation_t *find_allocation(const void *ptr) {
-    for (uptr i = 0; i < KASAN_MALLOC_ARRAY_SIZE; ++i) {
+    for (uptr i = 0; i < CONFIG_KASAN_MALLOC_ARRAY_SIZE; ++i) {
         if (allocations[i].addr == ptr) {
             return allocations + i;
         }
@@ -414,9 +414,9 @@ void __asan_storeN_noabort(void *start, uptr size) {
 void __asan_alloca_poison(void *start, uptr n) {
     kasan_dprintf("poison alloca\n");
 
-    set_region((uptr)start - KASAN_REDZONE_SIZE, KASAN_REDZONE_SIZE, /*poison=*/true); // redzone
-    set_region((uptr)start, n, /*poison=*/false);                                      // valid
-    set_region((uptr)start + n, KASAN_REDZONE_SIZE, /*poison=*/true);                  // redzone
+    set_region((uptr)start - CONFIG_KASAN_REDZONE_SIZE, CONFIG_KASAN_REDZONE_SIZE, /*poison=*/true); // redzone
+    set_region((uptr)start, n, /*poison=*/false);                                                    // valid
+    set_region((uptr)start + n, CONFIG_KASAN_REDZONE_SIZE, /*poison=*/true);                         // redzone
 }
 
 // unpoison alloca

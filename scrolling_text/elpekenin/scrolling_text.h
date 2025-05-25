@@ -19,8 +19,8 @@
 /**
  * How many scrolling texts can be drawn at the same time.
  */
-#ifndef CONCURRENT_SCROLLING_TEXTS
-#    define CONCURRENT_SCROLLING_TEXTS 15
+#ifndef CONFIG_SCROLLING_TEXT_N_WORKERS
+#    define CONFIG_SCROLLING_TEXT_N_WORKERS 15
 #endif
 
 /**

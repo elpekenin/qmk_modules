@@ -11,21 +11,22 @@
 
 #pragma once
 
+#include <quantum/compiler_support.h>
 #include <quantum/util.h>
 #include <stddef.h>
 
 /**
  * How big the array to store different allocators will be.
  */
-#ifndef ALLOCATORS_POOL_SIZE
-#    define ALLOCATORS_POOL_SIZE 10
+#ifndef CONFIG_ALLOC_ALLOCATORS_SIZE
+#    define CONFIG_ALLOC_ALLOCATORS_SIZE 10
 #endif
 
 /**
  * How big the array to store allocations' metadata will be.
  */
-#ifndef ALLOC_STATS_POOL_SIZE
-#    define ALLOC_STATS_POOL_SIZE 100
+#ifndef CONFIG_ALLOC_ALLOCATIONS_SIZE
+#    define CONFIG_ALLOC_ALLOCATIONS_SIZE 100
 #endif
 
 typedef struct allocator_t allocator_t;
@@ -176,7 +177,7 @@ const allocator_t *get_default_allocator(void);
 #    include <ch.h>
 #    include <chmemcore.h>
 
-_Static_assert(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
+STATIC_ASSERT(CH_CFG_USE_MEMCORE == TRUE, "Enable ChibiOS core allocator");
 
 /**
  * ChibiOS' core allocator.

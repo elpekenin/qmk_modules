@@ -18,12 +18,12 @@ static struct {
     uint8_t stats;
 } count = {0};
 
-static const allocator_t *allocators[ALLOCATORS_POOL_SIZE] = {
-    [0 ... ALLOCATORS_POOL_SIZE - 1] = NULL,
+static const allocator_t *allocators[CONFIG_ALLOC_ALLOCATORS_SIZE] = {
+    [0 ... CONFIG_ALLOC_ALLOCATORS_SIZE - 1] = NULL,
 };
 
-static alloc_stats_t stats[ALLOC_STATS_POOL_SIZE] = {
-    [0 ... ALLOC_STATS_POOL_SIZE - 1] =
+static alloc_stats_t stats[CONFIG_ALLOC_ALLOCATIONS_SIZE] = {
+    [0 ... CONFIG_ALLOC_ALLOCATIONS_SIZE - 1] =
         {
             .allocator = NULL,
             .size      = 0,
@@ -76,7 +76,7 @@ static void push_new_stat(allocator_t *allocator, void *ptr, size_t size) {
         }
     }
     if (insert) {
-        if (count.allocators >= ALLOCATORS_POOL_SIZE) {
+        if (count.allocators >= CONFIG_ALLOC_ALLOCATORS_SIZE) {
             allocator_dprintf("[WARN]: Too many allocators, can't track\n");
         } else {
             allocators[count.allocators] = allocator;
@@ -84,7 +84,7 @@ static void push_new_stat(allocator_t *allocator, void *ptr, size_t size) {
         }
     }
 
-    if (count.stats >= ALLOC_STATS_POOL_SIZE) {
+    if (count.stats >= CONFIG_ALLOC_ALLOCATIONS_SIZE) {
         allocator_dprintf("[WARN]: Too many stats, can't track\n");
     } else {
         stats[count.stats] = (alloc_stats_t){

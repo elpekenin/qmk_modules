@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <platforms/progmem.h>
+#include <quantum/compiler_support.h>
 
 #define NUM_LEDMAP_LAYERS_RAW (sizeof(ledmap) / (MATRIX_ROWS * MATRIX_COLS * sizeof(ledmap_color_t)))
 
-_Static_assert(NUM_KEYMAP_LAYERS_RAW == NUM_LEDMAP_LAYERS_RAW, "Number of ledmap layers doesn't match the number of keymap layers");
+STATIC_ASSERT(NUM_KEYMAP_LAYERS_RAW == NUM_LEDMAP_LAYERS_RAW, "Number of ledmap layers doesn't match the number of keymap layers");
 
 uint8_t ledmap_layer_count(void) {
     return NUM_LEDMAP_LAYERS_RAW;

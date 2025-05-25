@@ -19,8 +19,8 @@
 /**
  * How many glitch texts can be drawn at the same time.
  */
-#ifndef CONCURRENT_GLITCH_TEXTS
-#    define CONCURRENT_GLITCH_TEXTS 15
+#ifndef CONFIG_GLITCH_TEXT_N_WORKERS
+#    define CONFIG_GLITCH_TEXT_N_WORKERS 15
 #endif
 
 /**

@@ -34,15 +34,15 @@
 /**
  * How big redzones are.
  */
-#ifndef KASAN_REDZONE_SIZE
-#    define KASAN_REDZONE_SIZE (4)
+#ifndef CONFIG_KASAN_REDZONE_SIZE
+#    define CONFIG_KASAN_REDZONE_SIZE (4)
 #endif
 
 /**
  * How many malloc entries to track.
  */
-#ifndef KASAN_MALLOC_ARRAY_SIZE
-#    define KASAN_MALLOC_ARRAY_SIZE (300)
+#ifndef CONFIG_KASAN_MALLOC_ARRAY_SIZE
+#    define CONFIG_KASAN_MALLOC_ARRAY_SIZE (300)
 #endif
 
 void kasan_init(void);

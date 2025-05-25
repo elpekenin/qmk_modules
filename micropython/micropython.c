@@ -43,4 +43,5 @@ void housekeeping_task_micropython(void) {
         gc_collect();
     }
 #endif
+    housekeeping_task_micropython_kb();
 }
