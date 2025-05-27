@@ -24,21 +24,21 @@
 /**
  * How big the array to store backtraces will be.
  */
-#ifndef CONFIG_CRASH_UNWIND_DEPTH
-#    define CONFIG_CRASH_UNWIND_DEPTH 100
+#ifndef CRASH_UNWIND_DEPTH
+#    define CRASH_UNWIND_DEPTH 100
 #endif
 
 /**
  * How big the array to store a message will be.
  */
-#ifndef CONFIG_CRASH_MESSAGE_LENGTH
-#    define CONFIG_CRASH_MESSAGE_LENGTH 200
+#ifndef CRASH_MESSAGE_LENGTH
+#    define CRASH_MESSAGE_LENGTH 200
 #endif
 
 typedef struct {
     uint8_t     stack_depth;
-    backtrace_t call_stack[CONFIG_CRASH_UNWIND_DEPTH];
-    char        msg[CONFIG_CRASH_MESSAGE_LENGTH];
+    backtrace_t call_stack[CRASH_UNWIND_DEPTH];
+    char        msg[CRASH_MESSAGE_LENGTH];
 } crash_info_t;
 
 OptionImpl(crash_info_t);

@@ -1,7 +1,7 @@
 menu "sanitizer"
 
 config KASAN_INIT_DELAY
-    int "kasan initialization delay (ms)"
+    int "initialization delay (ms)"
     default 3000
 
 config KASAN_REDZONE_SIZE

@@ -1,11 +1,11 @@
 menu "allocator"
 
 config ALLOC_ALLOCATORS_SIZE
-    int "size of array where to track different allocators"
+    int "maximum different allocators"
     default 10
 
 config ALLOC_ALLOCATIONS_SIZE
-    int "size of array where to track different allocations"
+    int "maximum different allocations"
     default 100
 
 endmenu

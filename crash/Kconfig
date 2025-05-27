@@ -1,11 +1,11 @@
 menu "crash"
 
 config CRASH_UNWIND_DEPTH
-    int "size of array where to unwind call-stack"
+    int "maximum unwind depth"
     default 100
 
 config CRASH_MESAGE_LENGTH
-    int "size of array to store a message"
+    int "maximum stored message length"
     default 200
 
 endmenu

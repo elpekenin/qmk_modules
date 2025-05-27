@@ -21,11 +21,11 @@
 
 #include "printf/printf.h" // ATTR_PRINTF
 
-#ifndef CONFIG_LOGGING_FORMAT
+#ifndef LOGGING_FORMAT
 /**
  * Default format for logging messages.
  */
-#    define CONFIG_LOGGING_FORMAT "[%LS] %M"
+#    define LOGGING_FORMAT "[%LS] %M"
 #endif
 
 /**

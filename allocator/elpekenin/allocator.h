@@ -18,15 +18,15 @@
 /**
  * How big the array to store different allocators will be.
  */
-#ifndef CONFIG_ALLOC_ALLOCATORS_SIZE
-#    define CONFIG_ALLOC_ALLOCATORS_SIZE 10
+#ifndef ALLOC_ALLOCATORS_SIZE
+#    define ALLOC_ALLOCATORS_SIZE 10
 #endif
 
 /**
  * How big the array to store allocations' metadata will be.
  */
-#ifndef CONFIG_ALLOC_ALLOCATIONS_SIZE
-#    define CONFIG_ALLOC_ALLOCATIONS_SIZE 100
+#ifndef ALLOC_ALLOCATIONS_SIZE
+#    define ALLOC_ALLOCATIONS_SIZE 100
 #endif
 
 typedef struct allocator_t allocator_t;

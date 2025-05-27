@@ -1,7 +1,7 @@
 menu "scrolling text"
 
 config SCROLLING_TEXT_N_WORKERS
-    int "maximum number of scrolling texts"
+    int "maximum instances"
     default 15
 
 endmenu

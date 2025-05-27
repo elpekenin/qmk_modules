@@ -21,8 +21,8 @@
 #    define glitch_text_dprintf(...)
 #endif
 
-static deferred_executor_t glitch_text_executors[CONFIG_GLITCH_TEXT_N_WORKERS] = {0};
-static glitch_text_state_t glitch_text_states[CONFIG_GLITCH_TEXT_N_WORKERS]    = {0};
+static deferred_executor_t glitch_text_executors[GLITCH_TEXT_N_WORKERS] = {0};
+static glitch_text_state_t glitch_text_states[GLITCH_TEXT_N_WORKERS]    = {0};
 
 static uint16_t gen_random_pos(uint16_t max, uint64_t *mask) {
     uint16_t pos = 0;
@@ -116,7 +116,7 @@ int glitch_text_start(const char *text, callback_fn_t callback) {
         return -EINVAL;
     }
 
-    for (size_t i = 0; i < CONFIG_GLITCH_TEXT_N_WORKERS; ++i) {
+    for (size_t i = 0; i < GLITCH_TEXT_N_WORKERS; ++i) {
         glitch_text_state_t *state = &glitch_text_states[i];
         if (state->phase == NOT_RUNNING) {
             glitch_state = state;
@@ -152,7 +152,7 @@ void housekeeping_task_glitch_text(void) {
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
     if (timer_elapsed32(timer) >= 100) {
-        deferred_exec_advanced_task(glitch_text_executors, CONFIG_GLITCH_TEXT_N_WORKERS, &timer);
+        deferred_exec_advanced_task(glitch_text_executors, GLITCH_TEXT_N_WORKERS, &timer);
     }
 
     housekeeping_task_glitch_text_kb();
