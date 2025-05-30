@@ -30,7 +30,7 @@ typedef struct {
     uint8_t char_number;
 } scrolling_text_state_t;
 
-struct {
+static struct {
     /**
      * defer_exec configuration
      */
@@ -232,7 +232,7 @@ void housekeeping_task_scrolling_text(void) {
 
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
-    if (timer_elapsed32(timer) >= 100) {
+    if (timer_elapsed32(timer) >= SCROLLING_TEXT_TASK_INTERVAL) {
         deferred_exec_advanced_task(global_state.executors, SCROLLING_TEXT_N_WORKERS, &timer);
     }
 

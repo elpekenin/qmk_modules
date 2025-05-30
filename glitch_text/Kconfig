@@ -4,4 +4,7 @@ config GLITCH_TEXT_N_WORKERS
     int "maximum instances"
     default 15
 
+config GLITCH_TEXT_TASK_INTERVAL
+    int "task work interval (ms)"
+
 endmenu

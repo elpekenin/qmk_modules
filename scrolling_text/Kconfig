@@ -4,4 +4,7 @@ config SCROLLING_TEXT_N_WORKERS
     int "maximum instances"
     default 15
 
+config SCROLLING_TEXT_TASK_INTERVAL
+    int "task work interval (ms)"
+
 endmenu

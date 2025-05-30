@@ -21,8 +21,68 @@
 #    define glitch_text_dprintf(...)
 #endif
 
-static deferred_executor_t glitch_text_executors[GLITCH_TEXT_N_WORKERS] = {0};
-static glitch_text_state_t glitch_text_states[GLITCH_TEXT_N_WORKERS]    = {0};
+#define MAX_TEXT_SIZE 64
+
+/**
+ * State of a glitch text.
+ */
+typedef enum {
+    /** */
+    NOT_RUNNING,
+    /** */
+    FILLING,
+    /** */
+    COPYING,
+    /** */
+    DONE,
+} anim_phase_t;
+
+/**
+ * Internal information about a glitch text.
+ */
+typedef struct {
+    /**
+     * User configuration.
+     */
+    glitch_text_config_t config;
+
+    /**
+     * Current animation phase.
+     */
+    anim_phase_t phase;
+
+    /**
+     * Target text: what to draw after animation is complete.
+     */
+    char dest[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
+
+    /**
+     * Text to display at the moment.
+     */
+    char curr[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
+
+    /**
+     * Bitmask used internally to control chars to change.
+     */
+    uint64_t mask;
+
+    /**
+     * Length of the string.
+     */
+    uint8_t len;
+} glitch_text_state_t;
+
+static struct {
+    /**
+     * defer_exec configuration
+     */
+    deferred_executor_t executors[GLITCH_TEXT_N_WORKERS];
+
+    /**
+     * How to draw each text
+     */
+    glitch_text_state_t states[GLITCH_TEXT_N_WORKERS];
+} global_state = {0};
 
 static uint16_t gen_random_pos(uint16_t max, uint64_t *mask) {
     uint16_t pos = 0;
@@ -48,7 +108,7 @@ static uint32_t glitch_text_callback(__unused uint32_t trigger_time, void *cb_ar
         // keep terminator untouched
         memset(state->dest, ' ', sizeof(state->dest) - 1);
 
-        state->callback(state->curr, true);
+        state->config.callback(state->curr, true);
         return 0;
     }
 
@@ -97,45 +157,45 @@ static uint32_t glitch_text_callback(__unused uint32_t trigger_time, void *cb_ar
             __unreachable();
     }
 
-    state->callback(state->curr, false);
-    return 30;
+    state->config.callback(state->curr, false);
+
+    return state->config.delay;
 }
 
-int glitch_text_start(const char *text, callback_fn_t callback) {
-    if (callback == NULL || text == NULL) {
+int glitch_text_start(const glitch_text_config_t *config) {
+    if (config == NULL || config->callback == NULL) {
         glitch_text_dprintf("[ERROR] %s: NULL pointer\n", __func__);
         return -EINVAL;
     }
 
-    size_t len = strlen(text);
-
-    glitch_text_state_t *glitch_state = NULL;
-
-    if (len > sizeof(glitch_state->dest)) {
+    const size_t len = strlen(config->str);
+    if (len > MAX_TEXT_SIZE) {
         glitch_text_dprintf("[ERROR] %s: text too long\n", __func__);
         return -EINVAL;
     }
 
+    size_t index = SIZE_MAX;
     for (size_t i = 0; i < GLITCH_TEXT_N_WORKERS; ++i) {
-        glitch_text_state_t *state = &glitch_text_states[i];
-        if (state->phase == NOT_RUNNING) {
-            glitch_state = state;
+        if (global_state.states[i].phase == NOT_RUNNING) {
+            index = i;
             break;
         }
     }
 
-    if (glitch_state == NULL) {
+    if (index == SIZE_MAX) {
         glitch_text_dprintf("[ERROR] %s: fail (no free slot)\n", __func__);
         return -ENOMEM;
     }
 
+    glitch_text_state_t *glitch_state = &global_state.states[index];
+
     // kick off the animation
-    strlcpy(glitch_state->dest, text, sizeof(glitch_state->dest));
-    glitch_state->phase    = FILLING;
-    glitch_state->mask     = 0;
-    glitch_state->len      = len;
-    glitch_state->callback = callback;
-    defer_exec(10, glitch_text_callback, glitch_state);
+    strlcpy(glitch_state->dest, config->str, MAX_TEXT_SIZE);
+    glitch_state->config = *config;
+    glitch_state->phase  = FILLING;
+    glitch_state->mask   = 0;
+    glitch_state->len    = len;
+    defer_exec_advanced(global_state.executors, GLITCH_TEXT_N_WORKERS, config->delay, glitch_text_callback, glitch_state);
 
     return 0;
 }
@@ -151,8 +211,8 @@ void housekeeping_task_glitch_text(void) {
 
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
-    if (timer_elapsed32(timer) >= 100) {
-        deferred_exec_advanced_task(glitch_text_executors, GLITCH_TEXT_N_WORKERS, &timer);
+    if (timer_elapsed32(timer) >= GLITCH_TEXT_TASK_INTERVAL) {
+        deferred_exec_advanced_task(global_state.executors, GLITCH_TEXT_N_WORKERS, &timer);
     }
 
     housekeeping_task_glitch_text_kb();

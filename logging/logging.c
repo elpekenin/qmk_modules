@@ -131,7 +131,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
         va_start(args, msg);
         vprintf(msg, args);
         va_end(args);
-        putchar_('\n');
+        print("\n");
         goto exit;
     }
 
@@ -156,6 +156,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
 
             case STR_END:
                 level.message = LOG_NONE;
+                print("\n");
                 goto exit;
 
             case NO_SPEC: // print any char
@@ -189,8 +190,6 @@ int logging(log_level_t msg_level, const char *msg, ...) {
     }
 
 exit:
-    putchar_('\n');
-
     if (has_acquired_lock) {
         chMtxUnlock(&logging_mutex);
     }

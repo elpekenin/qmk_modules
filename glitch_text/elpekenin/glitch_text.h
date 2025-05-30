@@ -24,63 +24,37 @@
 #endif
 
 /**
- * State of a glitch text.
+ * Time interval between checking works' state (ms)
  */
-typedef enum {
-    /** */
-    NOT_RUNNING,
-    /** */
-    FILLING,
-    /** */
-    COPYING,
-    /** */
-    DONE,
-} anim_phase_t;
+#ifndef GLITCH_TEXT_TASK_INTERVAL
+#    define GLITCH_TEXT_TASK_INTERVAL 10
+#endif
 
 /**
  * Callback function for each step of the animation.
  */
 typedef void (*callback_fn_t)(const char *, bool);
 
-#define MAX_TEXT_SIZE 64
+typedef struct PACKED {
+    /**
+     * Text to be drawn.
+     */
+    const char *str;
 
-/**
- * Information about a glitch text.
- */
-typedef struct {
     /**
-     * Current animation phase.
-     */
-    anim_phase_t phase;
-    /**
-     * Target text: what to draw after animation is complete.
-     */
-    char dest[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
-    /**
-     * Text to display at the moment.
-     */
-    char curr[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
-    /**
-     * Bitmask used internally to control chars to change.
-     */
-    uint64_t mask;
-    /**
-     * Length of the string.
-     */
-    uint8_t len;
-    /**
-     * User-provided function used to render text.
+     * Function to render each animation frame.
      */
     callback_fn_t callback;
-} glitch_text_state_t;
+
+    /**
+     * Time between drawing steps (ms).
+     */
+    uint32_t delay;
+} glitch_text_config_t;
 
 /**
- * Start glitch animation targeting the given text
- * for each frame, callback gets invoked with the text to be rendered
- *
- * Args:
- *     text: Target string (will be copied).
- *     callback: Function executed each frame to render the new string.
+ * Start glitch animation targeting the given text.
+ * For each frame, callback gets invoked with the text to be rendered
  *
  * .. attention::
  *    Text can be at most 64 chars long.
@@ -89,4 +63,4 @@ typedef struct {
  *    * ``0``: Color was found, and assigned into pointer.
  *    * ``-EINVAL``: Invalid input.
  */
-int glitch_text_start(const char *text, callback_fn_t callback);
+int glitch_text_start(const glitch_text_config_t *config);

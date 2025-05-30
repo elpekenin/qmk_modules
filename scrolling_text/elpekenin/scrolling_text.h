@@ -24,6 +24,13 @@
 #endif
 
 /**
+ * Time interval between checking works' state (ms)
+ */
+#ifndef SCROLLING_TEXT_TASK_INTERVAL
+#    define SCROLLING_TEXT_TASK_INTERVAL 10
+#endif
+
+/**
  * Configuration for how to draw a scrolling text.
  */
 typedef struct PACKED {

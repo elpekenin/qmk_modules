@@ -1,3 +1,6 @@
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 //! Interact with RGB LEDs.
 
 // TODO:

@@ -1,3 +1,6 @@
+// Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 /* This file is part of the MicroPython project, http://micropython.org/
  * The MIT License (MIT)
  * Copyright (c) 2022-2023 Damien P. George
