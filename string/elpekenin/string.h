@@ -49,19 +49,11 @@ typedef struct {
 
 /**
  * Create a **temporary** ``string_t``.
- *
- * .. warning::
- *    This works on a VLA. If you need the value to outlive the function
- *    where it is declared, use ``malloc`` or your own buffer instead.
  */
-static inline __always_inline string_t str_new(size_t n) {
-    char buf[n];
-    return (string_t){
-        .size = n,
-        .used = 0,
-        .ptr  = buf,
-    };
-}
+#define str_new(n)                              \
+    (string_t) {                                \
+        .size = n, .used = 0, .ptr = alloca(n), \
+    }
 
 /**
  * Create a ``string_t`` wrapper for the given buffer.

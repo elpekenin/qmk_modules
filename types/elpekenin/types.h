@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 /**
- * Result/Option types. Expresively express type of operations that can fail or return nothing.
+ * Generic types.
+ *    - Result: Expresive type for operations that can fail.
+ *    - Option: Expresive type for operations that can return nothing.
+ *    - RingBuffer: Name says it all.
  */
 
 // -- barrier --
@@ -15,6 +18,10 @@
 #include <sys/cdefs.h>
 
 #include "printf/printf.h"
+
+//
+// Result
+//
 
 #define _Result(T, E) result___##T##___##E
 
@@ -62,7 +69,9 @@
  * ----
  */
 
-// -- barrier --
+//
+// Option
+//
 
 #define _Option(T) option___##T
 
@@ -140,3 +149,76 @@ _Noreturn static inline void raise_error(const char *msg) {
                                                         \
         (v).__error;                                    \
     })
+
+//
+// RingBuffer
+//
+
+#define _RingBuffer(T) rbuf___##T
+
+#define rbuf_push(T) rbuf___##T##_push
+#define rbuf_pop(T) rbuf___##T##_pop
+#define rbuf_has_data(T) rbuf___##T##_has_data
+#define rbuf_clear(T) rbuf___##T##_clear
+
+#define RingBufferImpl(T)                                                     \
+    typedef struct RingBuffer(T) RingBuffer(T);                               \
+                                                                              \
+    struct RingBuffer(T) {                                                    \
+        T           *data;                                                    \
+        const size_t size;                                                    \
+        size_t       head;                                                    \
+        size_t       tail;                                                    \
+        bool (*push)(RingBuffer(T) *, T) __attribute__((warn_unused_result)); \
+        Option(T) (*pop)(RingBuffer(T) *);                                    \
+        bool (*has_data)(RingBuffer(T));                                      \
+        void (*clear)(RingBuffer(T) *);                                       \
+    };                                                                        \
+                                                                              \
+    static inline bool rbuf_push(T)(RingBuffer(T) * rbuf, T value) {          \
+        const size_t next = (rbuf->head + 1) % rbuf->size;                    \
+        if (next == rbuf->tail) {                                             \
+            return false;                                                     \
+        }                                                                     \
+                                                                              \
+        rbuf->data[rbuf->head] = value;                                       \
+                                                                              \
+        rbuf->head = next;                                                    \
+                                                                              \
+        return true;                                                          \
+    }                                                                         \
+                                                                              \
+    static inline Option(T) rbuf_pop(T)(RingBuffer(T) * rbuf) {               \
+        if (rbuf->head == rbuf->tail) {                                       \
+            return None(T);                                                   \
+        }                                                                     \
+                                                                              \
+        T val = rbuf->data[rbuf->tail];                                       \
+                                                                              \
+        rbuf->tail = (rbuf->tail + 1) % rbuf->size;                           \
+                                                                              \
+        return Some(T, val);                                                  \
+    }                                                                         \
+                                                                              \
+    static inline bool rbuf_has_data(T)(RingBuffer(T) rbuf) {                 \
+        return rbuf.head != rbuf.tail;                                        \
+    }                                                                         \
+                                                                              \
+    static inline void rbuf_clear(T)(RingBuffer(T) * rbuf) {                  \
+        rbuf->head = rbuf->tail = 0;                                          \
+    }
+
+#define RingBuffer(T) _RingBuffer(T)
+
+// TODO: infer `T` from `buf` somehow ?
+#define rbuf_from(T, buf)             \
+    {                                 \
+        .data     = (buf),            \
+        .size     = ARRAY_SIZE(buf),  \
+        .head     = 0,                \
+        .tail     = 0,                \
+        .push     = rbuf_push(T),     \
+        .pop      = rbuf_pop(T),      \
+        .has_data = rbuf_has_data(T), \
+        .clear    = rbuf_clear(T),    \
+    }

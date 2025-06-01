@@ -3,9 +3,6 @@
 
 //! Utilities to interact with QMK from MicroPython.
 
-// TODO:
-//   * host LEDs
-
 #include "py/obj.h"
 #include "py/objstr.h"
 #include "py/runtime.h"

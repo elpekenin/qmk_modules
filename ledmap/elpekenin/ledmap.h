@@ -55,7 +55,7 @@
 /**
  * Available colors
  */
-typedef enum {
+typedef enum : uint8_t {
     // `LAYOUT` puts `KC_NO` in un-used spots
     // we want to prevent collisions with it
     NONE = KC_NO,
@@ -93,10 +93,7 @@ typedef enum {
     WHITE,
     /** */
     BLACK,
-
-    N_LEDMAP_COLORS,
 } ledmap_color_t;
-STATIC_ASSERT(N_LEDMAP_COLORS <= UINT8_MAX, "Update code, reading uses `pgm_read_byte`");
 
 ResultImpl(rgb_t, int);
 

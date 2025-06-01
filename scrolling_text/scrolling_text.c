@@ -45,7 +45,7 @@ static struct {
      * Identifier of the task drawing each text.
      */
     deferred_token tokens[SCROLLING_TEXT_N_WORKERS];
-} global_state = {0};
+} global = {0};
 
 static int render_scrolling_text_state(scrolling_text_state_t *state) {
     scrolling_text_dprintf("[DEBUG] %s: entry (char #%d)\n", __func__, (int)state->char_number);
@@ -118,7 +118,7 @@ deferred_token scrolling_text_start(const scrolling_text_config_t *config) {
 
     size_t index = SIZE_MAX;
     for (size_t i = 0; i < SCROLLING_TEXT_N_WORKERS; ++i) {
-        if (global_state.states[i].config.device == NULL) {
+        if (global.states[i].config.device == NULL) {
             index = i;
             break;
         }
@@ -129,7 +129,7 @@ deferred_token scrolling_text_start(const scrolling_text_config_t *config) {
         return INVALID_DEFERRED_TOKEN;
     }
 
-    scrolling_text_state_t *slot = &global_state.states[index];
+    scrolling_text_state_t *slot = &global.states[index];
 
     // make a copy of the string, to prevent issues if the original variable is removed
     // note: input is expected to end in null terminator
@@ -157,14 +157,14 @@ deferred_token scrolling_text_start(const scrolling_text_config_t *config) {
     }
 
     // Set up the timer
-    deferred_token token = defer_exec_advanced(global_state.executors, SCROLLING_TEXT_N_WORKERS, config->delay, scrolling_text_callback, slot);
+    deferred_token token = defer_exec_advanced(global.executors, SCROLLING_TEXT_N_WORKERS, config->delay, scrolling_text_callback, slot);
     if (token == INVALID_DEFERRED_TOKEN) {
         scrolling_text_dprintf("[ERROR] %s: fail (setup executor)\n", __func__);
         slot->config.device = NULL; // disregard the allocated scrolling slot
         return INVALID_DEFERRED_TOKEN;
     }
 
-    global_state.tokens[index] = token;
+    global.tokens[index] = token;
 
     scrolling_text_dprintf("[DEBUG] %s: ok (deferred token = %d)\n", __func__, (int)token);
     return token;
@@ -172,8 +172,8 @@ deferred_token scrolling_text_start(const scrolling_text_config_t *config) {
 
 void scrolling_text_extend(deferred_token scrolling_token, const char *str) {
     for (size_t i = 0; i < SCROLLING_TEXT_N_WORKERS; ++i) {
-        if (global_state.tokens[i] == scrolling_token) {
-            scrolling_text_state_t *state = &global_state.states[i];
+        if (global.tokens[i] == scrolling_token) {
+            scrolling_text_state_t *state = &global.states[i];
 
             uint8_t cur_len = strlen(state->config.str);
             uint8_t add_len = strlen(str);
@@ -199,9 +199,9 @@ void scrolling_text_stop(deferred_token scrolling_token) {
     }
 
     for (size_t i = 0; i < SCROLLING_TEXT_N_WORKERS; ++i) {
-        if (global_state.tokens[i] == scrolling_token) {
+        if (global.tokens[i] == scrolling_token) {
             // clear screen and de-allocate
-            scrolling_text_state_t  *state  = &global_state.states[i];
+            scrolling_text_state_t  *state  = &global.states[i];
             scrolling_text_config_t *config = &state->config;
 
             qp_rect(config->device, config->x, config->y, config->x + state->width, config->y + config->font->line_height, HSV_BLACK, true);
@@ -209,10 +209,10 @@ void scrolling_text_stop(deferred_token scrolling_token) {
             free(config->str);
 
             // Cleanup the state
-            config->device         = NULL;
-            global_state.tokens[i] = INVALID_DEFERRED_TOKEN;
+            config->device   = NULL;
+            global.tokens[i] = INVALID_DEFERRED_TOKEN;
 
-            cancel_deferred_exec_advanced(global_state.executors, SCROLLING_TEXT_N_WORKERS, scrolling_token);
+            cancel_deferred_exec_advanced(global.executors, SCROLLING_TEXT_N_WORKERS, scrolling_token);
 
             return;
         }
@@ -233,7 +233,7 @@ void housekeeping_task_scrolling_text(void) {
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
     if (timer_elapsed32(timer) >= SCROLLING_TEXT_TASK_INTERVAL) {
-        deferred_exec_advanced_task(global_state.executors, SCROLLING_TEXT_N_WORKERS, &timer);
+        deferred_exec_advanced_task(global.executors, SCROLLING_TEXT_N_WORKERS, &timer);
     }
 
     housekeeping_task_scrolling_text_kb();
