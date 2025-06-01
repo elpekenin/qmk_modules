@@ -150,6 +150,10 @@ _Noreturn static inline void raise_error(const char *msg) {
         (v).__error;                                    \
     })
 
+/**
+ * ----
+ */
+
 //
 // RingBuffer
 //
@@ -161,6 +165,12 @@ _Noreturn static inline void raise_error(const char *msg) {
 #define rbuf_has_data(T) rbuf___##T##_has_data
 #define rbuf_clear(T) rbuf___##T##_clear
 
+/**
+ * Define a new ring buffer type.
+ *
+ * Args:
+ *     T: The type of values.
+ */
 #define RingBufferImpl(T)                                                     \
     typedef struct RingBuffer(T) RingBuffer(T);                               \
                                                                               \
@@ -170,7 +180,7 @@ _Noreturn static inline void raise_error(const char *msg) {
         size_t       head;                                                    \
         size_t       tail;                                                    \
         bool (*push)(RingBuffer(T) *, T) __attribute__((warn_unused_result)); \
-        Option(T) (*pop)(RingBuffer(T) *);                                    \
+        Option(T) (*pop)(RingBuffer(T) *)__attribute__((warn_unused_result)); \
         bool (*has_data)(RingBuffer(T));                                      \
         void (*clear)(RingBuffer(T) *);                                       \
     };                                                                        \
@@ -208,9 +218,28 @@ _Noreturn static inline void raise_error(const char *msg) {
         rbuf->head = rbuf->tail = 0;                                          \
     }
 
+/**
+ * Ring buffer type.
+ *
+ * It has "methods":
+ *
+ * .. code-block:: c
+ *
+ *     bool      push(RingBuffer(T) *rbuf, T value); // add an element
+ *     Option(T) pop(RingBuffer(T) *rbuf);           // remove an element
+ *     bool      has_data(RingBuffer(T) rbuf);       // check emptyness
+ *     void      clear(RingBuffer(T) *rbuf);         // reset the buffer
+ */
 #define RingBuffer(T) _RingBuffer(T)
 
 // TODO: infer `T` from `buf` somehow ?
+/**
+ * Create a ring buffer around the given buffer.
+ *
+ * Args:
+ *     T: The type of values.
+ *     buf: The buffer to wrap.
+ */
 #define rbuf_from(T, buf)             \
     {                                 \
         .data     = (buf),            \
