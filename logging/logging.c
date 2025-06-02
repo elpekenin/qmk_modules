@@ -45,12 +45,17 @@ void set_logging_level(log_level_t new_level) {
 
 void step_logging_level(bool increase) {
     if (level.filter == LOG_NONE && increase) {
-        logging(LOG_ERROR, "Logging disabled, can't filter further");
         return;
     }
 
     if (level.filter == LOG_DEBUG && !increase) {
-        logging(LOG_ERROR, "Logging everything, can't be more permissive");
+        return;
+    }
+
+    if (level.filter == (LOG_NONE - 1) && increase) {
+        set_logging_level(LOG_WARN);
+        logging(LOG_WARN, "Disabling logging");
+        set_logging_level(LOG_NONE);
         return;
     }
 
@@ -160,7 +165,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
                 goto exit;
 
             case NO_SPEC: // print any char
-                putchar_(*format);
+                printf("%c", *format);
                 break;
 
             case LL_SPEC: // print log level (long)
@@ -168,7 +173,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
                 break;
 
             case LS_SPEC: // print log level (short)
-                putchar_(level_str[msg_level][0]);
+                printf("%c", level_str[msg_level][0]);
                 break;
 
             case M_SPEC: // print actual message
@@ -178,7 +183,7 @@ int logging(log_level_t msg_level, const char *msg, ...) {
                 break;
 
             case PERC_SPEC: // print a '%'
-                putchar_('%');
+                printf("%%");
                 break;
 
             case T_SPEC: // print current time

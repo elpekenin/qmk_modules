@@ -197,6 +197,6 @@ typedef struct PACKED {
     }
 
 // Not intended to be used by users -> no docstring
-uint8_t indicators_count(void);
+size_t indicators_count(void);
 
-indicator_t get_indicator(uint8_t index);
+indicator_t get_indicator(size_t index);

@@ -36,7 +36,7 @@
 #endif
 
 typedef struct {
-    uint8_t     stack_depth;
+    size_t      stack_depth;
     backtrace_t call_stack[CRASH_UNWIND_DEPTH];
     char        msg[CRASH_MESSAGE_LENGTH];
 } crash_info_t;

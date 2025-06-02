@@ -57,12 +57,12 @@ typedef struct PACKED {
     /**
      * Full text.
      */
-    char *str;
+    const char *str;
 
     /**
      * Amount of chars being drawn each time.
      */
-    uint8_t n_chars;
+    size_t n_chars;
 
     /**
      * Time between drawing steps.
@@ -72,17 +72,17 @@ typedef struct PACKED {
     /**
      * Spaces drawn before repetitions of the text.
      */
-    uint8_t spaces;
+    size_t spaces;
 
     /**
      * Foreground color.
      */
-    qp_pixel_t fg;
+    hsv_t fg;
 
     /**
      * Background color.
      */
-    qp_pixel_t bg;
+    hsv_t bg;
 } scrolling_text_config_t;
 
 /**

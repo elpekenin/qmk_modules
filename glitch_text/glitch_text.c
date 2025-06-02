@@ -69,7 +69,7 @@ typedef struct {
     /**
      * Length of the string.
      */
-    uint8_t len;
+    size_t len;
 } glitch_text_state_t;
 
 static struct {
@@ -82,7 +82,7 @@ static struct {
      * How to draw each text
      */
     glitch_text_state_t states[GLITCH_TEXT_N_WORKERS];
-} global = {0};
+} glitch_text = {0};
 
 static uint16_t gen_random_pos(uint16_t max, uint64_t *mask) {
     uint16_t pos = 0;
@@ -176,7 +176,7 @@ int glitch_text_start(const glitch_text_config_t *config) {
 
     size_t index = SIZE_MAX;
     for (size_t i = 0; i < GLITCH_TEXT_N_WORKERS; ++i) {
-        if (global.states[i].phase == NOT_RUNNING) {
+        if (glitch_text.states[i].phase == NOT_RUNNING) {
             index = i;
             break;
         }
@@ -187,7 +187,7 @@ int glitch_text_start(const glitch_text_config_t *config) {
         return -ENOMEM;
     }
 
-    glitch_text_state_t *glitch_state = &global.states[index];
+    glitch_text_state_t *glitch_state = &glitch_text.states[index];
 
     // kick off the animation
     strlcpy(glitch_state->dest, config->str, MAX_TEXT_SIZE);
@@ -195,7 +195,7 @@ int glitch_text_start(const glitch_text_config_t *config) {
     glitch_state->phase  = FILLING;
     glitch_state->mask   = 0;
     glitch_state->len    = len;
-    defer_exec_advanced(global.executors, GLITCH_TEXT_N_WORKERS, config->delay, glitch_text_callback, glitch_state);
+    defer_exec_advanced(glitch_text.executors, GLITCH_TEXT_N_WORKERS, config->delay, glitch_text_callback, glitch_state);
 
     return 0;
 }
@@ -212,7 +212,7 @@ void housekeeping_task_glitch_text(void) {
     // drawing every 100ms sounds good enough for me (10 frames/second)
     // faster would likely not be readable
     if (timer_elapsed32(timer) >= GLITCH_TEXT_TASK_INTERVAL) {
-        deferred_exec_advanced_task(global.executors, GLITCH_TEXT_N_WORKERS, &timer);
+        deferred_exec_advanced_task(glitch_text.executors, GLITCH_TEXT_N_WORKERS, &timer);
     }
 
     housekeeping_task_glitch_text_kb();

@@ -14,8 +14,8 @@
 #endif
 
 static struct {
-    uint8_t allocators;
-    uint8_t stats;
+    size_t allocators;
+    size_t stats;
 } count = {0};
 
 static const allocator_t *allocators[ALLOC_ALLOCATORS_SIZE] = {
@@ -35,7 +35,7 @@ static alloc_stats_t stats[ALLOC_ALLOCATIONS_SIZE] = {
         },
 };
 
-const allocator_t **get_known_allocators(uint8_t *n) {
+const allocator_t **get_known_allocators(size_t *n) {
     *n = count.allocators;
     return allocators;
 }
@@ -43,7 +43,7 @@ const allocator_t **get_known_allocators(uint8_t *n) {
 size_t get_used_heap(void) {
     size_t used = 0;
 
-    for (uint8_t i = 0; i < count.stats; ++i) {
+    for (size_t i = 0; i < count.stats; ++i) {
         const alloc_stats_t stat = stats[i];
         used += stat.size;
     }
@@ -52,7 +52,7 @@ size_t get_used_heap(void) {
 }
 
 static alloc_stats_t *get_stats(void *ptr) {
-    for (uint8_t i = 0; i < count.stats; ++i) {
+    for (size_t i = 0; i < count.stats; ++i) {
         alloc_stats_t *stat = &stats[i];
 
         if (stat->ptr == ptr) {
