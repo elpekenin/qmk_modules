@@ -6,14 +6,14 @@
  *
  * This identifier is stored on a special section, so you need to add something like this to your linker script:
  *
- *     .. code-block::
+ * .. code-block::
  *
- *        SECTIONS {
- *            .build_id : {
- *                __gnu_build_id__ = .;
- *                *(.note.gnu.build-id)
- *            } > FLASH
- *        }
+ *     SECTIONS {
+ *         .build_id : {
+ *             __gnu_build_id__ = .;
+ *             *(.note.gnu.build-id)
+ *         } > FLASH
+ *     }
  */
 
 // -- barrier --
