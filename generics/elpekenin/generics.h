@@ -256,6 +256,10 @@ _Noreturn static inline void raise_error(const char *msg) {
  */
 #define rbuf_clear(rbuf) ((rbuf).__clear(&rbuf))
 
+/**
+ * ----
+ */
+
 //
 // Find
 //
@@ -274,5 +278,21 @@ _Noreturn static inline void raise_error(const char *msg) {
         out;                                           \
     })
 
+/**
+ * Using a filter function, find an element in a pointer.
+ *
+ * Args:
+ *     ptr: Pointer to the start of the elements.
+ *     n: Number of elements to look at.
+ *     func: Returns ``true`` when element matches filtering criteria.
+ */
 #define find(ptr, n, func) _find(typeof(*ptr), ptr, n, func)
+
+/**
+ * Using a filter function, find an element in an array.
+ *
+ * Args:
+ *     array: Array where to look at.
+ *     func: Returns ``true`` when element matches filtering criteria.
+ */
 #define find_array(array, func) find(array, ARRAY_SIZE(array), func)
