@@ -46,11 +46,11 @@
 #    error RGB matrix must be enabled to use ledmap
 #endif
 
-#if !defined(COMMUNITY_MODULE_TYPES_ENABLE)
-#    error 'elpekenin/types' must be enabled
+#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
+#    include "elpekenin/generics.h"
+#else
+#    error Must enable 'elpekenin/generics'
 #endif
-
-#include "elpekenin/types.h"
 
 /**
  * Available colors

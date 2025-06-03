@@ -11,9 +11,17 @@
 
 #include <quantum/quantum.h>
 #include <quantum/util.h>
+#include <sys/cdefs.h>
 
 #if !defined(QUANTUM_PAINTER_ENABLE)
 #    error Quantum painter must be enabled to use scrolling_text
+#endif
+
+#if defined(COMMUNITY_MODULE_ALLOCATOR_ENABLE)
+#    define SCROLLING_TEXT_USE_ALLOCATOR 1
+#    include "elpekenin/allocator.h"
+#else
+#    define SCROLLING_TEXT_USE_ALLOCATOR 0
 #endif
 
 /**
@@ -55,11 +63,6 @@ typedef struct PACKED {
     painter_font_handle_t font;
 
     /**
-     * Full text.
-     */
-    const char *str;
-
-    /**
      * Amount of chars being drawn each time.
      */
     size_t n_chars;
@@ -83,6 +86,13 @@ typedef struct PACKED {
      * Background color.
      */
     hsv_t bg;
+
+#if SCROLLING_TEXT_USE_ALLOCATOR || defined(__SPHINX__)
+    /**
+     * Allocator to be used.
+     */
+    const allocator_t *allocator;
+#endif
 } scrolling_text_config_t;
 
 /**
@@ -90,7 +100,7 @@ typedef struct PACKED {
  *
  * Return: Token of the deferred executor taking care of drawing
  */
-deferred_token scrolling_text_start(const scrolling_text_config_t *config);
+__result_use_check deferred_token scrolling_text_start(const scrolling_text_config_t *config, const char *str);
 
 /**
  * Stop a scrolling text.

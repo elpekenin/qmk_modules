@@ -11,9 +11,17 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 #if !defined(QUANTUM_PAINTER_ENABLE)
 #    error Quantum painter must be enabled to use glitch_text
+#endif
+
+#if defined(COMMUNITY_MODULE_ALLOCATOR_ENABLE)
+#    define GLITCH_TEXT_USE_ALLOCATOR 1
+#    include "elpekenin/allocator.h"
+#else
+#    define GLITCH_TEXT_USE_ALLOCATOR 0
 #endif
 
 /**
@@ -37,11 +45,6 @@ typedef void (*callback_fn_t)(const char *, bool);
 
 typedef struct PACKED {
     /**
-     * Text to be drawn.
-     */
-    const char *str;
-
-    /**
      * Function to render each animation frame.
      */
     callback_fn_t callback;
@@ -50,6 +53,13 @@ typedef struct PACKED {
      * Time between drawing steps (ms).
      */
     uint32_t delay;
+
+#if GLITCH_TEXT_USE_ALLOCATOR || defined(__SPHINX__)
+    /**
+     * Allocator to be used.
+     */
+    const allocator_t *allocator;
+#endif
 } glitch_text_config_t;
 
 /**
@@ -63,4 +73,4 @@ typedef struct PACKED {
  *    * ``0``: Color was found, and assigned into pointer.
  *    * ``-EINVAL``: Invalid input.
  */
-int glitch_text_start(const glitch_text_config_t *config);
+__result_use_check int glitch_text_start(const glitch_text_config_t *config, const char *str);

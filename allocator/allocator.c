@@ -6,6 +6,12 @@
 #include <quantum/quantum.h>
 #include <stdlib.h>
 
+#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
+#    include "elpekenin/generics.h"
+#else
+#    error Must enable 'elpekenin/generics'
+#endif
+
 #ifdef ALLOCATOR_DEBUG
 #    include "quantum/logging/debug.h"
 #    define allocator_dprintf dprintf
@@ -14,37 +20,32 @@
 #endif
 
 static struct {
-    size_t allocators;
-    size_t stats;
-} count = {0};
+    struct {
+        const allocator_t *ptr[ALLOC_ALLOCATORS_SIZE];
+        size_t             count;
+    } ators;
 
-static const allocator_t *allocators[ALLOC_ALLOCATORS_SIZE] = {
-    [0 ... ALLOC_ALLOCATORS_SIZE - 1] = NULL,
-};
+    struct {
+        alloc_stats_t ptr[ALLOC_ALLOCATIONS_SIZE];
+        size_t        count;
+    } stats;
+} alloc = {0};
 
-static alloc_stats_t stats[ALLOC_ALLOCATIONS_SIZE] = {
-    [0 ... ALLOC_ALLOCATIONS_SIZE - 1] =
-        {
-            .allocator = NULL,
-            .size      = 0,
-            .lifetime =
-                {
-                    .start = 0,
-                    .end   = 0,
-                },
-        },
-};
+const allocator_t *const *get_known_allocators(size_t *n) {
+    *n = alloc.ators.count;
+    return alloc.ators.ptr;
+}
 
-const allocator_t **get_known_allocators(size_t *n) {
-    *n = count.allocators;
-    return allocators;
+const alloc_stats_t *get_allocations(size_t *n) {
+    *n = alloc.stats.count;
+    return alloc.stats.ptr;
 }
 
 size_t get_used_heap(void) {
     size_t used = 0;
 
-    for (size_t i = 0; i < count.stats; ++i) {
-        const alloc_stats_t stat = stats[i];
+    for (size_t i = 0; i < alloc.stats.count; ++i) {
+        const alloc_stats_t stat = alloc.stats.ptr[i];
         used += stat.size;
     }
 
@@ -52,42 +53,35 @@ size_t get_used_heap(void) {
 }
 
 static alloc_stats_t *get_stats(void *ptr) {
-    for (size_t i = 0; i < count.stats; ++i) {
-        alloc_stats_t *stat = &stats[i];
-
-        if (stat->ptr == ptr) {
-            return stat;
-        }
+    bool filter(alloc_stats_t stat) {
+        return stat.ptr == ptr;
     }
 
-    return NULL;
+    return find_array(alloc.stats.ptr, filter);
 }
 
-static void push_new_stat(allocator_t *allocator, void *ptr, size_t size) {
+static void push_new_stat(const allocator_t *allocator, void *ptr, size_t size) {
     if (ptr == NULL) {
         return;
     }
 
-    bool insert = true;
-    for (size_t i = 0; i < count.allocators; ++i) {
-        if (allocators[i] == allocator) {
-            insert = false;
-            break;
-        }
+    bool filter(const allocator_t *alloc) {
+        return alloc == allocator;
     }
-    if (insert) {
-        if (count.allocators >= ALLOC_ALLOCATORS_SIZE) {
+
+    const allocator_t *const *const slot = find(alloc.ators.ptr, alloc.ators.count, filter);
+    if (slot == NULL) {
+        if (alloc.ators.count >= ALLOC_ALLOCATORS_SIZE) {
             allocator_dprintf("[WARN]: Too many allocators, can't track\n");
         } else {
-            allocators[count.allocators] = allocator;
-            count.allocators++;
+            alloc.ators.ptr[alloc.ators.count++] = allocator;
         }
     }
 
-    if (count.stats >= ALLOC_ALLOCATIONS_SIZE) {
+    if (alloc.stats.count >= ALLOC_ALLOCATIONS_SIZE) {
         allocator_dprintf("[WARN]: Too many stats, can't track\n");
     } else {
-        stats[count.stats] = (alloc_stats_t){
+        alloc.stats.ptr[alloc.stats.count++] = (alloc_stats_t){
             .allocator = allocator,
             .ptr       = ptr,
             .size      = size,
@@ -97,28 +91,26 @@ static void push_new_stat(allocator_t *allocator, void *ptr, size_t size) {
                     .end   = 0,
                 },
         };
-
-        count.stats++;
     }
 }
 
-static void *calloc_shim(__unused allocator_t *allocator, size_t nmemb, size_t size) {
+static void *calloc_shim(__unused const allocator_t *allocator, size_t nmemb, size_t size) {
     return calloc(nmemb, size);
 }
 
-static void free_shim(__unused allocator_t *allocator, void *ptr) {
+static void free_shim(__unused const allocator_t *allocator, void *ptr) {
     return free(ptr);
 }
 
-static void *malloc_shim(__unused allocator_t *allocator, size_t size) {
+static void *malloc_shim(__unused const allocator_t *allocator, size_t size) {
     return malloc(size);
 }
 
-static void *realloc_shim(__unused allocator_t *allocator, void *ptr, size_t size) {
+static void *realloc_shim(__unused const allocator_t *allocator, void *ptr, size_t size) {
     return realloc(ptr, size);
 }
 
-static const allocator_t c_runtime_allocator = {
+const allocator_t _c_runtime_allocator = {
     .calloc  = calloc_shim,
     .free    = free_shim,
     .malloc  = malloc_shim,
@@ -126,23 +118,27 @@ static const allocator_t c_runtime_allocator = {
     .name    = "C stdlib",
 };
 
+const allocator_t *const c_runtime_allocator = &_c_runtime_allocator;
+
 #if defined(PROTOCOL_CHIBIOS)
-static void *ch_core_malloc(__unused allocator_t *allocator, size_t size) {
+static void *ch_core_malloc(__unused const allocator_t *allocator, size_t size) {
     return chCoreAlloc(size);
 }
 
-allocator_t ch_core_allocator = {
+static const allocator_t _ch_core_allocator = {
     .malloc = ch_core_malloc,
     .name   = "ChibiOS core",
 };
 
+const allocator_t *const ch_core_allocator = &_ch_core_allocator;
+
 #    if CH_CFG_USE_MEMPOOLS == TRUE
-static void ch_pool_free(allocator_t *allocator, void *ptr) {
+static void ch_pool_free(const allocator_t *allocator, void *ptr) {
     memory_pool_t *pool = (memory_pool_t *)allocator->arg;
     return chPoolFree(pool, ptr);
 }
 
-static void *ch_pool_malloc(allocator_t *allocator, size_t size) {
+static void *ch_pool_malloc(const allocator_t *allocator, size_t size) {
     memory_pool_t *pool    = (memory_pool_t *)allocator->arg;
     size_t         n_items = size / pool->object_size;
 
@@ -155,7 +151,7 @@ static void *ch_pool_malloc(allocator_t *allocator, size_t size) {
     return chPoolAlloc(pool);
 }
 
-allocator_t new_ch_pool_allocator(memory_pool_t *pool, const char *name) {
+const allocator_t new_ch_pool_allocator(const memory_pool_t *pool, const char *name) {
     return (allocator_t){
         .free   = ch_pool_free,
         .malloc = ch_pool_malloc,
@@ -166,15 +162,15 @@ allocator_t new_ch_pool_allocator(memory_pool_t *pool, const char *name) {
 #    endif
 
 #    if CH_CFG_USE_HEAP == TRUE
-static void ch_heap_free(allocator_t *allocator, void *ptr) {
+static void ch_heap_free(__unused const allocator_t *allocator, void *ptr) {
     return chHeapFree(ptr);
 }
 
-static void *ch_heap_malloc(allocator_t *allocator, size_t size) {
+static void *ch_heap_malloc(const allocator_t *allocator, size_t size) {
     return chHeapAlloc((memory_heap_t *)allocator->arg, size);
 }
 
-allocator_t new_ch_heap_allocator(memory_heap_t *heap, const char *name) {
+const allocator_t new_ch_heap_allocator(memory_heap_t *heap, const char *name) {
     return (allocator_t){
         .free   = ch_heap_free,
         .malloc = ch_heap_malloc,
@@ -185,11 +181,12 @@ allocator_t new_ch_heap_allocator(memory_heap_t *heap, const char *name) {
 #    endif
 #endif
 
-const allocator_t *get_default_allocator(void) {
-    return &c_runtime_allocator;
-}
+void *calloc_with(const allocator_t *allocator, size_t nmemb, size_t size) {
+    if (allocator == NULL) {
+        allocator_dprintf("[ERROR]: NULL allocator in %s\n", __func__);
+        return NULL;
+    }
 
-void *calloc_with(allocator_t *allocator, size_t nmemb, size_t size) {
     const size_t total_size = nmemb * size;
 
     allocator_dprintf("[DEBUG]: Using %s.calloc\n", allocator->name);
@@ -216,7 +213,12 @@ void *calloc_with(allocator_t *allocator, size_t nmemb, size_t size) {
     return ptr;
 }
 
-void free_with(allocator_t *allocator, void *ptr) {
+void free_with(const allocator_t *allocator, void *ptr) {
+    if (allocator == NULL) {
+        allocator_dprintf("[ERROR]: NULL allocator in %s\n", __func__);
+        return;
+    }
+
     allocator_dprintf("[DEBUG]: Using %s.free\n", allocator->name);
 
     if (allocator->free == NULL) {
@@ -239,7 +241,12 @@ void free_with(allocator_t *allocator, void *ptr) {
     }
 }
 
-void *malloc_with(allocator_t *allocator, size_t size) {
+void *malloc_with(const allocator_t *allocator, size_t size) {
+    if (allocator == NULL) {
+        allocator_dprintf("[ERROR]: NULL allocator in %s\n", __func__);
+        return NULL;
+    }
+
     allocator_dprintf("[DEBUG]: Using %s.malloc\n", allocator->name);
 
     if (allocator->malloc == NULL) {
@@ -257,7 +264,12 @@ void *malloc_with(allocator_t *allocator, size_t size) {
     return ptr;
 }
 
-void *realloc_with(allocator_t *allocator, void *ptr, size_t size) {
+void *realloc_with(const allocator_t *allocator, void *ptr, size_t size) {
+    if (allocator == NULL) {
+        allocator_dprintf("[ERROR]: NULL allocator in %s\n", __func__);
+        return NULL;
+    }
+
     allocator_dprintf("[DEBUG]: Using %s.realloc\n", allocator->name);
 
     // no pointer, realloc is equivalent to malloc

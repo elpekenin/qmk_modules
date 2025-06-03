@@ -4,6 +4,7 @@
 #include "elpekenin/crash.h"
 
 #include <osal.h>
+#include <quantum/logging/print.h>
 #include <quantum/quantum.h>
 #include <sys/cdefs.h>
 
@@ -62,24 +63,21 @@ __interrupt void HardFault_Handler(void) {
 
     string_t str = str_from_buffer(crash_info.msg);
 
-// some GCC versions error due to %b but others don't (?)
-// it is implemented in `printf`, so there's no problem
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wformat"
-#    pragma GCC diagnostic ignored "-Wformat-extra-args"
-
+    // some GCC versions error due to %b but others don't (?)
+    // it is implemented in `printf`, so there's no problem
+    //
     // clang-format off
-    str_printf(
-        &str,
-        "Hardfault at %ld ('%s') | Instruction=%b | xPSR=%lb",
-        interrupt_context.pc,
-        backtrace_function_name(interrupt_context.pc),
-        *(uintptr_t*)interrupt_context.pc,
-        interrupt_context.xpsr
+    IGNORE_FORMAT_WARNING(
+        str_printf(
+            &str,
+            "Hardfault at %ld ('%s') | Instruction=%b | xPSR=%lb",
+            interrupt_context.pc,
+            backtrace_function_name(interrupt_context.pc),
+            *(uintptr_t*)interrupt_context.pc,
+            interrupt_context.xpsr
+        );
     );
     // clang-format on
-
-#    pragma GCC diagnostic pop
 
     // not passing `str_get(str)` as argument
     // because `str_printf` already worked on that memory

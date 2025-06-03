@@ -15,11 +15,11 @@
 #include <backtrace.h>
 #include <stdint.h>
 
-#if !defined(COMMUNITY_MODULE_TYPES_ENABLE)
-#    error 'elpekenin/types' must be enabled
+#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
+#    include "elpekenin/generics.h"
+#else
+#    error Must enable 'elpekenin/generics'
 #endif
-
-#include "elpekenin/types.h"
 
 /**
  * How big the array to store backtraces will be.

@@ -8,6 +8,12 @@
 #include <string.h>
 #include <sys/cdefs.h>
 
+#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
+#    include "elpekenin/generics.h"
+#else
+#    error Must enable 'elpekenin/generics'
+#endif
+
 #if defined(COMMUNITY_MODULE_RNG_ENABLE)
 #    include "elpekenin/rng.h"
 #else
@@ -54,12 +60,12 @@ typedef struct {
     /**
      * Target text: what to draw after animation is complete.
      */
-    char dest[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
+    char *dest;
 
     /**
      * Text to display at the moment.
      */
-    char curr[MAX_TEXT_SIZE + 1]; // u64 mask + '\0'
+    char *curr;
 
     /**
      * Bitmask used internally to control chars to change.
@@ -84,6 +90,41 @@ static struct {
     glitch_text_state_t states[GLITCH_TEXT_N_WORKERS];
 } glitch_text = {0};
 
+//
+// Allocation routines
+//
+
+static void glitch_text_free(glitch_text_config_t config, void *ptr) {
+#if !SCROLLING_TEXT_USE_ALLOCATOR
+    free(ptr);
+#else
+    free_with(config.allocator, ptr);
+#endif
+}
+
+static void *glitch_text_malloc(glitch_text_config_t config, size_t size) {
+#if !SCROLLING_TEXT_USE_ALLOCATOR
+    return malloc(size);
+#else
+    return malloc_with(config.allocator, size);
+#endif
+}
+
+//
+// Utils
+//
+
+static void clear(glitch_text_state_t *state) {
+    state->phase = NOT_RUNNING;
+    glitch_text_free(state->config, state->dest);
+    glitch_text_free(state->config, state->curr);
+    state->dest = state->curr = NULL;
+}
+
+//
+// Rendering
+//
+
 static uint16_t gen_random_pos(uint16_t max, uint64_t *mask) {
     uint16_t pos = 0;
 
@@ -100,15 +141,8 @@ static uint32_t glitch_text_callback(__unused uint32_t trigger_time, void *cb_ar
 
     // strings converged, draw and quit
     if (state->phase == DONE) {
-        // free this slot for reuse
-        state->phase = NOT_RUNNING;
-
-        strlcpy(state->curr, state->dest, sizeof(state->curr));
-
-        // keep terminator untouched
-        memset(state->dest, ' ', sizeof(state->dest) - 1);
-
-        state->config.callback(state->curr, true);
+        state->config.callback(state->dest, true);
+        clear(state);
         return 0;
     }
 
@@ -162,40 +196,64 @@ static uint32_t glitch_text_callback(__unused uint32_t trigger_time, void *cb_ar
     return state->config.delay;
 }
 
-int glitch_text_start(const glitch_text_config_t *config) {
-    if (config == NULL || config->callback == NULL) {
+static bool free_slot(glitch_text_state_t state) {
+    return state.phase == NOT_RUNNING;
+}
+
+//
+// Public API
+//
+
+int glitch_text_start(const glitch_text_config_t *config, const char *text) {
+    if (config == NULL || text == NULL || config->callback == NULL) {
         glitch_text_dprintf("[ERROR] %s: NULL pointer\n", __func__);
         return -EINVAL;
     }
 
-    const size_t len = strlen(config->str);
+    const size_t len = strlen(text) + 1; // also terminator
     if (len > MAX_TEXT_SIZE) {
         glitch_text_dprintf("[ERROR] %s: text too long\n", __func__);
         return -EINVAL;
     }
 
-    size_t index = SIZE_MAX;
-    for (size_t i = 0; i < GLITCH_TEXT_N_WORKERS; ++i) {
-        if (glitch_text.states[i].phase == NOT_RUNNING) {
-            index = i;
-            break;
-        }
-    }
-
-    if (index == SIZE_MAX) {
-        glitch_text_dprintf("[ERROR] %s: fail (no free slot)\n", __func__);
+    glitch_text_state_t *slot = find_array(glitch_text.states, free_slot);
+    if (slot == NULL) {
+        glitch_text_dprintf("[ERROR] %s: no free slot\n", __func__);
         return -ENOMEM;
     }
 
-    glitch_text_state_t *glitch_state = &glitch_text.states[index];
+    void *dest = glitch_text_malloc(*config, len);
+    if (dest == NULL) {
+        glitch_text_dprintf("[ERROR] %s: couldn't allocate\n", __func__);
+        return -ENOMEM;
+    }
 
-    // kick off the animation
-    strlcpy(glitch_state->dest, config->str, MAX_TEXT_SIZE);
-    glitch_state->config = *config;
-    glitch_state->phase  = FILLING;
-    glitch_state->mask   = 0;
-    glitch_state->len    = len;
-    defer_exec_advanced(glitch_text.executors, GLITCH_TEXT_N_WORKERS, config->delay, glitch_text_callback, glitch_state);
+    void *curr = glitch_text_malloc(*config, len);
+    if (curr == NULL) {
+        glitch_text_free(*config, dest);
+        glitch_text_dprintf("[ERROR] %s: couldn't allocate\n", __func__);
+        return -ENOMEM;
+    }
+
+    // fill up new pointers
+    memcpy(dest, text, len);
+    memset(curr, 0, len);
+
+    // prepare state
+    slot->config = *config;
+    slot->dest   = dest;
+    slot->curr   = curr;
+    slot->phase  = FILLING;
+    slot->mask   = 0;
+    slot->len    = len;
+
+    // kick off animation
+    deferred_token token = defer_exec_advanced(glitch_text.executors, GLITCH_TEXT_N_WORKERS, config->delay, glitch_text_callback, slot);
+    if (token == INVALID_DEFERRED_TOKEN) {
+        glitch_text_dprintf("[ERROR] %s: couldn't setup executor\n", __func__);
+        clear(slot);
+        return -EAGAIN;
+    }
 
     return 0;
 }
