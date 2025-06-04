@@ -1,5 +1,8 @@
 menu "allocator"
 
+config ALLOCATOR_DEBUG
+    bool "debug"
+
 config ALLOC_ALLOCATORS_SIZE
     int "maximum different allocators"
     default 10

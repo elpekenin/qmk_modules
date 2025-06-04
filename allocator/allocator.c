@@ -46,7 +46,13 @@ size_t get_used_heap(void) {
 
     for (size_t i = 0; i < alloc.stats.count; ++i) {
         const alloc_stats_t stat = alloc.stats.ptr[i];
-        used += stat.size;
+
+        // lifetime.end == 0 -> not yet free'd
+        //
+        // without this, we sum up all space every allocated
+        if (stat.lifetime.end == 0) {
+            used += stat.size;
+        }
     }
 
     return used;
@@ -115,7 +121,7 @@ const allocator_t _c_runtime_allocator = {
     .free    = free_shim,
     .malloc  = malloc_shim,
     .realloc = realloc_shim,
-    .name    = "C stdlib",
+    .name    = "std",
 };
 
 const allocator_t *const c_runtime_allocator = &_c_runtime_allocator;
@@ -127,7 +133,7 @@ static void *ch_core_malloc(__unused const allocator_t *allocator, size_t size) 
 
 static const allocator_t _ch_core_allocator = {
     .malloc = ch_core_malloc,
-    .name   = "ChibiOS core",
+    .name   = "chcore",
 };
 
 const allocator_t *const ch_core_allocator = &_ch_core_allocator;

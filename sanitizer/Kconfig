@@ -1,5 +1,8 @@
 menu "sanitizer"
 
+config KASAN_DEBUG
+    bool "debug"
+
 config KASAN_INIT_DELAY
     int "initialization delay (ms)"
     default 3000

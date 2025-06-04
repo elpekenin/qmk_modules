@@ -97,7 +97,6 @@ static bool free_slot(scrolling_text_state_t state) {
 static void clear(scrolling_text_state_t *state) {
     const size_t index = state - scrolling_text.states;
     cancel_deferred_exec_advanced(scrolling_text.executors, SCROLLING_TEXT_N_WORKERS, scrolling_text.tokens[index]);
-    scrolling_text.tokens[index] = INVALID_DEFERRED_TOKEN;
 
     // remove text
     qp_rect(state->config.device, state->config.x, state->config.y, state->config.x + state->width, state->config.y + state->config.font->line_height, HSV_BLACK, true);

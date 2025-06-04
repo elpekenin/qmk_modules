@@ -1,5 +1,8 @@
 menu "scrolling text"
 
+config SCROLLING_TEXT_DEBUG
+    bool "debug"
+
 config SCROLLING_TEXT_N_WORKERS
     int "maximum instances"
     default 15

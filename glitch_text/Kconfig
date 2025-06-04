@@ -1,5 +1,8 @@
 menu "glitch text"
 
+config GLITCH_TEXT_DEBUG
+    bool "debug"
+
 config GLITCH_TEXT_N_WORKERS
     int "maximum instances"
     default 15

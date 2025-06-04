@@ -95,7 +95,7 @@ static struct {
 //
 
 static void glitch_text_free(glitch_text_config_t config, void *ptr) {
-#if !SCROLLING_TEXT_USE_ALLOCATOR
+#if !GLITCH_TEXT_USE_ALLOCATOR
     free(ptr);
 #else
     free_with(config.allocator, ptr);
@@ -103,7 +103,7 @@ static void glitch_text_free(glitch_text_config_t config, void *ptr) {
 }
 
 static void *glitch_text_malloc(glitch_text_config_t config, size_t size) {
-#if !SCROLLING_TEXT_USE_ALLOCATOR
+#if !GLITCH_TEXT_USE_ALLOCATOR
     return malloc(size);
 #else
     return malloc_with(config.allocator, size);
@@ -205,7 +205,7 @@ static bool free_slot(glitch_text_state_t state) {
 //
 
 int glitch_text_start(const glitch_text_config_t *config, const char *text) {
-    if (config == NULL || text == NULL || config->callback == NULL) {
+    if (config == NULL || config->allocator == NULL || text == NULL || config->callback == NULL) {
         glitch_text_dprintf("[ERROR] %s: NULL pointer\n", __func__);
         return -EINVAL;
     }
@@ -222,13 +222,13 @@ int glitch_text_start(const glitch_text_config_t *config, const char *text) {
         return -ENOMEM;
     }
 
-    void *dest = glitch_text_malloc(*config, len);
+    char *dest = glitch_text_malloc(*config, len);
     if (dest == NULL) {
         glitch_text_dprintf("[ERROR] %s: couldn't allocate\n", __func__);
         return -ENOMEM;
     }
 
-    void *curr = glitch_text_malloc(*config, len);
+    char *curr = glitch_text_malloc(*config, len);
     if (curr == NULL) {
         glitch_text_free(*config, dest);
         glitch_text_dprintf("[ERROR] %s: couldn't allocate\n", __func__);
@@ -237,7 +237,8 @@ int glitch_text_start(const glitch_text_config_t *config, const char *text) {
 
     // fill up new pointers
     memcpy(dest, text, len);
-    memset(curr, 0, len);
+    memset(curr, ' ', len);
+    curr[len] = '\0';
 
     // prepare state
     slot->config = *config;
