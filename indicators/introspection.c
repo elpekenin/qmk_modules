@@ -5,7 +5,7 @@
 
 #include "elpekenin/indicators.h"
 
-#define NUM_INDICATORS_RAW (sizeof(indicators) / sizeof(indicator_t))
+#define NUM_INDICATORS_RAW ARRAY_SIZE(indicators)
 
 size_t indicators_count(void) {
     return NUM_INDICATORS_RAW;

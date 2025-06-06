@@ -1,0 +1,6 @@
+menu "ui"
+
+config UI_DEBUG
+    bool "debug"
+
+endmenu

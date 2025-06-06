@@ -4,7 +4,7 @@
 #include <platforms/progmem.h>
 #include <quantum/compiler_support.h>
 
-#define NUM_LEDMAP_LAYERS_RAW (sizeof(ledmap) / (MATRIX_ROWS * MATRIX_COLS * sizeof(ledmap_color_t)))
+#define NUM_LEDMAP_LAYERS_RAW ARRAY_SIZE(ledmap)
 
 STATIC_ASSERT(NUM_KEYMAP_LAYERS_RAW == NUM_LEDMAP_LAYERS_RAW, "Number of ledmap layers doesn't match the number of keymap layers");
 
