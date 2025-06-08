@@ -11,4 +11,7 @@ config ALLOC_ALLOCATIONS_SIZE
     int "maximum different allocations"
     default 100
 
+config HEAP_UI_REDRAW_INTERVAL
+    int "ui draw interval (ms)"
+    default 500
 endmenu

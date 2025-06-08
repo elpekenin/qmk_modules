@@ -333,3 +333,62 @@ void *realloc_with(const allocator_t *allocator, void *ptr, size_t size) {
 
     return new_ptr;
 }
+
+#if defined(COMMUNITY_MODULE_UI_ENABLE)
+#    include "elpekenin/ui/utils.h"
+
+#    if defined(COMMUNITY_MODULE_STRING_ENABLE)
+#        include "elpekenin/string.h"
+#    else
+#        error "Must enable 'elpekenin/string'"
+#    endif
+
+#    if defined(COMMUNITY_MODULE_MEMORY_ENABLE)
+#        include "elpekenin/memory.h"
+#    endif
+
+bool heap_init(ui_node_t *self) {
+    heap_args_t *const args = self->args;
+    args->last              = ~0;
+    return ui_font_fits(self);
+}
+
+uint32_t heap_render(const ui_node_t *self, painter_device_t display) {
+    heap_args_t *const args = self->args;
+
+    const size_t heap = get_used_heap();
+    if (args->last == heap) {
+        goto exit;
+    }
+
+    const painter_font_handle_t font = qp_load_font_mem(args->font);
+    if (font == NULL) {
+        goto exit;
+    }
+
+    string_t str = str_new(30);
+
+    str_append(&str, "Heap: ");
+    pretty_bytes(&str, heap);
+
+#    if defined(COMMUNITY_MODULE_MEMORY_ENABLE)
+    str_append(&str, "/");
+    pretty_bytes(&str, get_heap_size());
+#    endif
+
+    const uint16_t width = qp_textwidth(font, str.ptr);
+    if (width == 0 || width > self->size.x) {
+        goto err;
+    }
+
+    qp_drawtext(display, self->start.x, self->start.y, font, str.ptr);
+
+    args->last = heap;
+
+err:
+    qp_close_font(font);
+
+exit:
+    return HEAP_UI_REDRAW_INTERVAL;
+}
+#endif

@@ -42,3 +42,55 @@ size_t get_used_flash(void) {
     return &__flash_binary_end - &__flash_binary_start;
 }
 #endif
+
+#if defined(COMMUNITY_MODULE_UI_ENABLE)
+#    include "elpekenin/ui/utils.h"
+
+#    if defined(COMMUNITY_MODULE_STRING_ENABLE)
+#        include "elpekenin/string.h"
+#    else
+#        error "Must enable 'elpekenin/string'"
+#    endif
+
+bool flash_init(ui_node_t *self) {
+    flash_args_t *const args = self->args;
+    args->last               = ~0;
+    return ui_font_fits(self);
+}
+
+uint32_t flash_render(const ui_node_t *self, painter_device_t display) {
+    flash_args_t *const args = self->args;
+
+    const size_t flash = get_used_flash();
+    if (args->last == flash) {
+        goto exit;
+    }
+
+    const painter_font_handle_t font = qp_load_font_mem(args->font);
+    if (font == NULL) {
+        goto exit;
+    }
+
+    string_t str = str_new(30);
+
+    str_append(&str, "Flash: ");
+    pretty_bytes(&str, flash);
+    str_append(&str, "/");
+    pretty_bytes(&str, get_flash_size());
+
+    const uint16_t width = qp_textwidth(font, str.ptr);
+    if (width == 0 || width > self->size.x) {
+        goto err;
+    }
+
+    qp_drawtext(display, self->start.x, self->start.y, font, str.ptr);
+
+    args->last = flash;
+
+err:
+    qp_close_font(font);
+
+exit:
+    return FLASH_UI_REDRAW_INTERVAL;
+}
+#endif

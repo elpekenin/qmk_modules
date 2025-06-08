@@ -3,4 +3,10 @@ menu "ui"
 config UI_DEBUG
     bool "debug"
 
+menu "layer"
+    config UI_LAYER_REDRAW_INTERVAL
+        int "layer draw interval (ms)"
+        default 100
+endmenu
+
 endmenu

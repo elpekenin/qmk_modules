@@ -201,3 +201,21 @@ const allocator_t new_ch_pool_allocator(memory_pool_t *pool, const char *name);
 const allocator_t new_ch_heap_allocator(memory_heap_t *heap, const char *name);
 #    endif
 #endif
+
+#if defined(COMMUNITY_MODULE_UI_ENABLE)
+#    include "elpekenin/ui.h"
+
+#    ifndef HEAP_UI_REDRAW_INTERVAL
+#        define HEAP_UI_REDRAW_INTERVAL 500
+#    endif
+
+typedef struct {
+    const uint8_t *font;
+    uint32_t       timer;
+    size_t         last;
+} heap_args_t;
+STATIC_ASSERT(offsetof(heap_args_t, font) == 0, "UI will crash :)");
+
+bool     heap_init(ui_node_t *self);
+uint32_t heap_render(const ui_node_t *self, painter_device_t display);
+#endif

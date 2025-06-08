@@ -1,0 +1,7 @@
+menu "build_id"
+
+config BUILD_ID_UI_REDRAW_INTERVAL
+    int "ui draw interval (ms)"
+    default 500
+
+endmenu

@@ -1,0 +1,7 @@
+menu "memory"
+
+config FLASH_UI_REDRAW_INTERVAL
+    int "ui draw interval (ms)"
+    default 500
+
+endmenu

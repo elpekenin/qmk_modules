@@ -243,6 +243,9 @@ ok:
             ui_dprintf("[ERROR] init changed computed boundaries\n");
             goto err;
         }
+
+        // 0 == node is done rendering
+        parent->next_render = 1;
     }
 
     parent->state = UI_STATE_OK;
@@ -258,6 +261,11 @@ err:
 //
 
 bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height) {
+    if (root == NULL) {
+        ui_dprintf("[ERROR] received NULL\n");
+        return false;
+    }
+
     if (root->state != UI_STATE_NONE) {
         ui_dprintf("[DEBUG] Called init twice\n");
         return root->state == UI_STATE_OK;
@@ -282,7 +290,7 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height) {
     return ui_init_node(root);
 }
 
-bool ui_render(const ui_node_t *root, painter_device_t display) {
+bool ui_render(ui_node_t *root, painter_device_t display) {
     if (root == NULL || display == NULL) {
         ui_dprintf("[ERROR] received NULL\n");
         return false;
@@ -294,7 +302,17 @@ bool ui_render(const ui_node_t *root, painter_device_t display) {
 
     // leaf node, render it
     if (root->render != NULL) {
-        root->render(root, display);
+        const uint32_t now = timer_read32();
+
+        if (root->next_render != 0 && root->next_render <= now) {
+            const uint32_t delay = root->render(root, display);
+            if (delay == 0) {
+                root->next_render = 0;
+            } else {
+                root->next_render = now + delay;
+            }
+        }
+
         return true;
     }
 

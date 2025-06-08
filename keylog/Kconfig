@@ -1,0 +1,10 @@
+menu "keylog"
+
+config KEYLOG_SIZE
+    int "maximum length"
+    default 70
+
+config KEYLOG_UI_REDRAW_INTERVAL
+    int "ui draw interval (ms)"
+    default 100
+endmenu

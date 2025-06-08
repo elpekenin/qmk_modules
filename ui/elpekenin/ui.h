@@ -16,11 +16,12 @@
 #    error Quantum painter must be enabled to use ui
 #endif
 
-#include <quantum/painter/qp.h>
-#include <quantum/util.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include "qp.h"
+#include "util.h"
 
 typedef uint16_t ui_coord_t;
 
@@ -75,8 +76,9 @@ typedef struct _ui_node_t {
     bool (*const init)(struct _ui_node_t *);
 
     // rendering
+    uint32_t    next_render;
     void *const args;
-    void (*const render)(const struct _ui_node_t *, painter_device_t);
+    uint32_t (*const render)(const struct _ui_node_t *, painter_device_t);
 } ui_node_t;
 
 /**
@@ -146,6 +148,12 @@ typedef struct _ui_node_t {
         .mode = UI_SPLIT_MODE_REMAINING, \
     }
 
+#define MILLISECONDS(x) ((uint32_t)x)
+#define SECONDS(x) (x * MILLISECONDS(1000))
+#define MINUTES(x) (x * SECONDS(60))
+#define HOURS(x) (x * MINUTES(60))
+#define DAYS(x) (x * HOURS(24))
+
 /**
  * Once you've declared a node tree, use this function to compute all nodes' size/position.
  *
@@ -162,15 +170,15 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  *
  * Each node describes how it's rendered by providing a ``.render`` function.
  * If it needs to track some state, it may use the ``.args`` field to store a pointer into whichever structure.
+ * Return value is the time (in ms) before calling it again. ``0`` means "do not repeat"
  *
- * Usually, you'd want run this function periodically (ie: from ``housekeeping_task_user``), but note that there isn't any kind of rate-limiting,
- * if a node shall only be drawn every once in a while, this has to be handled on the node's logic.
+ * You want run this function periodically (ie: from ``housekeeping_task_user``).
  *
  * .. warning::
  *   There isn't any kind of limitation to the area in which each node can draw.
  *   This means that nodes are expected to respect the boundaries provided, with checks like ``if (qp_textwidth(font, text) > self->size.x) return;``
  */
-bool ui_render(const ui_node_t *parent, painter_device_t display);
+bool ui_render(ui_node_t *root, painter_device_t display);
 
 // for debugging
 void ui_print(const ui_node_t *root);
