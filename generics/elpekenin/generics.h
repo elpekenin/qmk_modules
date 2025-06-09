@@ -41,7 +41,7 @@ _Noreturn static inline void raise_error(const char *msg) {
     struct Option(T) {                                     \
         const bool is_some;                                \
         const T    __value;                                \
-        const T (*__unwrap)(Option(T)) __result_use_check; \
+        T (*const __unwrap)(Option(T)) __result_use_check; \
     };                                                     \
                                                            \
     static inline T option_unwrap(T)(Option(T) option) {   \
@@ -99,8 +99,8 @@ _Noreturn static inline void raise_error(const char *msg) {
             const T __value;                                       \
             const E __error;                                       \
         };                                                         \
-        const T (*__unwrap)(Result(T, E)) __result_use_check;      \
-        const E (*__unwrap_err)(Result(T, E)) __result_use_check;  \
+        T (*const __unwrap)(Result(T, E)) __result_use_check;      \
+        E (*const __unwrap_err)(Result(T, E)) __result_use_check;  \
     };                                                             \
                                                                    \
     static inline T result_unwrap(T, E)(Result(T, E) result) {     \
@@ -179,10 +179,10 @@ _Noreturn static inline void raise_error(const char *msg) {
         const size_t __size;                                          \
         size_t       __head;                                          \
         size_t       __tail;                                          \
-        const bool (*__push)(RingBuffer(T) *, T) __result_use_check;  \
-        const Option(T) (*__pop)(RingBuffer(T) *)__result_use_check;  \
-        const bool (*__has_data)(RingBuffer(T));                      \
-        const void (*__clear)(RingBuffer(T) *);                       \
+        bool (*const __push)(RingBuffer(T) *, T) __result_use_check;  \
+        Option(T) (*const __pop)(RingBuffer(T) *)__result_use_check;  \
+        bool (*const __has_data)(RingBuffer(T));                      \
+        void (*const __clear)(RingBuffer(T) *);                       \
     };                                                                \
                                                                       \
     static inline bool _rbuf_push(T)(RingBuffer(T) * rbuf, T value) { \

@@ -1,10 +1,12 @@
-menu "keylog"
+menuconfig CM_KEYLOG
+    bool "keylog"
 
-config KEYLOG_SIZE
-    int "maximum length"
-    default 70
+if CM_KEYLOG
+    config KEYLOG_SIZE
+        int "maximum length"
+        default 70
 
-config KEYLOG_UI_REDRAW_INTERVAL
-    int "ui draw interval (ms)"
-    default 100
-endmenu
+    config KEYLOG_UI_REDRAW_INTERVAL
+        int "ui draw interval (ms)"
+        default 100
+endif

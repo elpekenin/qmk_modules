@@ -283,8 +283,8 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height) {
     }
 
     root->size = (ui_vector_t){
-        .x = width - root->start.x,
-        .y = height - root->start.y,
+        .x = width,
+        .y = height,
     };
 
     return ui_init_node(root);
@@ -297,6 +297,16 @@ bool ui_render(ui_node_t *root, painter_device_t display) {
     }
 
     if (root->state != UI_STATE_OK) {
+        return false;
+    }
+
+    const ui_coord_t end_x = root->start.x + root->size.x;
+    const ui_coord_t end_y = root->start.y + root->size.y;
+
+    const bool x_fits = end_x <= qp_get_width(display);
+    const bool y_fits = end_y <= qp_get_height(display);
+    if (!x_fits || !y_fits) {
+        ui_dprintf("[ERROR] computed coords don't fit in display\n");
         return false;
     }
 

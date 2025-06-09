@@ -1,7 +1,8 @@
-menu "build_id"
+menuconfig CM_BUILD_ID
+    bool "build_id"
 
-config BUILD_ID_UI_REDRAW_INTERVAL
-    int "ui draw interval (ms)"
-    default 500
-
-endmenu
+if CM_BUILD_ID
+    config BUILD_ID_UI_REDRAW_INTERVAL
+        int "ui draw interval (ms)"
+        default 500
+endif

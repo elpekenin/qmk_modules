@@ -6,12 +6,6 @@
 #include <quantum/quantum.h>
 #include <stdlib.h>
 
-#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
-#    include "elpekenin/generics.h"
-#else
-#    error Must enable 'elpekenin/generics'
-#endif
-
 #ifdef ALLOCATOR_DEBUG
 #    include "quantum/logging/debug.h"
 #    define allocator_dprintf dprintf
@@ -59,11 +53,15 @@ size_t get_used_heap(void) {
 }
 
 static alloc_stats_t *get_stats(void *ptr) {
-    bool filter(alloc_stats_t stat) {
-        return stat.ptr == ptr;
+    for (size_t i = 0; i < ARRAY_SIZE(alloc.stats.ptr); ++i) {
+        alloc_stats_t *stat = &alloc.stats.ptr[i];
+
+        if (stat->ptr == ptr) {
+            return stat;
+        }
     }
 
-    return find_array(alloc.stats.ptr, filter);
+    return NULL;
 }
 
 static void push_new_stat(const allocator_t *allocator, void *ptr, size_t size) {
@@ -71,12 +69,16 @@ static void push_new_stat(const allocator_t *allocator, void *ptr, size_t size) 
         return;
     }
 
-    bool filter(const allocator_t *alloc) {
-        return alloc == allocator;
+    bool allocator_found = false;
+    for (size_t i = 0; i > alloc.ators.count; ++i) {
+        const allocator_t *element = alloc.ators.ptr[i];
+        if (element == allocator) {
+            allocator_found = true;
+            break;
+        }
     }
 
-    const allocator_t *const *const slot = find(alloc.ators.ptr, alloc.ators.count, filter);
-    if (slot == NULL) {
+    if (!allocator_found) {
         if (alloc.ators.count >= ALLOC_ALLOCATORS_SIZE) {
             allocator_dprintf("[WARN]: Too many allocators, can't track\n");
         } else {
@@ -376,8 +378,7 @@ uint32_t heap_render(const ui_node_t *self, painter_device_t display) {
     pretty_bytes(&str, get_heap_size());
 #    endif
 
-    const uint16_t width = qp_textwidth(font, str.ptr);
-    if (width == 0 || width > self->size.x) {
+    if (!ui_text_fits(self, font, str.ptr)) {
         goto err;
     }
 

@@ -1,18 +1,19 @@
-menu "sanitizer"
+menuconfig CM_SANITIZER
+    bool  "sanitizer"
 
-config KASAN_DEBUG
-    bool "debug"
+if CM_SANITIZER
+    config KASAN_DEBUG
+        bool "debug"
 
-config KASAN_INIT_DELAY
-    int "initialization delay (ms)"
-    default 3000
+    config KASAN_INIT_DELAY
+        int "initialization delay (ms)"
+        default 3000
 
-config KASAN_REDZONE_SIZE
-    int "size of redzones (bytes)"
-    default 4
+    config KASAN_REDZONE_SIZE
+        int "size of redzones (bytes)"
+        default 4
 
-config KASAN_MALLOC_ARRAY_SIZE
-    int "size of array tracking dynamic memory allocations"
-    default 300
-
-endmenu
+    config KASAN_MALLOC_ARRAY_SIZE
+        int "size of array tracking dynamic memory allocations"
+        default 300
+endif

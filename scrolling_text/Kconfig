@@ -1,13 +1,14 @@
-menu "scrolling text"
+menuconfig CM_SCROLLING_TEXT
+    bool "scrolling text"
 
-config SCROLLING_TEXT_DEBUG
-    bool "debug"
+if CM_SCROLLING_TEXT
+    config SCROLLING_TEXT_DEBUG
+        bool "debug"
 
-config SCROLLING_TEXT_N_WORKERS
-    int "maximum instances"
-    default 15
+    config SCROLLING_TEXT_N_WORKERS
+        int "maximum instances"
+        default 15
 
-config SCROLLING_TEXT_TASK_INTERVAL
-    int "task work interval (ms)"
-
-endmenu
+    config SCROLLING_TEXT_TASK_INTERVAL
+        int "task work interval (ms)"
+endif

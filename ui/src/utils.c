@@ -11,7 +11,7 @@ typedef struct {
     const uint8_t *image;
 } image_args_t;
 
-bool ui_font_fits(ui_node_t *self) {
+bool ui_font_fits(const ui_node_t *self) {
     font_args_t *args = self->args;
 
     const painter_font_handle_t font = qp_load_font_mem(args->font);
@@ -25,7 +25,7 @@ bool ui_font_fits(ui_node_t *self) {
     return line_height <= self->size.y;
 }
 
-bool ui_image_fits(ui_node_t *self) {
+bool ui_image_fits(const ui_node_t *self) {
     image_args_t *args = self->args;
 
     const painter_image_handle_t image = qp_load_image_mem(args->image);
@@ -42,4 +42,9 @@ bool ui_image_fits(ui_node_t *self) {
     }
 
     return true;
+}
+
+bool ui_text_fits(const ui_node_t *self, painter_font_handle_t font, const char *str) {
+    const uint16_t width = qp_textwidth(font, str);
+    return (width != 0 && width <= self->size.x);
 }

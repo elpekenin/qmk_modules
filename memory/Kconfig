@@ -1,7 +1,8 @@
-menu "memory"
+menuconfig CM_MEMORY
+    bool "memory"
 
-config FLASH_UI_REDRAW_INTERVAL
-    int "ui draw interval (ms)"
-    default 500
-
-endmenu
+if CM_MEMORY
+    config FLASH_UI_REDRAW_INTERVAL
+        int "ui draw interval (ms)"
+        default 500
+endif

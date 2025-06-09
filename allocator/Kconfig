@@ -1,17 +1,19 @@
-menu "allocator"
+menuconfig CM_ALLOCATOR
+    bool "allocator"
 
-config ALLOCATOR_DEBUG
-    bool "debug"
+if CM_ALLOCATOR
+    config ALLOCATOR_DEBUG
+        bool "debug"
 
-config ALLOC_ALLOCATORS_SIZE
-    int "maximum different allocators"
-    default 10
+    config ALLOC_ALLOCATORS_SIZE
+        int "maximum different allocators"
+        default 10
 
-config ALLOC_ALLOCATIONS_SIZE
-    int "maximum different allocations"
-    default 100
+    config ALLOC_ALLOCATIONS_SIZE
+        int "maximum different allocations"
+        default 100
 
-config HEAP_UI_REDRAW_INTERVAL
-    int "ui draw interval (ms)"
-    default 500
-endmenu
+    config HEAP_UI_REDRAW_INTERVAL
+        int "ui draw interval (ms)"
+        default 500
+endif

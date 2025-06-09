@@ -20,8 +20,9 @@
 
 #pragma once
 
-#include <quantum/compiler_support.h>
 #include <stdint.h>
+
+#include "compiler_support.h"
 
 /**
  * MD5 id of a build is 128 bits long.

@@ -22,16 +22,15 @@ uint32_t uptime_render(const ui_node_t *self, painter_device_t display) {
     const div_t   minutes = div(hours.rem, MINUTES(1));
     const uint8_t seconds = minutes.rem / SECONDS(1);
 
-    char uptime[15] = {0};
-    snprintf(uptime, sizeof(uptime), "Up|%02dh%02dm%02ds", hours.quot, minutes.quot, seconds);
+    char str[15] = {0};
+    snprintf(str, sizeof(str), "Up|%02dh%02dm%02ds", hours.quot, minutes.quot, seconds);
 
     // text does not fit in bounds (width=0 means error)
-    const int16_t width = qp_textwidth(font, uptime);
-    if (width == 0 || width > self->size.x) {
+    if (!ui_text_fits(self, font, str)) {
         goto err;
     }
 
-    qp_drawtext(display, self->start.x, self->start.y, font, uptime);
+    qp_drawtext(display, self->start.x, self->start.y, font, str);
 
 err:
     qp_close_font(font);

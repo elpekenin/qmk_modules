@@ -78,8 +78,7 @@ uint32_t flash_render(const ui_node_t *self, painter_device_t display) {
     str_append(&str, "/");
     pretty_bytes(&str, get_flash_size());
 
-    const uint16_t width = qp_textwidth(font, str.ptr);
-    if (width == 0 || width > self->size.x) {
+    if (!ui_text_fits(self, font, str.ptr)) {
         goto err;
     }
 

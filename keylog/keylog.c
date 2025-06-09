@@ -10,7 +10,8 @@
 #include <string.h>
 #include <tmk_core/protocol/host.h> // keyboard_led_state
 
-#include "elpekenin/string.h"
+STATIC_ASSERT(CM_ENABLED(STRING), "Must enable 'elpekenin/string'");
+#include "elpekenin/string.h" // is_utf8_continuation
 
 STATIC_ASSERT(CM_ENABLED(GENERICS), "Must enable 'elpekenin/generics'");
 #include "elpekenin/generics.h"
@@ -46,6 +47,7 @@ typedef struct PACKED {
         },                                    \
     }
 
+// TODO: introspection
 // clang-format off
 static const replacements_t replacements[] = {
     replacement("0",       NULL,  "=",  NULL),
@@ -88,35 +90,36 @@ static const replacements_t replacements[] = {
     replacement("UP",      "↑",   NULL, NULL),
     replacement("UPPR",    "▲",   NULL, NULL),
     replacement("VOLU",    "♪",   "♪",  NULL),
+    replacement("R_SPC",   " ",   NULL, NULL),
 };
 // clang-format on
 
 static const char *prefixes[] = {"KC_", "RGB_", "QK_", "ES_", "TD_", "TL_"};
 
 static void skip_prefix(const char **str) {
-    bool filter(const char *prefix) {
-        return strcmp(*str, prefix) == 0;
-    }
+    for (size_t i = 0; i < ARRAY_SIZE(prefixes); ++i) {
+        const char *const prefix = prefixes[i];
 
-    const char *const *const prefix = find_array(prefixes, filter);
-    if (prefix != NULL) {
-        *str += strlen(*prefix);
+        const size_t len = strlen(prefix);
+        if (strncmp(*str, prefix, len) == 0) {
+            *str += len;
+            return;
+        }
     }
 }
 
 OptionImpl(replacements_t);
 
 static Option(replacements_t) find_replacement(const char *str) {
-    bool filter(replacements_t replacement) {
-        return strcmp(replacement.raw, str) == 0;
+    for (size_t i = 0; i < ARRAY_SIZE(replacements); ++i) {
+        const replacements_t replacement = replacements[i];
+
+        if (strcmp(replacement.raw, str) == 0) {
+            return Some(replacements_t, replacement);
+        }
     }
 
-    const replacements_t *const replacement = find_array(replacements, filter);
-    if (replacement == NULL) {
-        return None(replacements_t);
-    }
-
-    return Some(replacements_t, *replacement);
+    return None(replacements_t);
 }
 
 static void maybe_symbol(const char **str) {
@@ -234,59 +237,6 @@ void keycode_repr(const char **str) {
     maybe_symbol(str);
 }
 
-void keylog_process(uint16_t keycode, keyrecord_t *record) {
-    // nothing on release (for now)
-    if (!record->event.pressed) {
-        return;
-    }
-
-    // dont want to show some keycodes
-    // clang-format off
-    if ((IS_QK_LAYER_TAP(keycode) && !record->tap.count)
-        || keycode >= QK_USER  // dont want my custom keycodes on keylog
-        || IS_RGB_KEYCODE(keycode)
-        || IS_QK_LAYER_MOD(keycode)
-        || IS_QK_MOMENTARY(keycode)
-        || IS_QK_DEF_LAYER(keycode)
-        || IS_MODIFIER_KEYCODE(keycode)
-       )
-    {
-        // clang-format on
-        return;
-    }
-
-    const char *str = get_keycode_string(keycode);
-
-    uint8_t mods = get_mods();
-    bool    ctrl = mods & MOD_MASK_CTRL;
-
-    // delete from tail
-    if (strstr(str, "BSPC") != NULL) {
-        // ctrl + backspace clears whole log
-        if (ctrl) {
-            keylog_clear();
-        }
-        // backspace = remove last char
-        else {
-            keylog_shift_right();
-        }
-        return;
-    }
-
-    // unknown keycode, quit
-    if (str == NULL) {
-        return;
-    }
-
-    // convert string into symbols
-    keycode_repr(&str);
-
-    // casing is separate so that drawing keycodes on screen is always uppercase
-    apply_casing(&str);
-
-    keylog_append(str);
-}
-
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui/utils.h"
 
@@ -328,3 +278,69 @@ exit:
     return KEYLOG_UI_REDRAW_INTERVAL;
 }
 #endif
+
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
+
+bool process_record_keylog(uint16_t keycode, keyrecord_t *record) {
+    // prevent keylog processing, but not the keycode's logic
+    if (!process_record_keylog_kb(keycode, record)) {
+        return true;
+    }
+
+    // nothing on release (for now)
+    if (!record->event.pressed) {
+        return true;
+    }
+
+    // dont want to show some keycodes
+    // clang-format off
+    if ((IS_QK_LAYER_TAP(keycode) && !record->tap.count)
+        || keycode >= QK_USER  // dont want my custom keycodes on keylog
+        || IS_RGB_KEYCODE(keycode)
+        || IS_QK_LAYER_MOD(keycode)
+        || IS_QK_MOMENTARY(keycode)
+        || IS_QK_DEF_LAYER(keycode)
+        || IS_MODIFIER_KEYCODE(keycode)
+       )
+    {
+        // clang-format on
+        return true;
+    }
+
+    const char *str = get_keycode_string(keycode);
+
+    // skip keycodes that fallback to 0x...
+    const char *const prefix = "0x";
+    if (strncmp(str, prefix, strlen(prefix)) == 0) {
+        return true;
+    }
+
+    uint8_t mods = get_mods();
+    bool    ctrl = mods & MOD_MASK_CTRL;
+
+    // delete from tail
+    if (strstr(str, "BSPC") != NULL) {
+        // ctrl + backspace clears whole log
+        if (ctrl) {
+            keylog_clear();
+        } else {
+            // backspace = remove last char
+            keylog_shift_right();
+        }
+        return true;
+    }
+
+    // convert string into symbols
+    keycode_repr(&str);
+
+    // casing is separate so that drawing keycodes on screen is always uppercase
+    apply_casing(&str);
+
+    keylog_append(str);
+
+    return true;
+}

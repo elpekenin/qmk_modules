@@ -3,7 +3,8 @@
 
 #pragma once
 
-bool ui_font_fits(ui_node_t *self);
-bool ui_image_fits(ui_node_t *self);
+#include "elpekenin/ui.h"
 
-// TODO: ui_text_fits or the like
+bool ui_font_fits(const ui_node_t *self);
+bool ui_image_fits(const ui_node_t *self);
+bool ui_text_fits(const ui_node_t *self, painter_font_handle_t font, const char *str);
