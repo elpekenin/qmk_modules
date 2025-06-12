@@ -58,14 +58,10 @@ size_t get_flash_size(void);
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui.h"
 
-#    ifndef FLASH_UI_REDRAW_INTERVAL
-#        define FLASH_UI_REDRAW_INTERVAL 500
-#    endif
-
 typedef struct {
     const uint8_t *font;
-    uint32_t       timer;
     size_t         last;
+    uint32_t       interval;
 } flash_args_t;
 STATIC_ASSERT(offsetof(flash_args_t, font) == 0, "UI will crash :)");
 

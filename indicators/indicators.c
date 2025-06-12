@@ -22,6 +22,10 @@ static bool should_draw_indicator(const indicator_t *indicator, const indicator_
         return false;
     }
 
+    if (indicator->flags & HOST_LEDS && !(indicator->conditions.mods & args->host_leds)) {
+        return false;
+    }
+
     return true;
 }
 
@@ -72,8 +76,9 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
 #endif
 
     indicator_fn_args_t args = {
-        .mods  = mod_config_8bit(mods),
-        .layer = layer,
+        .mods      = mod_config_8bit(mods),
+        .layer     = layer,
+        .host_leds = host_keyboard_leds(),
     };
 
     // iterate all keys

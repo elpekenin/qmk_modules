@@ -45,13 +45,9 @@ const u128 get_build_id(void);
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui.h"
 
-#    ifndef BUILD_ID_UI_REDRAW_INTERVAL
-#        define BUILD_ID_UI_REDRAW_INTERVAL 100
-#    endif
-
 typedef struct {
     const uint8_t *font;
-    uint32_t       timer;
+    uint32_t       interval;
 } build_id_args_t;
 STATIC_ASSERT(offsetof(build_id_args_t, font) == 0, "UI will crash :)");
 

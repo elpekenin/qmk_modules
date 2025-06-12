@@ -39,13 +39,9 @@ void keycode_repr(const char **str);
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui.h"
 
-#    ifndef KEYLOG_UI_REDRAW_INTERVAL
-#        define KEYLOG_UI_REDRAW_INTERVAL 100
-#    endif
-
 typedef struct {
     const uint8_t *font;
-    uint32_t       timer;
+    uint32_t       interval;
 } keylog_args_t;
 STATIC_ASSERT(offsetof(keylog_args_t, font) == 0, "UI will crash :)");
 

@@ -29,28 +29,25 @@ static void ui_print_node(const ui_node_t *node, size_t indent) {
     }
 }
 
-static bool ui_handle_font(const painter_font_handle_t font, const ui_node_t *parent, ui_coord_t *size) {
+static ui_coord_t ui_handle_font(const painter_font_handle_t font, const ui_node_t *parent, ui_coord_t scale) {
     if (parent->direction != UI_SPLIT_DIR_VERTICAL) {
         ui_dprintf("[ERROR] font size must be used on vertical split\n");
-        return false;
+        return UI_COORD_MAX;
     }
 
-    *size = font->line_height;
-    return true;
+    return scale * font->line_height;
 }
 
-static bool ui_handle_image(const painter_image_handle_t image, const ui_node_t *parent, ui_coord_t *size) {
+static ui_coord_t ui_handle_image(const painter_image_handle_t image, const ui_node_t *parent, ui_coord_t scale) {
     switch (parent->direction) {
         default:
-            return false; // unreachable
+            return UI_COORD_MAX; // unreachable
 
         case UI_SPLIT_DIR_HORIZONTAL:
-            *size = image->width;
-            return true;
+            return scale * image->width;
 
         case UI_SPLIT_DIR_VERTICAL:
-            *size = image->height;
-            return true;
+            return scale * image->height;
     }
 }
 
@@ -126,7 +123,7 @@ static bool ui_init_node(ui_node_t *parent) {
         ui_coord_t child_size = ~0;
         switch (child->node_size.mode) {
             default:
-                ui_dprintf("[ERROR] invalid value for mode (%d)\n", parent->node_size.mode);
+                ui_dprintf("[ERROR] invalid value for mode (%d)\n", child->node_size.mode);
                 goto err;
 
             case UI_SPLIT_MODE_ABSOLUTE:
@@ -153,9 +150,9 @@ static bool ui_init_node(ui_node_t *parent) {
                     goto err;
                 }
 
-                const bool ret = ui_handle_font(font, parent, &child_size);
+                child_size = ui_handle_font(font, parent, child->node_size.size);
                 qp_close_font(font);
-                if (!ret) {
+                if (child_size == UI_COORD_MAX) {
                     goto err;
                 }
 
@@ -174,9 +171,9 @@ static bool ui_init_node(ui_node_t *parent) {
                     goto err;
                 }
 
-                const bool ret = ui_handle_image(image, parent, &child_size);
+                child_size = ui_handle_image(image, parent, child->node_size.size);
                 qp_close_image(image);
-                if (!ret) {
+                if (child_size == UI_COORD_MAX) {
                     goto err;
                 }
 

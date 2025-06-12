@@ -7,7 +7,6 @@
 
 typedef struct {
     const uint8_t *font;
-    uint32_t       timer;
 } uptime_args_t;
 STATIC_ASSERT(offsetof(uptime_args_t, font) == 0, "UI will crash :)");
 

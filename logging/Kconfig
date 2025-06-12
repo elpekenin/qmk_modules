@@ -1,8 +1,0 @@
-menuconfig CM_LOGGING
-    bool "logging"
-
-if CM_LOGGING
-    config LOGGING_FORMAT
-        string "format"
-        default "[%LS] %M"
-endif

@@ -275,7 +275,7 @@ err:
     qp_close_font(font);
 
 exit:
-    return KEYLOG_UI_REDRAW_INTERVAL;
+    return args->interval;
 }
 #endif
 

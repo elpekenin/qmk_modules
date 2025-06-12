@@ -76,6 +76,6 @@ err:
     qp_close_font(font);
 
 exit:
-    return BUILD_ID_UI_REDRAW_INTERVAL;
+    return args->interval;
 }
 #endif

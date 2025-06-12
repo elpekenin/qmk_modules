@@ -5,10 +5,6 @@
 
 #include "elpekenin/ui.h"
 
-#ifndef UI_LAYER_REDRAW_INTERVAL
-#    define UI_LAYER_REDRAW_INTERVAL 100
-#endif
-
 typedef struct {
     uint8_t  layer;
     uint16_t width;
@@ -16,8 +12,9 @@ typedef struct {
 
 typedef struct {
     const uint8_t *font;
-    uint32_t       timer;
     last_layer_t   last;
+    uint32_t       interval;
+    const char *(*const layer_name)(uint8_t layer);
 } layer_args_t;
 STATIC_ASSERT(offsetof(layer_args_t, font) == 0, "UI will crash :)");
 

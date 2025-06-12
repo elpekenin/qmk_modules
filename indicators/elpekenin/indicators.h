@@ -56,6 +56,10 @@ typedef struct {
      * Active modifiers (bitmask).
      */
     uint8_t mods;
+    /**
+     * Active host leds.
+     */
+    uint8_t host_leds;
 } indicator_fn_args_t;
 
 /**
@@ -65,20 +69,32 @@ typedef enum {
     /**
      * Highest active layer is ``<X>``.
      */
-    LAYER = (1 << 0),
+    LAYER = 1 << 0,
     /**
      * Keycode is exactly ``<X>``.
      */
-    KEYCODE = (1 << 1),
+    KEYCODE = 1 << 1,
     /**
      * Modifiers ``<X>`` are active (not an exact match, others can be active too).
      */
-    MODS = (1 << 2),
+    MODS = 1 << 2,
     /**
      * Keycode is greater than ``<X>``.
      */
-    KC_GT_THAN = (1 << 3),
+    KC_GT_THAN = 1 << 3,
+    /**
+     * Host leds ``<x>`` are active (not an exact match, others can be active too).
+     */
+    HOST_LEDS = 1 << 4,
 } indicator_flags_t;
+
+typedef enum {
+    NUM_LOCK_MASK    = 1 << 0,
+    CAPS_LOCK_MASK   = 1 << 1,
+    SCROLL_LOCK_MASK = 1 << 2,
+    COMPOSE_MASK     = 1 << 3,
+    KANA_MASK        = 1 << 4,
+} host_led_mask_t;
 
 /**
  * An indicator's specification:
@@ -196,7 +212,53 @@ typedef struct PACKED {
         },                                             \
     }
 
-// Not intended to be used by users -> no docstring
-size_t indicators_count(void);
+/**
+ * Indicator on any key mapped to the given keycode while host LEDs are active.
+ *
+ * Args:
+ *     _keycode: Value of the keycode.
+ *     host_mask: Bitmask of the host LEDs that must be active.
+ *     rgb: Color to be applied.
+ */
+#define KEYCODE_WITH_HOST_LED_INDICATOR(_keycode, host_mask, rgb) \
+    (indicator_t) {                                               \
+        .color = {rgb}, .flags = KEYCODE | HOST_LEDS,             \
+        .conditions = {                                           \
+            .keycode   = (_keycode),                              \
+            .host_leds = (host_mask),                             \
+        },                                                        \
+    }
 
+/**
+ * Indicator for KC_CAPS key(s) while caps lock is active.
+ *
+ * Args:
+ *     rgb: Color to be applied.
+ */
+#define CAPS_LOCK_INDICATOR(rgb)                      \
+    (indicator_t) {                                   \
+        .color = {rgb}, .flags = KEYCODE | HOST_LEDS, \
+        .conditions = {                               \
+            .keycode   = KC_CAPS,                     \
+            .host_leds = CAPS_LOCK_MASK,              \
+        },                                            \
+    }
+
+/**
+ * Indicator for KC_NUM key(s) while num lock is active.
+ *
+ * Args:
+ *     rgb: Color to be applied.
+ */
+#define NUM_LOCK_INDICATOR(rgb)                       \
+    (indicator_t) {                                   \
+        .color = {rgb}, .flags = KEYCODE | HOST_LEDS, \
+        .conditions = {                               \
+            .keycode   = KC_NUM,                      \
+            .host_leds = NUM_LOCK_MASK,               \
+        },                                            \
+    }
+
+// not intended to be used by users -> no docstring
+size_t      indicators_count(void);
 indicator_t get_indicator(size_t index);

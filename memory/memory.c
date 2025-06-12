@@ -90,6 +90,6 @@ err:
     qp_close_font(font);
 
 exit:
-    return FLASH_UI_REDRAW_INTERVAL;
+    return args->interval;
 }
 #endif

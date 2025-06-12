@@ -1,18 +1,19 @@
 // Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// TODO: glitch refactor
-
 #include "elpekenin/ui/layer.h"
 
 #include <quantum/compiler_support.h>
 
-#include "elpekenin/layers.h" // TODO: decouple from userspace code
 #include "elpekenin/ui/utils.h"
 
 bool layer_init(ui_node_t *self) {
     layer_args_t *const args = self->args;
-    args->last.layer         = ~0;
+    if (args->layer_name == NULL) {
+        return false;
+    }
+
+    args->last.layer = ~0;
     return ui_font_fits(self);
 }
 
@@ -29,7 +30,7 @@ uint32_t layer_render(const ui_node_t *self, painter_device_t display) {
         goto exit;
     }
 
-    const char *const str = get_layer_name(layer);
+    const char *const str = args->layer_name(layer);
 
     const uint16_t width = qp_textwidth(font, str);
     if (width == 0 || width > self->size.x) {
@@ -54,5 +55,5 @@ err:
     qp_close_font(font);
 
 exit:
-    return UI_LAYER_REDRAW_INTERVAL;
+    return args->interval;
 }

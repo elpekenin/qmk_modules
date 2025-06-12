@@ -24,6 +24,7 @@
 #include "util.h"
 
 typedef uint16_t ui_coord_t;
+#define UI_COORD_MAX ((ui_coord_t)~0)
 
 typedef enum {
     UI_SPLIT_MODE_NONE,
@@ -115,29 +116,29 @@ typedef struct _ui_node_t {
     }
 
 /**
- * Size equal to a font's height. Can only be used within vertical split node.
+ * `x` times the font's height. Can only be used within vertical split node.
  *
  * .. warning::
  *   Executes``qp_load_font_mem(*(void**)node->args)`` to compute size.
  *   That is, the node's ``args`` **must** point to a structure whose first element
  *   is a font's array.
  */
-#define UI_FONT()                   \
-    (ui_node_size_t) {              \
-        .mode = UI_SPLIT_MODE_FONT, \
+#define UI_FONT(x)                             \
+    (ui_node_size_t) {                         \
+        .mode = UI_SPLIT_MODE_FONT, .size = x, \
     }
 
 /**
- * Size equal to a image's width/height (depending on parent's split direction).
+ * `x` times a image's width/height (depending on parent's split direction).
  *
  * .. warning::
  *   Executes``qp_load_image_mem(*(void**)node->args)`` to compute size.
  *   That is, the node's ``args`` **must** point to a structure whose first element
  *   is an image's array.
  */
-#define UI_IMAGE()                   \
-    (ui_node_size_t) {               \
-        .mode = UI_SPLIT_MODE_IMAGE, \
+#define UI_IMAGE(x)                             \
+    (ui_node_size_t) {                          \
+        .mode = UI_SPLIT_MODE_IMAGE, .size = x, \
     }
 
 /**

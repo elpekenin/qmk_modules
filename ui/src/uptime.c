@@ -25,7 +25,6 @@ uint32_t uptime_render(const ui_node_t *self, painter_device_t display) {
     char str[15] = {0};
     snprintf(str, sizeof(str), "Up|%02dh%02dm%02ds", hours.quot, minutes.quot, seconds);
 
-    // text does not fit in bounds (width=0 means error)
     if (!ui_text_fits(self, font, str)) {
         goto err;
     }
