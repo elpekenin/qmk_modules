@@ -22,7 +22,7 @@ static bool should_draw_indicator(const indicator_t *indicator, const indicator_
         return false;
     }
 
-    if (indicator->flags & HOST_LEDS && !(indicator->conditions.mods & args->host_leds)) {
+    if (indicator->flags & HOST_LEDS && !(indicator->conditions.host_leds & args->host_leds)) {
         return false;
     }
 
