@@ -21,16 +21,12 @@
 #    error Must enable 'elpekenin/generics'
 #endif
 
-/**
- * How big the array to store backtraces will be.
- */
+// How big the array to store backtraces will be.
 #ifndef CRASH_UNWIND_DEPTH
 #    define CRASH_UNWIND_DEPTH 100
 #endif
 
-/**
- * How big the array to store a message will be.
- */
+// How big the array to store a message will be.
 #ifndef CRASH_MESSAGE_LENGTH
 #    define CRASH_MESSAGE_LENGTH 200
 #endif

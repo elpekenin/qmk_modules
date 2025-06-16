@@ -25,16 +25,12 @@
 #    define SCROLLING_TEXT_USE_ALLOCATOR 0
 #endif
 
-/**
- * How many scrolling texts can be drawn at the same time.
- */
+// How many scrolling texts can be drawn at the same time.
 #ifndef SCROLLING_TEXT_N_WORKERS
 #    define SCROLLING_TEXT_N_WORKERS 15
 #endif
 
-/**
- * Time interval between checking works' state (ms)
- */
+// Time interval between checking works' state (ms)
 #ifndef SCROLLING_TEXT_TASK_INTERVAL
 #    define SCROLLING_TEXT_TASK_INTERVAL 10
 #endif

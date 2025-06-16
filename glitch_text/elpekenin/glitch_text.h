@@ -24,16 +24,12 @@
 #    define GLITCH_TEXT_USE_ALLOCATOR 0
 #endif
 
-/**
- * How many glitch texts can be drawn at the same time.
- */
+// How many glitch texts can be drawn at the same time.
 #ifndef GLITCH_TEXT_N_WORKERS
 #    define GLITCH_TEXT_N_WORKERS 15
 #endif
 
-/**
- * Time interval between checking works' state (ms)
- */
+// Time interval between checking works' state (ms)
 #ifndef GLITCH_TEXT_TASK_INTERVAL
 #    define GLITCH_TEXT_TASK_INTERVAL 10
 #endif

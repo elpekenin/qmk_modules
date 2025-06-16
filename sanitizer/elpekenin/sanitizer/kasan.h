@@ -31,16 +31,12 @@
 
 #pragma once
 
-/**
- * How big redzones are.
- */
+// How big redzones are.
 #ifndef KASAN_REDZONE_SIZE
 #    define KASAN_REDZONE_SIZE (4)
 #endif
 
-/**
- * How many malloc entries to track.
- */
+// How many malloc entries to track.
 #ifndef KASAN_MALLOC_ARRAY_SIZE
 #    define KASAN_MALLOC_ARRAY_SIZE (300)
 #endif

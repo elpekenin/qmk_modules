@@ -5,9 +5,7 @@
 
 #include "qp.h"
 
-/**
- * How many displays of this type can be created.
- */
+// How many displays of this type can be created.
 #ifndef LS0XX_NUM_DEVICES
 #    define LS0XX_NUM_DEVICES 1
 #endif
