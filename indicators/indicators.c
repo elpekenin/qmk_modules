@@ -3,26 +3,26 @@
 
 #include "elpekenin/indicators.h"
 
-#include <quantum/quantum.h>
+#include "quantum.h"
 
-static bool should_draw_indicator(const indicator_t *indicator, const indicator_fn_args_t *args) {
-    if (indicator->flags & LAYER && indicator->conditions.layer != args->layer) {
+static bool should_draw_indicator(const indicator_t *indicator, const indicator_args_t *args) {
+    if (indicator->checks.layer && indicator->args.layer != args->layer) {
         return false;
     }
 
-    if (indicator->flags & KEYCODE && indicator->conditions.keycode != args->keycode) {
+    if (indicator->checks.keycode && indicator->args.keycode != args->keycode) {
         return false;
     }
 
-    if (indicator->flags & MODS && !(indicator->conditions.mods & args->mods)) {
+    if (indicator->checks.mods && !(indicator->args.mods & args->mods)) {
         return false;
     }
 
-    if (indicator->flags & KC_GT_THAN && indicator->conditions.keycode >= args->keycode) {
+    if (indicator->checks.kc_gt_than && indicator->args.keycode >= args->keycode) {
         return false;
     }
 
-    if (indicator->flags & HOST_LEDS && !(indicator->conditions.host_leds & args->host_leds)) {
+    if (indicator->checks.host_leds && !(indicator->args.host_leds & args->host_leds)) {
         return false;
     }
 
@@ -75,7 +75,7 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
     mods |= get_oneshot_mods();
 #endif
 
-    indicator_fn_args_t args = {
+    indicator_args_t args = {
         .mods      = mod_config_8bit(mods),
         .layer     = layer,
         .host_leds = host_keyboard_leds(),

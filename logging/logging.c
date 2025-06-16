@@ -5,11 +5,12 @@
 
 #include <ch.h>
 #include <errno.h>
-#include <platforms/timer.h>
-#include <quantum/quantum.h>
 #include <stdarg.h>
 #include <string.h>
 #include <sys/cdefs.h>
+
+#include "quantum.h"
+#include "timer.h"
 
 // stringify log levels
 // clang-format off

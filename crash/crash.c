@@ -4,9 +4,10 @@
 #include "elpekenin/crash.h"
 
 #include <osal.h>
-#include <quantum/logging/print.h>
-#include <quantum/quantum.h>
 #include <sys/cdefs.h>
+
+#include "logging/print.h"
+#include "quantum.h"
 
 #if defined(COMMUNITY_MODULE_STRING_ENABLE)
 #    include "elpekenin/string.h"

@@ -19,7 +19,6 @@
 
 #include "elpekenin/sanitizer/kasan.h"
 
-#include <quantum/util.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -27,6 +26,7 @@
 #include <sys/cdefs.h>
 
 #include "printf/printf.h"
+#include "util.h"
 
 #if defined(COMMUNITY_MODULE_CRASH_ENABLE)
 #    include <backtrace.h>

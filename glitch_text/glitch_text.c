@@ -4,9 +4,10 @@
 #include "elpekenin/glitch_text.h"
 
 #include <errno.h>
-#include <quantum/quantum.h>
 #include <string.h>
 #include <sys/cdefs.h>
+
+#include "quantum.h"
 
 #if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
 #    include "elpekenin/generics.h"

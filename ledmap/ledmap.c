@@ -4,7 +4,8 @@
 #include "elpekenin/ledmap.h"
 
 #include <errno.h>
-#include <quantum/quantum.h>
+
+#include "quantum.h"
 
 // clang-format off
 static const uint8_t color_to_hue[LEDMAP_SPECIAL_SEPARATOR] = {

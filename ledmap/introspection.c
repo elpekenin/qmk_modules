@@ -1,8 +1,8 @@
 // Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <platforms/progmem.h>
-#include <quantum/compiler_support.h>
+#include "compiler_support.h"
+#include "progmem.h"
 
 #define NUM_LEDMAP_LAYERS_RAW ARRAY_SIZE(ledmap)
 

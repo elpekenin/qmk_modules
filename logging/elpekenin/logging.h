@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <quantum/compiler_support.h>
 #include <stdbool.h>
 
+#include "compiler_support.h"
 #include "printf/printf.h" // ATTR_PRINTF
 
 #ifndef LOGGING_FORMAT

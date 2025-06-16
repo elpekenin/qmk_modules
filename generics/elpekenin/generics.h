@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <quantum/util.h>
 #include <stdbool.h>
 #include <sys/cdefs.h>
 
 #include "printf/printf.h"
+#include "util.h"
 
 _Noreturn static inline void raise_error(const char *msg) {
     printf("[ERROR] %s\n", msg);

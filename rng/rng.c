@@ -4,7 +4,8 @@
 #include "elpekenin/rng.h"
 
 #include <lib/lib8tion/lib8tion.h>
-#include <quantum/quantum.h>
+
+#include "quantum.h"
 
 void rng_set_seed(uint16_t seed) {
     random16_set_seed(seed);

@@ -9,9 +9,10 @@
 
 #pragma once
 
-#include <quantum/quantum.h>
-#include <quantum/util.h>
 #include <sys/cdefs.h>
+
+#include "quantum.h"
+#include "util.h"
 
 #if !defined(QUANTUM_PAINTER_ENABLE)
 #    error Quantum painter must be enabled to use scrolling_text

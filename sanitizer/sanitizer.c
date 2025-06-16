@@ -1,9 +1,8 @@
 // Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <quantum/quantum.h>
-
 #include "elpekenin/sanitizer/kasan.h"
+#include "quantum.h"
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 

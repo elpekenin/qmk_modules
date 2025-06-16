@@ -4,11 +4,12 @@
 #include "elpekenin/keylog.h"
 
 #include <ctype.h>
-#include <quantum/compiler_support.h>
-#include <quantum/quantum.h>
-#include <quantum/util.h>
 #include <string.h>
 #include <tmk_core/protocol/host.h> // keyboard_led_state
+
+#include "compiler_support.h"
+#include "quantum.h"
+#include "util.h"
 
 STATIC_ASSERT(CM_ENABLED(STRING), "Must enable 'elpekenin/string'");
 #include "elpekenin/string.h" // is_utf8_continuation

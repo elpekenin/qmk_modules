@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <quantum/quantum.h>
+#include "quantum.h"
 
 /**
  * How big the array to store keylog will be.

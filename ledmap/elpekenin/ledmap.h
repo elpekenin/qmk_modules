@@ -39,8 +39,8 @@
 
 #pragma once
 
-#include <quantum/compiler_support.h>
-#include <quantum/quantum.h>
+#include "compiler_support.h"
+#include "quantum.h"
 
 #if !defined(RGB_MATRIX_ENABLE)
 #    error RGB matrix must be enabled to use ledmap

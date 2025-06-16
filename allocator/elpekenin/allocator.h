@@ -11,9 +11,10 @@
 
 #pragma once
 
-#include <quantum/compiler_support.h>
-#include <quantum/util.h>
 #include <stddef.h>
+
+#include "compiler_support.h"
+#include "util.h"
 
 /**
  * How big the array to store different allocators will be.

@@ -3,8 +3,9 @@
 
 #include "elpekenin/allocator.h"
 
-#include <quantum/quantum.h>
 #include <stdlib.h>
+
+#include "quantum.h"
 
 #ifdef ALLOCATOR_DEBUG
 #    include "quantum/logging/debug.h"
@@ -102,20 +103,48 @@ static void push_new_stat(const allocator_t *allocator, void *ptr, size_t size) 
     }
 }
 
+// when wrapping stdlib:
+//   * `malloc(x)` gets translated to `__wrap_malloc(x)`
+//   * wrapper calls `malloc_with(c_runtime, x)`
+//   * allocator's vtable will then run `malloc_shim`
+//
+// !!!!!
+// if the shim were to use `malloc`, this would infinitely recurse
+// we "reroute" the shim to `__real_malloc` (toolchain-provided impl)
+// to get things working
+// !!!!!
+//
+// ... when not wrapping, just use the regular names
+#if ALLOCATOR_WRAP_STD
+extern void *__real_malloc(size_t);
+extern void  __real_free(void *);
+extern void *__real_calloc(size_t, size_t);
+extern void *__real_realloc(void *, size_t);
+#    define __malloc __real_malloc
+#    define __free __real_free
+#    define __calloc __real_calloc
+#    define __realloc __real_realloc
+#else
+#    define __malloc malloc
+#    define __free free
+#    define __calloc calloc
+#    define __realloc realloc
+#endif
+
 static void *calloc_shim(__unused const allocator_t *allocator, size_t nmemb, size_t size) {
-    return calloc(nmemb, size);
+    return __calloc(nmemb, size);
 }
 
 static void free_shim(__unused const allocator_t *allocator, void *ptr) {
-    return free(ptr);
+    return __free(ptr);
 }
 
 static void *malloc_shim(__unused const allocator_t *allocator, size_t size) {
-    return malloc(size);
+    return __malloc(size);
 }
 
 static void *realloc_shim(__unused const allocator_t *allocator, void *ptr, size_t size) {
-    return realloc(ptr, size);
+    return __realloc(ptr, size);
 }
 
 const allocator_t _c_runtime_allocator = {
