@@ -25,12 +25,11 @@ static const uint8_t color_to_hue[LEDMAP_SPECIAL_SEPARATOR] = {
 // clang-format on
 
 Result(rgb_t, int) rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col) {
-    // clang-format off
-    if (
-        layer >= ledmap_layer_count() // out of range
-        || !(layer_state & (1 << layer)) // layer is not active
-    ) {
-        // clang-format on
+    const layer_state_t layers_stack = layer_state | default_layer_state;
+    const layer_state_t layer_mask   = ((layer_state_t)1) << layer;
+
+    // out of range or inactive layer
+    if (layer >= ledmap_layer_count() || !(layers_stack & layer_mask)) {
         return Err(rgb_t, int, -EINVAL);
     }
 
