@@ -3,6 +3,8 @@
 
 #include "elpekenin/indicators.h"
 
+#include <errno.h>
+
 #include "quantum.h"
 
 static bool should_draw_indicator(const indicator_t *indicator, const indicator_args_t *args) {
@@ -61,6 +63,31 @@ static uint8_t mod_config_8bit(uint8_t mod) {
     return mod;
 }
 
+static int get_rgb(color_t color, rgb_t *rgb) {
+    switch (color.type) {
+        case COLOR_TYPE_RGB:
+            *rgb = color.rgb;
+            break;
+
+        case COLOR_TYPE_HSV:
+            *rgb = hsv_to_rgb(color.hsv);
+            break;
+
+        case COLOR_TYPE_HUE:
+            *rgb = hsv_to_rgb((hsv_t){
+                .h = color.hsv.h,
+                .s = rgb_matrix_get_sat(),
+                .v = rgb_matrix_get_val(),
+            });
+            break;
+
+        default:
+            return -EINVAL;
+    }
+
+    return 0;
+}
+
 //
 // QMK hooks
 //
@@ -68,6 +95,7 @@ static uint8_t mod_config_8bit(uint8_t mod) {
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 1, 0);
 
 bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max) {
+    rgb_t   rgb;
     uint8_t mods  = get_mods();
     uint8_t layer = get_highest_layer(layer_state);
 
@@ -99,7 +127,13 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
                 const indicator_t indicator = get_indicator(i);
 
                 if (should_draw_indicator(&indicator, &args)) {
-                    rgb_matrix_set_color(args.led_index, indicator.color.r, indicator.color.g, indicator.color.b);
+                    const int ret = get_rgb(indicator.color, &rgb);
+                    if (ret < 0) {
+                        // something went wrong, do nothing
+                        continue;
+                    }
+
+                    rgb_matrix_set_color(args.led_index, rgb.r, rgb.g, rgb.b);
                 }
             }
         }

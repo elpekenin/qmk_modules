@@ -96,6 +96,58 @@ typedef enum {
     KANA_MASK        = 1 << 4,
 } host_led_mask_t;
 
+typedef enum {
+    COLOR_TYPE_NONE,
+    COLOR_TYPE_RGB,
+    COLOR_TYPE_HSV,
+    COLOR_TYPE_HUE,
+} color_type_t;
+
+/**
+ * Represent colors in different ways.
+ */
+typedef struct {
+    /**
+     * How this color is specified: rgb, hsv, just hue, ...
+     */
+    color_type_t type;
+
+    /**
+     * Inner value.
+     */
+    union {
+        rgb_t rgb;
+        hsv_t hsv;
+    };
+} color_t;
+
+/**
+ * Create a :c:type:`color_t` instance from a RGB triplet.
+ */
+#define RGB_COLOR(_rgb)                        \
+    (color_t) {                                \
+        .type = COLOR_TYPE_RGB, .rgb = {_rgb}, \
+    }
+
+/**
+ * Create a :c:type:`color_t` instance from a HSV triplet.
+ */
+#define HSV_COLOR(_hsv)                        \
+    (color_t) {                                \
+        .type = COLOR_TYPE_HSV, .hsv = {_hsv}, \
+    }
+
+/**
+ * Create a :c:type:`color_t` instance from a hue value.
+ *
+ * .. note::
+ *   Sat and val will follow RGB's global settings.
+ */
+#define HUE(_hue)                              \
+    (color_t) {                                \
+        .type = COLOR_TYPE_HUE, .hsv.h = _hue, \
+    }
+
 /**
  * An indicator's specification:
  */
@@ -103,7 +155,7 @@ typedef struct PACKED {
     /**
      * Color to be applied if conditions are fulfilled.
      */
-    rgb_t color;
+    color_t color;
     /**
      * Which conditions have to be checked.
      */
@@ -121,18 +173,18 @@ typedef struct PACKED {
  *
  * Args:
  *     _keycode: Value of the keycode.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define KEYCODE_INDICATOR(_keycode, rgb) \
-    (indicator_t) {                      \
-        .color = {rgb},                  \
-        .checks =                        \
-            {                            \
-                .keycode = true,         \
-            },                           \
-        .args = {                        \
-            .keycode = (_keycode),       \
-        },                               \
+#define KEYCODE_INDICATOR(_keycode, _color) \
+    (indicator_t) {                         \
+        .color = (_color),                  \
+        .checks =                           \
+            {                               \
+                .keycode = true,            \
+            },                              \
+        .args = {                           \
+            .keycode = (_keycode),          \
+        },                                  \
     }
 
 /**
@@ -140,18 +192,18 @@ typedef struct PACKED {
  *
  * Args:
  *     _layer: Where the indicator should fire.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define LAYER_INDICATOR(_layer, rgb) \
-    (indicator_t) {                  \
-        .color = {rgb},              \
-        .checks =                    \
-            {                        \
-                .layer = true,       \
-            },                       \
-        .args = {                    \
-            .layer = (_layer),       \
-        },                           \
+#define LAYER_INDICATOR(_layer, _color) \
+    (indicator_t) {                     \
+        .color = (_color),              \
+        .checks =                       \
+            {                           \
+                .layer = true,          \
+            },                          \
+        .args = {                       \
+            .layer = (_layer),          \
+        },                              \
     }
 
 /**
@@ -160,20 +212,20 @@ typedef struct PACKED {
  * Args:
  *     _keycode: Value of the keycode.
  *     _layer: Where the indicator should fire.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define KEYCODE_IN_LAYER_INDICATOR(_keycode, _layer, rgb) \
-    (indicator_t) {                                       \
-        .color = {rgb},                                   \
-        .checks =                                         \
-            {                                             \
-                .keycode = true,                          \
-                .layer   = true,                          \
-            },                                            \
-        .args = {                                         \
-            .keycode = (_keycode),                        \
-            .layer   = (_layer),                          \
-        },                                                \
+#define KEYCODE_IN_LAYER_INDICATOR(_keycode, _layer, _color) \
+    (indicator_t) {                                          \
+        .color = (_color),                                   \
+        .checks =                                            \
+            {                                                \
+                .keycode = true,                             \
+                .layer   = true,                             \
+            },                                               \
+        .args = {                                            \
+            .keycode = (_keycode),                           \
+            .layer   = (_layer),                             \
+        },                                                   \
     }
 
 /**
@@ -181,20 +233,20 @@ typedef struct PACKED {
  *
  * Args:
  *     _layer: Where the indicator should fire.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define ASSIGNED_KEYCODE_IN_LAYER_INDICATOR(_layer, rgb) \
-    (indicator_t) {                                      \
-        .color = {rgb},                                  \
-        .checks =                                        \
-            {                                            \
-                .layer      = true,                      \
-                .kc_gt_than = true,                      \
-            },                                           \
-        .args = {                                        \
-            .keycode = KC_TRNS,                          \
-            .layer   = (_layer),                         \
-        },                                               \
+#define ASSIGNED_KEYCODE_IN_LAYER_INDICATOR(_layer, _color) \
+    (indicator_t) {                                         \
+        .color = (_color),                                  \
+        .checks =                                           \
+            {                                               \
+                .layer      = true,                         \
+                .kc_gt_than = true,                         \
+            },                                              \
+        .args = {                                           \
+            .keycode = KC_TRNS,                             \
+            .layer   = (_layer),                            \
+        },                                                  \
     }
 
 /**
@@ -203,20 +255,20 @@ typedef struct PACKED {
  * Args:
  *     _keycode: Value of the keycode.
  *     mod_mask: Bitmask of the modifiers that must be active.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define KEYCODE_WITH_MOD_INDICATOR(_keycode, mod_mask, rgb) \
-    (indicator_t) {                                         \
-        .color = {rgb},                                     \
-        .checks =                                           \
-            {                                               \
-                .keycode = true,                            \
-                .mods    = true,                            \
-            },                                              \
-        .args = {                                           \
-            .keycode = (_keycode),                          \
-            .mods    = (mod_mask),                          \
-        },                                                  \
+#define KEYCODE_WITH_MOD_INDICATOR(_keycode, mod_mask, _color) \
+    (indicator_t) {                                            \
+        .color = (_color),                                     \
+        .checks =                                              \
+            {                                                  \
+                .keycode = true,                               \
+                .mods    = true,                               \
+            },                                                 \
+        .args = {                                              \
+            .keycode = (_keycode),                             \
+            .mods    = (mod_mask),                             \
+        },                                                     \
     }
 
 /**
@@ -224,20 +276,20 @@ typedef struct PACKED {
  *
  * Args:
  *     _layer: Where the indicator should fire.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define CUSTOM_KEYCODE_IN_LAYER_INDICATOR(_layer, rgb) \
-    (indicator_t) {                                    \
-        .color = {rgb},                                \
-        .checks =                                      \
-            {                                          \
-                .layer      = true,                    \
-                .kc_gt_than = true,                    \
-            },                                         \
-        .args = {                                      \
-            .keycode = QK_USER,                        \
-            .layer   = (_layer),                       \
-        },                                             \
+#define CUSTOM_KEYCODE_IN_LAYER_INDICATOR(_layer, _color) \
+    (indicator_t) {                                       \
+        .color = (_color),                                \
+        .checks =                                         \
+            {                                             \
+                .layer      = true,                       \
+                .kc_gt_than = true,                       \
+            },                                            \
+        .args = {                                         \
+            .keycode = QK_USER,                           \
+            .layer   = (_layer),                          \
+        },                                                \
     }
 
 /**
@@ -246,61 +298,37 @@ typedef struct PACKED {
  * Args:
  *     _keycode: Value of the keycode.
  *     host_mask: Bitmask of the host LEDs that must be active.
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define KEYCODE_WITH_HOST_LED_INDICATOR(_keycode, host_mask, rgb) \
-    (indicator_t) {                                               \
-        .color = {rgb},                                           \
-        .checks =                                                 \
-            {                                                     \
-                .keycode   = true,                                \
-                .host_leds = true,                                \
-            },                                                    \
-        .args = {                                                 \
-            .keycode   = (_keycode),                              \
-            .host_leds = (host_mask),                             \
-        },                                                        \
+#define KEYCODE_WITH_HOST_LED_INDICATOR(_keycode, host_mask, _color) \
+    (indicator_t) {                                                  \
+        .color = (_color),                                           \
+        .checks =                                                    \
+            {                                                        \
+                .keycode   = true,                                   \
+                .host_leds = true,                                   \
+            },                                                       \
+        .args = {                                                    \
+            .keycode   = (_keycode),                                 \
+            .host_leds = (host_mask),                                \
+        },                                                           \
     }
 
 /**
  * Indicator for KC_CAPS key(s) while caps lock is active.
  *
  * Args:
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define CAPS_LOCK_INDICATOR(rgb)         \
-    (indicator_t) {                      \
-        .color = {rgb},                  \
-        .checks =                        \
-            {                            \
-                .keycode   = true,       \
-                .host_leds = true,       \
-            },                           \
-        .args = {                        \
-            .keycode   = KC_CAPS,        \
-            .host_leds = CAPS_LOCK_MASK, \
-        },                               \
-    }
+#define CAPS_LOCK_INDICATOR(_color) KEYCODE_WITH_HOST_LED_INDICATOR(KC_CAPS, CAPS_LOCK_MASK, (_color))
 
 /**
  * Indicator for KC_NUM key(s) while num lock is active.
  *
  * Args:
- *     rgb: Color to be applied.
+ *     _color: Color to be applied.
  */
-#define NUM_LOCK_INDICATOR(rgb)         \
-    (indicator_t) {                     \
-        .color = {rgb},                 \
-        .checks =                       \
-            {                           \
-                .keycode   = true,      \
-                .host_leds = true,      \
-            },                          \
-        .args = {                       \
-            .keycode   = KC_NUM,        \
-            .host_leds = NUM_LOCK_MASK, \
-        },                              \
-    }
+#define NUM_LOCK_INDICATOR(_color) KEYCODE_WITH_HOST_LED_INDICATOR(KC_NUM, NUM_LOCK_MASK, (_color))
 
 // not intended to be used by users -> no docstring
 size_t      indicators_count(void);
