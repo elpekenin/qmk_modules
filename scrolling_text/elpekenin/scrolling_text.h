@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <errno.h>
 #include <sys/cdefs.h>
 
 #include "quantum.h"

@@ -3,7 +3,6 @@
 
 #include "elpekenin/build_id.h"
 
-// TODO?: assert that desc_size==128
 typedef struct {
     uint32_t name_size;
     uint32_t desc_size;
@@ -13,15 +12,19 @@ typedef struct {
 
 extern gnu_note_t __gnu_build_id__;
 
-const u128 get_build_id(void) {
-    // skip the name
-    const uint8_t *data = __gnu_build_id__.data;
-    data += __gnu_build_id__.name_size;
+int get_build_id(u128 *id) {
+    const uint32_t name_size = __gnu_build_id__.name_size;
+    const uint32_t desc_size = __gnu_build_id__.desc_size;
+    const uint8_t *data_ptr  = __gnu_build_id__.data;
+
+    // error if "description" (value) does not match expectations (being a u128)
+    if (desc_size != sizeof(u128)) {
+        return -EINVAL;
+    }
 
     // re-interpret cast and copy contents
-    u128 id = *(u128 *)data;
-
-    return id;
+    *id = *(u128 *)(data_ptr + name_size);
+    return 0;
 }
 
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
@@ -39,7 +42,10 @@ uint32_t build_id_render(const ui_node_t *self, painter_device_t display) {
         goto exit;
     }
 
-    const u128 id = get_build_id();
+    u128 id;
+    if (get_build_id(&id) < 0) {
+        return 0;
+    }
 
     //      0x   each byte in hex   null
     char str[2 + sizeof(u128) * 2 + 0] = {'0', 'x'};

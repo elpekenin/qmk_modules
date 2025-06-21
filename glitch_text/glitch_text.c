@@ -3,7 +3,6 @@
 
 #include "elpekenin/glitch_text.h"
 
-#include <errno.h>
 #include <string.h>
 #include <sys/cdefs.h>
 

@@ -39,6 +39,8 @@
 
 #pragma once
 
+#include <errno.h>
+
 #include "compiler_support.h"
 #include "quantum.h"
 

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/cdefs.h>

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <errno.h>
 #include <stdint.h>
 
 #include "compiler_support.h"
@@ -40,7 +41,7 @@ STATIC_ASSERT(sizeof(u128) == 128 / 8, "Invalid size for `u128`");
 /**
  * Get the build id for the running program.
  */
-const u128 get_build_id(void);
+int get_build_id(u128 *id);
 
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui.h"

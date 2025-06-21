@@ -4,7 +4,6 @@
 #include "elpekenin/logging.h"
 
 #include <ch.h>
-#include <errno.h>
 #include <stdarg.h>
 #include <string.h>
 #include <sys/cdefs.h>

@@ -3,8 +3,6 @@
 
 #include "elpekenin/scrolling_text.h"
 
-#include <errno.h>
-
 #include "color.h"
 
 #if defined(COMMUNITY_MODULE_GENERICS_ENABLE)

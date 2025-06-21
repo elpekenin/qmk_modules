@@ -3,8 +3,6 @@
 
 #include "elpekenin/indicators.h"
 
-#include <errno.h>
-
 #include "quantum.h"
 
 static bool should_draw_indicator(const indicator_t *indicator, const indicator_args_t *args) {

@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <errno.h>
 #include <stdbool.h>
 
 #include "compiler_support.h"

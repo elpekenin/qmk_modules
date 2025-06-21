@@ -3,8 +3,6 @@
 
 #include "elpekenin/ledmap.h"
 
-#include <errno.h>
-
 #include "quantum.h"
 
 // clang-format off

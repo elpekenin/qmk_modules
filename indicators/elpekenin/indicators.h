@@ -22,11 +22,13 @@
 
 #pragma once
 
-#include "quantum.h"
-
 #if !defined(RGB_MATRIX_ENABLE)
 #    error RGB matrix must be enabled to use indicators
 #endif
+
+#include <errno.h>
+
+#include "quantum.h"
 
 /**
  * .. hint::
