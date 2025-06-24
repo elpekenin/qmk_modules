@@ -87,8 +87,8 @@ bool rgb_matrix_indicators_advanced_ledmap(uint8_t led_min, uint8_t led_max) {
     layer_state_t layer = get_highest_layer(layer_state | default_layer_state);
 
     // iterate all keys
-    for (int8_t row = 0; row < MATRIX_ROWS; ++row) {
-        for (int8_t col = 0; col < MATRIX_COLS; ++col) {
+    for (size_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (size_t col = 0; col < MATRIX_COLS; ++col) {
             uint8_t index = g_led_config.matrix_co[row][col];
 
             if (index < led_min || index >= led_max) {
