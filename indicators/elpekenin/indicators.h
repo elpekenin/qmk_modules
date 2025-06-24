@@ -156,8 +156,6 @@ enum qmk_hues {
     /** */
     HUE_AZURE = __FIRST(HSV_AZURE),
     /** */
-    HUE_BLACK = __FIRST(HSV_BLACK),
-    /** */
     HUE_BLUE = __FIRST(HSV_BLUE),
     /** */
     HUE_CHARTREUSE = __FIRST(HSV_CHARTREUSE),
@@ -187,8 +185,6 @@ enum qmk_hues {
     HUE_TEAL = __FIRST(HSV_TEAL),
     /** */
     HUE_TURQUOISE = __FIRST(HSV_TURQUOISE),
-    /** */
-    HUE_WHITE = __FIRST(HSV_WHITE),
     /** */
     HUE_YELLOW = __FIRST(HSV_YELLOW),
 };
