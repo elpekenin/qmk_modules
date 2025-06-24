@@ -75,7 +75,7 @@ uint32_t rgb_hsv_render(const ui_node_t *self, painter_device_t display) {
     const hsv_t hsv = rgb_matrix_config.hsv;
 
     char str[15] = {0};
-    snprintf(str, sizeof(str), "%d %d %d", hsv.h, hsv.s, hsv.v);
+    snprintf(str, sizeof(str), "%3d %3d %3d", hsv.h, hsv.s, hsv.v);
 
     if (!ui_text_fits(self, font, str)) {
         goto err;
