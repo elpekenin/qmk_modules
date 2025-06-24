@@ -205,7 +205,7 @@ static bool ui_init_node(ui_node_t *parent) {
 
             case UI_SPLIT_DIR_RIGHT_LEFT:
                 child->start = (ui_vector_t){
-                    .x = parent->start.x + parent->size.x - offset,
+                    .x = parent->start.x + parent->size.x - offset - child_size,
                     .y = parent->start.y,
                 };
 
@@ -227,10 +227,12 @@ static bool ui_init_node(ui_node_t *parent) {
                     .y = child_size,
                 };
 
+                break;
+
             case UI_SPLIT_DIR_BOTTOM_TOP:
                 child->start = (ui_vector_t){
                     .x = parent->start.x,
-                    .y = parent->start.y + parent->size.y - offset,
+                    .y = parent->start.y + parent->size.y - offset - child_size,
                 };
 
                 child->size = (ui_vector_t){
