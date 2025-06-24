@@ -126,20 +126,24 @@ typedef struct {
     };
 } color_t;
 
+#define __RGB(_r, _g, _b) ((rgb_t){.r = _r, .g = _g, .b = _b})
+
 /**
  * Create a :c:type:`color_t` instance from a RGB triplet.
  */
-#define RGB_COLOR(_rgb)                        \
-    (color_t) {                                \
-        .type = COLOR_TYPE_RGB, .rgb = {_rgb}, \
+#define RGB_COLOR(_rgb...)                          \
+    (color_t) {                                     \
+        .type = COLOR_TYPE_RGB, .rgb = __RGB(_rgb), \
     }
+
+#define __HSV(_h, _s, _v) ((hsv_t){.h = _h, .s = _s, .v = _v})
 
 /**
  * Create a :c:type:`color_t` instance from a HSV triplet.
  */
-#define HSV_COLOR(_hsv)                        \
-    (color_t) {                                \
-        .type = COLOR_TYPE_HSV, .hsv = {_hsv}, \
+#define HSV_COLOR(_hsv...)                          \
+    (color_t) {                                     \
+        .type = COLOR_TYPE_HSV, .hsv = __HSV(_hsv), \
     }
 
 #define ___FIRST(x, ...) (x)
