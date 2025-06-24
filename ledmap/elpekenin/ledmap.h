@@ -10,6 +10,8 @@
  *
  * .. code-block:: c
  *
+ *     #include "elpekenin/ledmap.h"
+ *
  *     const ledmap_color_t PROGMEM ledmap[][MATRIX_ROWS][MATRIX_COLS] = {
  *         [QWERTY] = LAYOUT(
  *             RED,  RED,  RED,  RED,  RED,  RED,     RED,  RED,  RED,  RED,  RED,  RED,

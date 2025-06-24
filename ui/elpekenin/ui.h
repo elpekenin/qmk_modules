@@ -37,8 +37,10 @@ typedef enum {
 
 typedef enum {
     UI_SPLIT_DIR_NONE,
-    UI_SPLIT_DIR_HORIZONTAL,
-    UI_SPLIT_DIR_VERTICAL,
+    UI_SPLIT_DIR_LEFT_RIGHT,
+    UI_SPLIT_DIR_RIGHT_LEFT,
+    UI_SPLIT_DIR_TOP_BOTTOM,
+    UI_SPLIT_DIR_BOTTOM_TOP,
 } ui_split_direction_t;
 
 typedef struct {
@@ -87,8 +89,8 @@ typedef struct _ui_node_t {
  *    - ``.children = UI_CHILDREN(nodes)``: Where ``nodes`` is an array of ``ui_node_t``'s
  *
  * To compute the size of each child, parents must specify how their size will be shared between all children.
- *    - ``.split_direction = UI_SPLIT_DIR_HORIZONTAL``: All children are as tall as parent, and size splits horizontally
- *    - ``.split_direction = UI_SPLIT_DIR_VERTICAl``: All children are as wide as parent, and size splits vertically
+ *    - ``.split_direction = UI_SPLIT_DIR_{LEFT_RIGHT,RIGHT_LEFT}``: All children are as tall as parent, and size splits horizontally
+ *    - ``.split_direction = UI_SPLIT_DIR_{TOP_BOTTOM,BOTTOM_TOP}``: All children are as wide as parent, and size splits vertically
  */
 #define UI_CHILDREN(x)                \
     (ui_children_t) {                 \

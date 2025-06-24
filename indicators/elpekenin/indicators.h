@@ -8,9 +8,12 @@
  *
  * .. code-block:: c
  *
+ *     #include "elpekenin/indicators.h"
+ *
  *     const indicator_t PROGMEM indicators[] = {
- *         LAYER_INDICATOR(UTILS, RGB_OFF),
- *         KEYCODE_IN_LAYER_INDICATOR(QK_BOOT, UTILS, RGB_RED),
+ *         LAYER_INDICATOR(UTILS, RGB_COLOR(RGB_OFF)),
+ *         KEYCODE_IN_LAYER_INDICATOR(QK_BOOT, UTILS, HSV_COLOR(HSV_RED)),
+ *         CAPS_LOCK_INDICATOR(HUE(HUE_BLUE)),
  *     };
  *
  * Since indicators are checked (and applied) in the same order that you define them, this config is:
@@ -138,6 +141,53 @@ typedef struct {
     (color_t) {                                \
         .type = COLOR_TYPE_HSV, .hsv = {_hsv}, \
     }
+
+#define ___FIRST(x, ...) (x)
+#define __FIRST(x) ___FIRST(x)
+
+/**
+ * Hue values for QMK builtin colors.
+ */
+enum qmk_hues {
+    /** */
+    HUE_AZURE = __FIRST(HSV_AZURE),
+    /** */
+    HUE_BLACK = __FIRST(HSV_BLACK),
+    /** */
+    HUE_BLUE = __FIRST(HSV_BLUE),
+    /** */
+    HUE_CHARTREUSE = __FIRST(HSV_CHARTREUSE),
+    /** */
+    HUE_CORAL = __FIRST(HSV_CORAL),
+    /** */
+    HUE_CYAN = __FIRST(HSV_CYAN),
+    /** */
+    HUE_GOLD = __FIRST(HSV_GOLD),
+    /** */
+    HUE_GOLDENROD = __FIRST(HSV_GOLDENROD),
+    /** */
+    HUE_GREEN = __FIRST(HSV_GREEN),
+    /** */
+    HUE_MAGENTA = __FIRST(HSV_MAGENTA),
+    /** */
+    HUE_ORANGE = __FIRST(HSV_ORANGE),
+    /** */
+    HUE_PINK = __FIRST(HSV_PINK),
+    /** */
+    HUE_PURPLE = __FIRST(HSV_PURPLE),
+    /** */
+    HUE_RED = __FIRST(HSV_RED),
+    /** */
+    HUE_SPRINGGREEN = __FIRST(HSV_SPRINGGREEN),
+    /** */
+    HUE_TEAL = __FIRST(HSV_TEAL),
+    /** */
+    HUE_TURQUOISE = __FIRST(HSV_TURQUOISE),
+    /** */
+    HUE_WHITE = __FIRST(HSV_WHITE),
+    /** */
+    HUE_YELLOW = __FIRST(HSV_YELLOW),
+};
 
 /**
  * Create a :c:type:`color_t` instance from a hue value.

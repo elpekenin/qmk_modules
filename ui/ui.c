@@ -30,7 +30,7 @@ static void ui_print_node(const ui_node_t *node, size_t indent) {
 }
 
 static ui_coord_t ui_handle_font(const painter_font_handle_t font, const ui_node_t *parent, ui_coord_t scale) {
-    if (parent->direction != UI_SPLIT_DIR_VERTICAL) {
+    if (parent->direction != UI_SPLIT_DIR_TOP_BOTTOM && parent->direction != UI_SPLIT_DIR_BOTTOM_TOP) {
         ui_dprintf("[ERROR] font size must be used on vertical split\n");
         return UI_COORD_MAX;
     }
@@ -43,10 +43,12 @@ static ui_coord_t ui_handle_image(const painter_image_handle_t image, const ui_n
         default:
             return UI_COORD_MAX; // unreachable
 
-        case UI_SPLIT_DIR_HORIZONTAL:
+        case UI_SPLIT_DIR_LEFT_RIGHT:
+        case UI_SPLIT_DIR_RIGHT_LEFT:
             return scale * image->width;
 
-        case UI_SPLIT_DIR_VERTICAL:
+        case UI_SPLIT_DIR_TOP_BOTTOM:
+        case UI_SPLIT_DIR_BOTTOM_TOP:
             return scale * image->height;
     }
 }
@@ -102,11 +104,13 @@ static bool ui_init_node(ui_node_t *parent) {
             ui_dprintf("[ERROR] invalid value for split (%d)\n", parent->direction);
             goto err;
 
-        case UI_SPLIT_DIR_HORIZONTAL:
+        case UI_SPLIT_DIR_LEFT_RIGHT:
+        case UI_SPLIT_DIR_RIGHT_LEFT:
             parent_size = parent->size.x;
             break;
 
-        case UI_SPLIT_DIR_VERTICAL:
+        case UI_SPLIT_DIR_TOP_BOTTOM:
+        case UI_SPLIT_DIR_BOTTOM_TOP:
             parent_size = parent->size.y;
             break;
     }
@@ -186,7 +190,7 @@ static bool ui_init_node(ui_node_t *parent) {
             default:
                 goto err; // unreachable
 
-            case UI_SPLIT_DIR_HORIZONTAL:
+            case UI_SPLIT_DIR_LEFT_RIGHT:
                 child->start = (ui_vector_t){
                     .x = parent->start.x + offset,
                     .y = parent->start.y,
@@ -199,10 +203,34 @@ static bool ui_init_node(ui_node_t *parent) {
 
                 break;
 
-            case UI_SPLIT_DIR_VERTICAL:
+            case UI_SPLIT_DIR_RIGHT_LEFT:
+                child->start = (ui_vector_t){
+                    .x = parent->start.x + parent->size.x - offset,
+                    .y = parent->start.y,
+                };
+
+                child->size = (ui_vector_t){
+                    .x = child_size,
+                    .y = parent->size.y,
+                };
+
+                break;
+
+            case UI_SPLIT_DIR_TOP_BOTTOM:
                 child->start = (ui_vector_t){
                     .x = parent->start.x,
                     .y = parent->start.y + offset,
+                };
+
+                child->size = (ui_vector_t){
+                    .x = parent->size.x,
+                    .y = child_size,
+                };
+
+            case UI_SPLIT_DIR_BOTTOM_TOP:
+                child->start = (ui_vector_t){
+                    .x = parent->start.x,
+                    .y = parent->start.y + parent->size.y - offset,
                 };
 
                 child->size = (ui_vector_t){
