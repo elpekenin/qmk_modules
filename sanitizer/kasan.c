@@ -23,7 +23,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/cdefs.h>
 
 #include "printf/printf.h"
 #include "util.h"

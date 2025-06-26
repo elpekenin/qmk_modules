@@ -10,10 +10,13 @@
 #pragma once
 
 #include <stdbool.h>
-#include <sys/cdefs.h>
 
 #include "printf/printf.h"
 #include "util.h"
+
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
+#endif
 
 _Noreturn static inline void raise_error(const char *msg) {
     printf("[ERROR] %s\n", msg);
@@ -35,20 +38,20 @@ _Noreturn static inline void raise_error(const char *msg) {
  * Args:
  *     T: The type of values.
  */
-#define OptionImpl(T)                                      \
-    typedef struct Option(T) Option(T);                    \
-                                                           \
-    struct Option(T) {                                     \
-        const bool is_some;                                \
-        const T    __value;                                \
-        T (*const __unwrap)(Option(T)) __result_use_check; \
-    };                                                     \
-                                                           \
-    static inline T option_unwrap(T)(Option(T) option) {   \
-        if (option.is_some) {                              \
-            return option.__value;                         \
-        }                                                  \
-        raise_error("Called `unwrap` on `None`");          \
+#define OptionImpl(T)                                    \
+    typedef struct Option(T) Option(T);                  \
+                                                         \
+    struct Option(T) {                                   \
+        const bool is_some;                              \
+        const T    __value;                              \
+        T (*const __unwrap)(Option(T)) __warn_unused;    \
+    };                                                   \
+                                                         \
+    static inline T option_unwrap(T)(Option(T) option) { \
+        if (option.is_some) {                            \
+            return option.__value;                       \
+        }                                                \
+        raise_error("Called `unwrap` on `None`");        \
     }
 
 /**
@@ -99,8 +102,8 @@ _Noreturn static inline void raise_error(const char *msg) {
             const T __value;                                       \
             const E __error;                                       \
         };                                                         \
-        T (*const __unwrap)(Result(T, E)) __result_use_check;      \
-        E (*const __unwrap_err)(Result(T, E)) __result_use_check;  \
+        T (*const __unwrap)(Result(T, E)) __warn_unused;           \
+        E (*const __unwrap_err)(Result(T, E)) __warn_unused;       \
     };                                                             \
                                                                    \
     static inline T result_unwrap(T, E)(Result(T, E) result) {     \
@@ -179,8 +182,8 @@ _Noreturn static inline void raise_error(const char *msg) {
         const size_t __size;                                          \
         size_t       __head;                                          \
         size_t       __tail;                                          \
-        bool (*const __push)(RingBuffer(T) *, T) __result_use_check;  \
-        Option(T) (*const __pop)(RingBuffer(T) *)__result_use_check;  \
+        bool (*const __push)(RingBuffer(T) *, T) __warn_unused;       \
+        Option(T) (*const __pop)(RingBuffer(T) *)__warn_unused;       \
         bool (*const __has_data)(RingBuffer(T));                      \
         void (*const __clear)(RingBuffer(T) *);                       \
     };                                                                \

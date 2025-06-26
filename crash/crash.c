@@ -4,7 +4,6 @@
 #include "elpekenin/crash.h"
 
 #include <osal.h>
-#include <sys/cdefs.h>
 
 #include "logging/print.h"
 #include "quantum.h"

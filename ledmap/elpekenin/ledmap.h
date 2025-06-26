@@ -57,7 +57,7 @@
 #endif
 
 #if defined(COMMUNITY_MODULE_INDICATORS_ENABLE)
-#    warning Enable indicators *after* ledmap, otherwise you will overwrite them.
+#    pragma message "Enable indicators after ledmap, otherwise you will overwrite them."
 #endif
 
 /**

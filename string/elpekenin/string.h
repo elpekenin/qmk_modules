@@ -11,7 +11,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <sys/cdefs.h>
 
 #include "printf/printf.h" // ATTR_PRINTF
 

@@ -4,7 +4,6 @@
 #include "elpekenin/glitch_text.h"
 
 #include <string.h>
-#include <sys/cdefs.h>
 
 #include "quantum.h"
 

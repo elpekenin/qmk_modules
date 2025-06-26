@@ -6,7 +6,6 @@
 #include <ch.h>
 #include <stdarg.h>
 #include <string.h>
-#include <sys/cdefs.h>
 
 #include "quantum.h"
 #include "timer.h"

@@ -3,8 +3,6 @@
 
 #include "ls0xx.h"
 
-#include <sys/cdefs.h>
-
 #include "ls0xx_opcodes.h"
 #include "qp_comms_spi.h"
 #include "qp_surface_internal.h"

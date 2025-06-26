@@ -10,7 +10,6 @@
 #pragma once
 
 #include <errno.h>
-#include <sys/cdefs.h>
 
 #include "quantum.h"
 #include "util.h"
@@ -34,6 +33,10 @@
 // Time interval between checking works' state (ms)
 #ifndef SCROLLING_TEXT_TASK_INTERVAL
 #    define SCROLLING_TEXT_TASK_INTERVAL 10
+#endif
+
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
 #endif
 
 /**
@@ -98,7 +101,7 @@ typedef struct PACKED {
  *
  * Return: Token of the deferred executor taking care of drawing
  */
-__result_use_check deferred_token scrolling_text_start(const scrolling_text_config_t *config, const char *str);
+__warn_unused deferred_token scrolling_text_start(const scrolling_text_config_t *config, const char *str);
 
 /**
  * Stop a scrolling text.

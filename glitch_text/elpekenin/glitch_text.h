@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <sys/cdefs.h>
 
 #if !defined(QUANTUM_PAINTER_ENABLE)
 #    error Quantum painter must be enabled to use glitch_text
@@ -33,6 +32,10 @@
 // Time interval between checking works' state (ms)
 #ifndef GLITCH_TEXT_TASK_INTERVAL
 #    define GLITCH_TEXT_TASK_INTERVAL 10
+#endif
+
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
 #endif
 
 /**
@@ -70,4 +73,4 @@ typedef struct PACKED {
  *    * ``0``: Color was found, and assigned into pointer.
  *    * ``-EINVAL``: Invalid input.
  */
-__result_use_check int glitch_text_start(const glitch_text_config_t *config, const char *str);
+__warn_unused int glitch_text_start(const glitch_text_config_t *config, const char *str);

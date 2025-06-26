@@ -4,7 +4,6 @@
 #include "elpekenin/dual_rp.h"
 
 #include <ch.h>
-#include <sys/cdefs.h>
 
 __weak_symbol void c1_init_kb(void) {}
 __weak_symbol void c1_init_user(void) {}
