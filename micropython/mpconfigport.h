@@ -45,6 +45,12 @@
 #    define MICROPY_PY_TIME_TIME_TIME_NS (0)
 #endif
 
+// apparently, there isn't such a config built-in to MicroPy
+// 6k is hopefully not too much (?)
+#ifndef MICROPY_QMK_STACK_SIZE
+#    define MICROPY_QMK_STACK_SIZE (6 * 1024)
+#endif
+
 #ifndef MP_PLAT_PRINT_STRN
 #    define MP_PLAT_PRINT_STRN(str, len)          \
         do {                                      \
