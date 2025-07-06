@@ -30,14 +30,16 @@ static mp_obj_t qmk_get_highest_active_layer(void) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(qmk_get_highest_active_layer_obj, qmk_get_highest_active_layer);
 
-static mp_obj_t qmk_send_string(const mp_obj_t kc_in) {
-    if (!mp_obj_is_str_or_bytes(kc_in)) {
+static mp_obj_t qmk_send_string(const mp_obj_t str_in) {
+    if (!mp_obj_is_str_or_bytes(str_in)) {
         mp_raise_TypeError(MP_ERROR_TEXT("input is not a str"));
     }
 
-    GET_STR_DATA_LEN(kc_in, str, len);
+    GET_STR_DATA_LEN(str_in, str, len);
 
+    (void)len;
     send_string((const char *)str); // FIXME: ugh
+
     return mp_const_none;
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(qmk_send_string_obj, qmk_send_string);

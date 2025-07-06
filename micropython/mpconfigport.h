@@ -30,7 +30,11 @@
 #        error 'qmk' needs subpackages to work
 #    endif
 #else
-#    define MICROPY_MODULE_BUILTIN_SUBPACKAGES 1
+#    define MICROPY_MODULE_BUILTIN_SUBPACKAGES (1)
+#endif
+
+#ifndef MICROPY_PY_FSTRINGS
+#    define MICROPY_PY_FSTRINGS (1)
 #endif
 
 #ifndef MICROPY_PY_GC
