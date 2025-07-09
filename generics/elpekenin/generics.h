@@ -14,11 +14,19 @@
 #include "printf/printf.h"
 #include "util.h"
 
+#ifndef __always_inline
+#    define __always_inline __attribute__((__always_inline__))
+#endif
+
+#ifndef __noreturn
+#    define __noreturn __attribute__((__noreturn__))
+#endif
+
 #ifndef __warn_unused
 #    define __warn_unused __attribute__((__warn_unused_result__))
 #endif
 
-_Noreturn static inline void raise_error(const char *msg) {
+__always_inline __noreturn static inline void raise_error(const char *msg) {
     printf("[ERROR] %s\n", msg);
     while (true) {
     }

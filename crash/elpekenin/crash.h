@@ -21,14 +21,14 @@
 #    error Must enable 'elpekenin/generics'
 #endif
 
-// How big the array to store backtraces will be.
-#ifndef CRASH_UNWIND_DEPTH
-#    define CRASH_UNWIND_DEPTH 100
-#endif
-
 // How big the array to store a message will be.
 #ifndef CRASH_MESSAGE_LENGTH
-#    define CRASH_MESSAGE_LENGTH 200
+#    define CRASH_MESSAGE_LENGTH (200)
+#endif
+
+// How big the array to store backtraces will be.
+#ifndef CRASH_UNWIND_DEPTH
+#    define CRASH_UNWIND_DEPTH (100)
 #endif
 
 typedef struct {
@@ -48,8 +48,3 @@ OptionImpl(crash_info_t);
  *        * None: Previous execution did not crash.
  */
 Option(crash_info_t) get_crash(void);
-
-/**
- * Crash the program because of given reason.
- */
-_Noreturn void exception(const char *reason);

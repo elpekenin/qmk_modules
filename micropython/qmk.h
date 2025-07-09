@@ -16,8 +16,8 @@
 #    else
 #        error Must enable 'elpekenin/version'
 #    endif
-#    define COLLECTING_QSTR 0
+#    define COLLECTING_QSTR (0)
 #else
 #    pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
-#    define COLLECTING_QSTR 1
+#    define COLLECTING_QSTR (1)
 #endif

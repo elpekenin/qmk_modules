@@ -12,8 +12,21 @@
 #    include "elpekenin/string.h"
 #endif
 
-#define __noinit __attribute__((section(".no_init")))
-#define __interrupt _Noreturn __attribute__((interrupt))
+#ifndef __always_inline
+#    define __always_inline __attribute__((__always_inline__))
+#endif
+
+#ifndef __interrupt
+#    define __interrupt __attribute__((__interrupt__))
+#endif
+
+#ifndef __noinit
+#    define __noinit __attribute__((section(".no_init")))
+#endif
+
+#ifndef __noreturn
+#    define __noreturn __attribute__((__noreturn__))
+#endif
 
 /* When set into a known address, flags that the program has crashed. */
 #define MAGIC_VALUE (0xDEADA55)
@@ -36,7 +49,7 @@ Option(crash_info_t) get_crash(void) {
 //
 // should be inline to prevent an extra stack frame in the backtrace
 // but then, it wouldn't be possible to expose on the header
-_Noreturn void exception(const char *reason) {
+__always_inline __noreturn static void exception(const char *reason) {
     magic                  = MAGIC_VALUE;
     crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, CRASH_UNWIND_DEPTH);
 

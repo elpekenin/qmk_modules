@@ -19,20 +19,20 @@
 #endif
 
 #if defined(COMMUNITY_MODULE_ALLOCATOR_ENABLE)
-#    define SCROLLING_TEXT_USE_ALLOCATOR 1
+#    define SCROLLING_TEXT_USE_ALLOCATOR (1)
 #    include "elpekenin/allocator.h"
 #else
-#    define SCROLLING_TEXT_USE_ALLOCATOR 0
+#    define SCROLLING_TEXT_USE_ALLOCATOR (0)
 #endif
 
 // How many scrolling texts can be drawn at the same time.
 #ifndef SCROLLING_TEXT_N_WORKERS
-#    define SCROLLING_TEXT_N_WORKERS 15
+#    define SCROLLING_TEXT_N_WORKERS (15)
 #endif
 
 // Time interval between checking works' state (ms)
 #ifndef SCROLLING_TEXT_TASK_INTERVAL
-#    define SCROLLING_TEXT_TASK_INTERVAL 10
+#    define SCROLLING_TEXT_TASK_INTERVAL (10)
 #endif
 
 #ifndef __warn_unused

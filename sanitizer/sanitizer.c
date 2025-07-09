@@ -7,7 +7,7 @@
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 0);
 
 #ifndef KASAN_INIT_DELAY
-#    define KASAN_INIT_DELAY 3000
+#    define KASAN_INIT_DELAY (3000)
 #endif
 
 static uint32_t delayed_kasan_init(__unused uint32_t trigger_time, __unused void *cb_arg) {

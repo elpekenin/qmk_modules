@@ -15,7 +15,7 @@
 
 // How big the array to store keylog will be.
 #ifndef KEYLOG_SIZE
-#    define KEYLOG_SIZE 70
+#    define KEYLOG_SIZE (70)
 #endif
 
 /**

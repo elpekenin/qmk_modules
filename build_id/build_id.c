@@ -52,7 +52,7 @@ uint32_t build_id_render(const ui_node_t *self, painter_device_t display) {
 
     for (size_t i = 0; i < sizeof(u128); ++i) {
         const size_t offset = 2 + (2 * i);
-        snprintf(str + offset, sizeof(str) - offset, "%x", id.bytes[i]);
+        snprintf(str + offset, sizeof(str) - offset, "%2x", id.bytes[i]);
     }
 
     // trim trailing chars until it fits
