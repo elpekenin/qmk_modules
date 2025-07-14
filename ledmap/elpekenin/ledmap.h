@@ -63,7 +63,7 @@
 /**
  * Available colors
  */
-typedef enum : uint8_t {
+typedef enum {
     // `LAYOUT` puts `KC_NO` in un-used spots
     // we want to prevent collisions with it
     NONE = KC_NO,
@@ -102,6 +102,7 @@ typedef enum : uint8_t {
     /** */
     BLACK,
 } ledmap_color_t;
+STATIC_ASSERT(~(ledmap_color_t)0 <= UINT8_MAX, "ledmap_color_t expected to be 8bit");
 
 ResultImpl(rgb_t, int);
 
