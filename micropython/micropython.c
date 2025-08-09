@@ -34,7 +34,6 @@ void keyboard_post_init_micropython(void) {
     mp_init();
 }
 
-// NOTE: gc seems to crash the MCU, investigate further...
 void housekeeping_task_micropython(void) {
 #if MICROPY_ENABLE_GC
     static uint32_t gc_timer = 0;

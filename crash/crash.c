@@ -55,9 +55,6 @@ __always_inline __noreturn static void exception(const char *reason) {
 
     if (reason != NULL) {
         strlcpy(crash_info.msg, reason, sizeof(crash_info.msg));
-    } else {
-        // just in case we get to read it somehow
-        crash_info.msg[0] = '\0';
     }
 
     NVIC_SystemReset();
@@ -92,9 +89,7 @@ __interrupt void HardFault_Handler(void) {
     );
     // clang-format on
 
-    // not passing `str_get(str)` as argument
-    // because `str_printf` already worked on that memory
-    exception(NULL);
+    exception(str.ptr);
 #endif
     exception("Hard");
 }

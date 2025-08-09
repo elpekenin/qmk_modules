@@ -126,7 +126,7 @@ typedef struct {
     };
 } color_t;
 
-#define __RGB(_r, _g, _b) ((rgb_t){.r = _r, .g = _g, .b = _b})
+#define __RGB(_r, _g, _b) ((rgb_t){.r = (_r), .g = (_g), .b = (_b)})
 
 /**
  * Create a :c:type:`color_t` instance from a RGB triplet.
@@ -136,7 +136,7 @@ typedef struct {
         .type = COLOR_TYPE_RGB, .rgb = __RGB(_rgb), \
     }
 
-#define __HSV(_h, _s, _v) ((hsv_t){.h = _h, .s = _s, .v = _v})
+#define __HSV(_h, _s, _v) ((hsv_t){.h = (_h), .s = (_s), .v = (_v)})
 
 /**
  * Create a :c:type:`color_t` instance from a HSV triplet.
@@ -195,9 +195,12 @@ enum qmk_hues {
  * .. note::
  *   Sat and val will follow RGB's global settings.
  */
-#define HUE(_hue)                              \
-    (color_t) {                                \
-        .type = COLOR_TYPE_HUE, .hsv.h = _hue, \
+#define HUE(_hue)               \
+    (color_t) {                 \
+        .type = COLOR_TYPE_HUE, \
+        .hsv  = {               \
+             .h = (_hue),       \
+        },                     \
     }
 
 /**
@@ -372,7 +375,19 @@ typedef struct PACKED {
  * Args:
  *     _color: Color to be applied.
  */
-#define CAPS_LOCK_INDICATOR(_color) KEYCODE_WITH_HOST_LED_INDICATOR(KC_CAPS, CAPS_LOCK_MASK, (_color))
+#define CAPS_LOCK_INDICATOR(_color)      \
+    (indicator_t) {                      \
+        .color = (_color),               \
+        .checks =                        \
+            {                            \
+                .keycode   = true,       \
+                .host_leds = true,       \
+            },                           \
+        .args = {                        \
+            .keycode   = KC_CAPS,        \
+            .host_leds = CAPS_LOCK_MASK, \
+        },                               \
+    }
 
 /**
  * Indicator for KC_NUM key(s) while num lock is active.
@@ -380,7 +395,19 @@ typedef struct PACKED {
  * Args:
  *     _color: Color to be applied.
  */
-#define NUM_LOCK_INDICATOR(_color) KEYCODE_WITH_HOST_LED_INDICATOR(KC_NUM, NUM_LOCK_MASK, (_color))
+#define NUM_LOCK_INDICATOR(_color)      \
+    (indicator_t) {                     \
+        .color = (_color),              \
+        .checks =                       \
+            {                           \
+                .keycode   = true,      \
+                .host_leds = true,      \
+            },                          \
+        .args = {                       \
+            .keycode   = KC_NUM,        \
+            .host_leds = NUM_LOCK_MASK, \
+        },                              \
+    }
 
 // not intended to be used by users -> no docstring
 size_t      indicators_count(void);

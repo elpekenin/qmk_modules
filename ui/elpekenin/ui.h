@@ -5,7 +5,7 @@
  * Composable design of GUIs over QP, based on a hierarchy of nodes.
  *
  * This system was designed for flexibility, because computing each element's position and size by hand was a PITA and prone to errors.
- * It also wasn't dynamic, in the sense that if some element of the screen wasn't being drawn (eg `#if`'ed away), sizes wouldn't adapt and leave a gap.
+ * It also wasn't dynamic, in the sense that if some element of the screen wasn't being drawn (eg ``#if``'ed away), sizes wouldn't adapt and leave a gap.
  */
 
 // -- barrier --
@@ -121,7 +121,7 @@ typedef struct _ui_node_t {
  * `x` times the font's height. Can only be used within vertical split node.
  *
  * .. warning::
- *   Executes``qp_load_font_mem(*(void**)node->args)`` to compute size.
+ *   Executes ``qp_load_font_mem(*(void**)node->args)`` to compute size.
  *   That is, the node's ``args`` **must** point to a structure whose first element
  *   is a font's array.
  */
@@ -179,7 +179,17 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  *
  * .. warning::
  *   There isn't any kind of limitation to the area in which each node can draw.
- *   This means that nodes are expected to respect the boundaries provided, with checks like ``if (qp_textwidth(font, text) > self->size.x) return;``
+ *   This means that nodes are expected to respect the boundaries provided.
+ *
+ *   For example
+ *
+ *   .. code-block:: c
+ *
+ *       if (!ui_text_fits(font, text)) {
+ *           qp_close_font(font);
+ *           return SECONDS(1);
+ *       }
+ *
  */
 bool ui_render(ui_node_t *root, painter_device_t display);
 
