@@ -51,13 +51,10 @@ uint32_t rgb_speed_render(const ui_node_t *self, painter_device_t display) {
     char str[4] = {0};
     snprintf(str, sizeof(str), "%d", rgb_matrix_config.speed);
 
-    if (!ui_text_fits(self, font, str)) {
-        goto err;
+    if (ui_text_fits(self, font, str)) {
+        qp_drawtext(display, self->start.x, self->start.y, font, str);
     }
 
-    qp_drawtext(display, self->start.x, self->start.y, font, str);
-
-err:
     qp_close_font(font);
 
 exit:
@@ -77,13 +74,10 @@ uint32_t rgb_hsv_render(const ui_node_t *self, painter_device_t display) {
     char str[15] = {0};
     snprintf(str, sizeof(str), "%3d %3d %3d", hsv.h, hsv.s, hsv.v);
 
-    if (!ui_text_fits(self, font, str)) {
-        goto err;
+    if (ui_text_fits(self, font, str)) {
+        qp_drawtext(display, self->start.x, self->start.y, font, str);
     }
 
-    qp_drawtext(display, self->start.x, self->start.y, font, str);
-
-err:
     qp_close_font(font);
 
 exit:

@@ -4,8 +4,12 @@
 /**
  * Composable design of GUIs over QP, based on a hierarchy of nodes.
  *
- * This system was designed for flexibility, because computing each element's position and size by hand was a PITA and prone to errors.
- * It also wasn't dynamic, in the sense that if some element of the screen wasn't being drawn (eg ``#if``'ed away), sizes wouldn't adapt and leave a gap.
+ * This system was designed for flexibility, because computing each element's position and size by hand was tedious and prone to errors.
+ * It also wasn't dynamic, in the sense that if some element of the screen wasn't being drawn (eg: feature disabled), sizes wouldn't adapt and leave a gap.
+ *
+ * As a convenience, a handful of builtin integrations are provided, eg: uptime, QMK's version, current layer, ...
+ * Check them out under ``modules/elpekenin/ui/elpekenin/ui`` folder. You can ``#include "elpekenin/ui/<some_file>.h"`` and use it on your keyboard.
+ * On a similar fashion, some of my modules also implement this kind of integration when the UI module is enabled.
  */
 
 // -- barrier --
@@ -156,6 +160,7 @@ typedef struct _ui_node_t {
 #define MINUTES(x) (x * SECONDS(60))
 #define HOURS(x) (x * MINUTES(60))
 #define DAYS(x) (x * HOURS(24))
+#define UI_STOP ((uint32_t)~0)
 
 /**
  * Once you've declared a node tree, use this function to compute all nodes' size/position.
@@ -173,7 +178,7 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  *
  * Each node describes how it's rendered by providing a ``.render`` function.
  * If it needs to track some state, it may use the ``.args`` field to store a pointer into whichever structure.
- * Return value is the time (in ms) before calling it again. ``0`` means "do not repeat"
+ * Return value is the time (in ms) before calling it again. Return ``UI_STOP`` as a flag for "do not repeat"
  *
  * You want run this function periodically (ie: from ``housekeeping_task_user``).
  *

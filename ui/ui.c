@@ -343,7 +343,7 @@ bool ui_render(ui_node_t *root, painter_device_t display) {
 
         if (root->next_render != 0 && root->next_render <= now) {
             const uint32_t delay = root->render(root, display);
-            if (delay == 0) {
+            if (delay == UI_STOP) {
                 root->next_render = 0;
             } else {
                 root->next_render = now + delay;
