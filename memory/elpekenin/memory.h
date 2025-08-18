@@ -61,10 +61,10 @@ size_t get_flash_size(void);
 typedef struct {
     const uint8_t *font;
     size_t         last;
-    uint32_t       interval;
+    ui_time_t      interval;
 } flash_args_t;
 STATIC_ASSERT(offsetof(flash_args_t, font) == 0, "UI will crash :)");
 
-bool     flash_init(ui_node_t *self);
-uint32_t flash_render(const ui_node_t *self, painter_device_t display);
+bool      flash_init(ui_node_t *self);
+ui_time_t flash_render(const ui_node_t *self, painter_device_t display);
 #endif

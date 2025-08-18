@@ -384,7 +384,7 @@ bool heap_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t heap_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t heap_render(const ui_node_t *self, painter_device_t display) {
     heap_args_t *const args = self->args;
 
     const size_t heap = get_used_heap();

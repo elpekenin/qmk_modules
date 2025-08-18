@@ -14,8 +14,8 @@
  *
  * Its default implementation is:
  *    * Wait for first core to setup ChibiOS
- *    * Run ``c1_init_kb`` and ``c1_init_user``
- *    * In an endless loop, run ``c1_main_kb`` and ``c1_main_user``
+ *    * Run :c:type:`c1_init_kb` and :c:type:`c1_init_user`
+ *    * In an endless loop, run :c:type:`c1_main_kb` and :c:type:`c1_main_user`
  *
  * However, it is defined weakly, you can overwrite it.
  *

@@ -17,7 +17,7 @@ bool version_qmk_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t version_qmk_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t version_qmk_render(const ui_node_t *self, painter_device_t display) {
     version_args_t *args = self->args;
 
     const char *const version = QMK_VERSION;
@@ -40,14 +40,14 @@ uint32_t version_qmk_render(const ui_node_t *self, painter_device_t display) {
     qp_close_font(font);
 
 exit:
-    return SECONDS(1);
+    return UI_SECONDS(1);
 }
 
 bool version_date_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t version_date_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t version_date_render(const ui_node_t *self, painter_device_t display) {
     version_args_t *args = self->args;
 
     const painter_font_handle_t font = qp_load_font_mem(args->font);
@@ -63,5 +63,5 @@ uint32_t version_date_render(const ui_node_t *self, painter_device_t display) {
     qp_close_font(font);
 
 exit:
-    return SECONDS(1);
+    return UI_SECONDS(1);
 }

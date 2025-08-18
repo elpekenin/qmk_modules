@@ -7,11 +7,11 @@
 
 typedef struct {
     const uint8_t *font;
-    uint32_t       interval;
+    ui_time_t      interval;
 } rgb_args_t;
 STATIC_ASSERT(offsetof(rgb_args_t, font) == 0, "UI will crash :)");
 
-bool     rgb_init(ui_node_t *self);
-uint32_t rgb_mode_render(const ui_node_t *self, painter_device_t display);
-uint32_t rgb_speed_render(const ui_node_t *self, painter_device_t display);
-uint32_t rgb_hsv_render(const ui_node_t *self, painter_device_t display);
+bool      rgb_init(ui_node_t *self);
+ui_time_t rgb_mode_render(const ui_node_t *self, painter_device_t display);
+ui_time_t rgb_speed_render(const ui_node_t *self, painter_device_t display);
+ui_time_t rgb_hsv_render(const ui_node_t *self, painter_device_t display);

@@ -205,10 +205,10 @@ const allocator_t new_ch_heap_allocator(memory_heap_t *heap, const char *name);
 typedef struct {
     const uint8_t *font;
     size_t         last;
-    uint32_t       interval;
+    ui_time_t      interval;
 } heap_args_t;
 STATIC_ASSERT(offsetof(heap_args_t, font) == 0, "UI will crash :)");
 
-bool     heap_init(ui_node_t *self);
-uint32_t heap_render(const ui_node_t *self, painter_device_t display);
+bool      heap_init(ui_node_t *self);
+ui_time_t heap_render(const ui_node_t *self, painter_device_t display);
 #endif

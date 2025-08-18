@@ -10,5 +10,5 @@ typedef struct {
 } uptime_args_t;
 STATIC_ASSERT(offsetof(uptime_args_t, font) == 0, "UI will crash :)");
 
-bool     uptime_init(ui_node_t *self);
-uint32_t uptime_render(const ui_node_t *self, painter_device_t display);
+bool      uptime_init(ui_node_t *self);
+ui_time_t uptime_render(const ui_node_t *self, painter_device_t display);

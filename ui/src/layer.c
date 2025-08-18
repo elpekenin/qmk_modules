@@ -16,7 +16,7 @@ bool layer_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t layer_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t layer_render(const ui_node_t *self, painter_device_t display) {
     layer_args_t *const args = self->args;
 
     const uint8_t layer = get_highest_layer(layer_state | default_layer_state);

@@ -95,7 +95,7 @@ ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 1, 0);
 bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max) {
     rgb_t   rgb;
     uint8_t mods  = get_mods();
-    uint8_t layer = get_highest_layer(layer_state);
+    uint8_t layer = get_highest_layer(layer_state | default_layer_state);
 
 #ifndef NO_ACTION_ONESHOT
     mods |= get_oneshot_mods();

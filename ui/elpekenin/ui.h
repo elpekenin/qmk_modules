@@ -8,7 +8,9 @@
  * It also wasn't dynamic, in the sense that if some element of the screen wasn't being drawn (eg: feature disabled), sizes wouldn't adapt and leave a gap.
  *
  * As a convenience, a handful of builtin integrations are provided, eg: uptime, QMK's version, current layer, ...
+ *
  * Check them out under ``modules/elpekenin/ui/elpekenin/ui`` folder. You can ``#include "elpekenin/ui/<some_file>.h"`` and use it on your keyboard.
+ *
  * On a similar fashion, some of my modules also implement this kind of integration when the UI module is enabled.
  */
 
@@ -29,6 +31,19 @@
 
 typedef uint16_t ui_coord_t;
 #define UI_COORD_MAX ((ui_coord_t)~0)
+
+typedef enum {
+    UI_TIME_TYPE_MILLISECONDS,
+    UI_TIME_TYPE_STOP,
+} ui_time_type_t;
+
+/**
+ * Time unit.
+ */
+typedef struct {
+    ui_time_type_t type;
+    uint32_t       value;
+} ui_time_t;
 
 typedef enum {
     UI_SPLIT_MODE_NONE,
@@ -83,14 +98,75 @@ typedef struct _ui_node_t {
     bool (*const init)(struct _ui_node_t *);
 
     // rendering
-    uint32_t    next_render;
+    ui_time_t   next_render;
     void *const args;
-    uint32_t (*const render)(const struct _ui_node_t *, painter_device_t);
+    ui_time_t (*const render)(const struct _ui_node_t *, painter_device_t);
 } ui_node_t;
 
 /**
+ * Create a :c:type:`ui_time_t` of ``x`` milliseconds.
+ */
+#define UI_MILLISECONDS(x)                               \
+    (ui_time_t) {                                        \
+        .type = UI_TIME_TYPE_MILLISECONDS, .value = (x), \
+    }
+
+/**
+ * Create a :c:type:`ui_time_t` of ``x`` seconds.
+ */
+#define UI_SECONDS(x) UI_MILLISECONDS(1000 * (x))
+
+/**
+ * Create a :c:type:`ui_time_t` of ``x`` minutes.
+ */
+#define UI_MINUTES(x) UI_SECONDS(60 * (x))
+
+/**
+ * Create a :c:type:`ui_time_t` of ``x`` hours.
+ */
+#define UI_HOURS(x) UI_MINUTES(60 * (x))
+
+/**
+ * Create a :c:type:`ui_time_t` of ``x`` days.
+ */
+#define UI_DAYS(x) UI_HOURS(24 * (x))
+
+/**
+ * Sentinel value of :c:type:`ui_time_t` that represents that a node stops rendering.
+ */
+#define UI_STOP                    \
+    (ui_time_t) {                  \
+        .type = UI_TIME_TYPE_STOP, \
+    }
+
+/**
+ * Compare two :c:type:`ui_time_t`, checking if ``lhs`` is less than, or equal, to ``rhs``.
+ */
+bool ui_time_lte(ui_time_t lhs, ui_time_t rhs);
+
+/**
+ * Perform the addition of two :c:type:`ui_time_t`.
+ */
+ui_time_t ui_time_add(ui_time_t lhs, ui_time_t rhs);
+
+/**
+ * Current time, as a :c:type:`ui_time_t`
+ */
+ui_time_t ui_time_now(void);
+
+/**
+ * -----
+ */
+
+/**
+ * As mentioned, this module builds upon :c:type:`ui_node_t`, which must be created.
+ *
+ * Use the following macros to create them:
+ */
+
+/**
  * A node can have children, this is represented by:
- *    - ``.children = UI_CHILDREN(nodes)``: Where ``nodes`` is an array of ``ui_node_t``'s
+ *    - ``.children = UI_CHILDREN(nodes)``: Where ``nodes`` is an array of :c:type:`ui_node_t`'s
  *
  * To compute the size of each child, parents must specify how their size will be shared between all children.
  *    - ``.split_direction = UI_SPLIT_DIR_{LEFT_RIGHT,RIGHT_LEFT}``: All children are as tall as parent, and size splits horizontally
@@ -155,13 +231,6 @@ typedef struct _ui_node_t {
         .mode = UI_SPLIT_MODE_REMAINING, \
     }
 
-#define MILLISECONDS(x) ((uint32_t)x)
-#define SECONDS(x) (x * MILLISECONDS(1000))
-#define MINUTES(x) (x * SECONDS(60))
-#define HOURS(x) (x * MINUTES(60))
-#define DAYS(x) (x * HOURS(24))
-#define UI_STOP ((uint32_t)~0)
-
 /**
  * Once you've declared a node tree, use this function to compute all nodes' size/position.
  *
@@ -177,8 +246,10 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  * You shall use this function to render all nodes.
  *
  * Each node describes how it's rendered by providing a ``.render`` function.
+ *
  * If it needs to track some state, it may use the ``.args`` field to store a pointer into whichever structure.
- * Return value is the time (in ms) before calling it again. Return ``UI_STOP`` as a flag for "do not repeat"
+ *
+ * Return value is the time before calling it again. Return :c:macro:`UI_STOP` as a flag for "do not repeat"
  *
  * You want run this function periodically (ie: from ``housekeeping_task_user``).
  *
@@ -192,7 +263,7 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  *
  *       if (!ui_text_fits(font, text)) {
  *           qp_close_font(font);
- *           return SECONDS(1);
+ *           return UI_SECONDS(1);
  *       }
  *
  */

@@ -34,7 +34,7 @@ bool build_id_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t build_id_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t build_id_render(const ui_node_t *self, painter_device_t display) {
     build_id_args_t *args = self->args;
 
     const painter_font_handle_t font = qp_load_font_mem(args->font);
@@ -44,7 +44,7 @@ uint32_t build_id_render(const ui_node_t *self, painter_device_t display) {
 
     u128 id;
     if (get_build_id(&id) < 0) {
-        return 0;
+        return UI_STOP;
     }
 
     //      0x   each byte in hex   null

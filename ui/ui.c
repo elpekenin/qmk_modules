@@ -270,9 +270,6 @@ ok:
             ui_dprintf("[ERROR] init changed computed boundaries\n");
             goto err;
         }
-
-        // 0 == node is done rendering
-        parent->next_render = 1;
     }
 
     parent->state = UI_STATE_OK;
@@ -283,9 +280,35 @@ err:
     return false;
 }
 
+static bool ui_time_eq(ui_time_t lhs, ui_time_t rhs) {
+    if (lhs.type == rhs.type) {
+        if (lhs.type == UI_TIME_TYPE_STOP) {
+            return true;
+        }
+
+        return lhs.value == rhs.value;
+    }
+
+    return false;
+}
+
 //
 // Public API
 //
+
+bool ui_time_lte(ui_time_t lhs, ui_time_t rhs) {
+    assert(lhs.type == rhs.type && lhs.type != UI_TIME_TYPE_STOP);
+    return lhs.value <= rhs.value;
+}
+
+ui_time_t ui_time_add(ui_time_t lhs, ui_time_t rhs) {
+    assert(lhs.type == rhs.type && lhs.type != UI_TIME_TYPE_STOP);
+    return UI_MILLISECONDS(lhs.value + rhs.value);
+}
+
+ui_time_t ui_time_now(void) {
+    return UI_MILLISECONDS(timer_read32());
+}
 
 bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height) {
     if (root == NULL) {
@@ -339,14 +362,21 @@ bool ui_render(ui_node_t *root, painter_device_t display) {
 
     // leaf node, render it
     if (root->render != NULL) {
-        const uint32_t now = timer_read32();
+        const ui_time_t now = ui_time_now();
 
-        if (root->next_render != 0 && root->next_render <= now) {
-            const uint32_t delay = root->render(root, display);
-            if (delay == UI_STOP) {
-                root->next_render = 0;
+        // this node halted
+        if (ui_time_eq(root->next_render, UI_STOP)) {
+            return true;
+        }
+
+        // delay already elapsed, draw
+        if (ui_time_lte(root->next_render, now)) {
+            const ui_time_t next = root->render(root, display);
+
+            if (ui_time_eq(next, UI_STOP)) {
+                root->next_render = UI_STOP;
             } else {
-                root->next_render = now + delay;
+                root->next_render = ui_time_add(now, next);
             }
         }
 

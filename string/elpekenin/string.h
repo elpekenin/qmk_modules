@@ -15,7 +15,7 @@
 #include "printf/printf.h" // ATTR_PRINTF
 
 /**
- * "String builder" without heap (``malloc()``, ``realloc()``, ``free``) usage.
+ * "String builder" without heap (``malloc``, ``realloc``, ``free``) usage.
  *
  * Code using this API would look similar to:
  *
@@ -47,7 +47,7 @@ typedef struct {
 } string_t;
 
 /**
- * Create a **temporary** ``string_t``.
+ * Create a **temporary** :c:type:`string_t`.
  */
 #define str_new(n)                              \
     (string_t) {                                \
@@ -55,7 +55,7 @@ typedef struct {
     }
 
 /**
- * Create a ``string_t`` wrapper for the given buffer.
+ * Create a :c:type:`string_t` wrapper for the given buffer.
  */
 #define str_from_buffer(buffer)                                 \
     (string_t) {                                                \

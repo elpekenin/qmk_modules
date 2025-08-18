@@ -48,10 +48,10 @@ int get_build_id(u128 *id);
 
 typedef struct {
     const uint8_t *font;
-    uint32_t       interval;
+    ui_time_t      interval;
 } build_id_args_t;
 STATIC_ASSERT(offsetof(build_id_args_t, font) == 0, "UI will crash :)");
 
-bool     build_id_init(ui_node_t *self);
-uint32_t build_id_render(const ui_node_t *self, painter_device_t display);
+bool      build_id_init(ui_node_t *self);
+ui_time_t build_id_render(const ui_node_t *self, painter_device_t display);
 #endif

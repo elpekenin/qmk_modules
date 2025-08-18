@@ -245,7 +245,7 @@ bool keylog_init(ui_node_t *self) {
     return ui_font_fits(self);
 }
 
-uint32_t keylog_render(const ui_node_t *self, painter_device_t display) {
+ui_time_t keylog_render(const ui_node_t *self, painter_device_t display) {
     keylog_args_t *args = self->args;
 
     const painter_font_handle_t font = qp_load_font_mem(args->font);
