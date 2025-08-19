@@ -303,11 +303,11 @@ bool ui_time_lte(ui_time_t lhs, ui_time_t rhs) {
 
 ui_time_t ui_time_add(ui_time_t lhs, ui_time_t rhs) {
     assert(lhs.type == rhs.type && lhs.type != UI_TIME_TYPE_STOP);
-    return UI_MILLISECONDS(lhs.value + rhs.value);
+    return (ui_time_t)UI_MILLISECONDS(lhs.value + rhs.value);
 }
 
 ui_time_t ui_time_now(void) {
-    return UI_MILLISECONDS(timer_read32());
+    return (ui_time_t)UI_MILLISECONDS(timer_read32());
 }
 
 bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height) {
@@ -362,10 +362,11 @@ bool ui_render(ui_node_t *root, painter_device_t display) {
 
     // leaf node, render it
     if (root->render != NULL) {
-        const ui_time_t now = ui_time_now();
+        const ui_time_t now  = ui_time_now();
+        const ui_time_t stop = UI_STOP;
 
         // this node halted
-        if (ui_time_eq(root->next_render, UI_STOP)) {
+        if (ui_time_eq(root->next_render, stop)) {
             return true;
         }
 
@@ -373,8 +374,8 @@ bool ui_render(ui_node_t *root, painter_device_t display) {
         if (ui_time_lte(root->next_render, now)) {
             const ui_time_t next = root->render(root, display);
 
-            if (ui_time_eq(next, UI_STOP)) {
-                root->next_render = UI_STOP;
+            if (ui_time_eq(next, stop)) {
+                root->next_render = stop;
             } else {
                 root->next_render = ui_time_add(now, next);
             }

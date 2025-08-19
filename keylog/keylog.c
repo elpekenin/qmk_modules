@@ -39,13 +39,14 @@ typedef struct PACKED {
 } replacements_t;
 
 #define replacement(r, no_mods, shift, al_gr) \
-    (replacements_t) {                        \
-        .raw     = (r),                       \
-        .strings = {                          \
-            [NO_MODS] = (no_mods),            \
-            [SHIFT]   = (shift),              \
-            [AL_GR]   = (al_gr),              \
-        },                                    \
+    {                                         \
+        .raw = (r),                           \
+        .strings =                            \
+            {                                 \
+                [NO_MODS] = (no_mods),        \
+                [SHIFT]   = (shift),          \
+                [AL_GR]   = (al_gr),          \
+            },                                \
     }
 
 // TODO: introspection

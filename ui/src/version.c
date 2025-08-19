@@ -40,7 +40,7 @@ ui_time_t version_qmk_render(const ui_node_t *self, painter_device_t display) {
     qp_close_font(font);
 
 exit:
-    return UI_SECONDS(1);
+    return (ui_time_t)UI_SECONDS(1);
 }
 
 bool version_date_init(ui_node_t *self) {
@@ -63,5 +63,5 @@ ui_time_t version_date_render(const ui_node_t *self, painter_device_t display) {
     qp_close_font(font);
 
 exit:
-    return UI_SECONDS(1);
+    return (ui_time_t)UI_SECONDS(1);
 }

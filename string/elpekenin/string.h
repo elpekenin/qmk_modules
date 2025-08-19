@@ -49,17 +49,21 @@ typedef struct {
 /**
  * Create a **temporary** :c:type:`string_t`.
  */
-#define str_new(n)                              \
-    (string_t) {                                \
-        .size = n, .used = 0, .ptr = alloca(n), \
+#define str_new(n)         \
+    {                      \
+        .size = n,         \
+        .used = 0,         \
+        .ptr  = alloca(n), \
     }
 
 /**
  * Create a :c:type:`string_t` wrapper for the given buffer.
  */
-#define str_from_buffer(buffer)                                 \
-    (string_t) {                                                \
-        .size = ARRAY_SIZE(buffer), .used = 0, .ptr = (buffer), \
+#define str_from_buffer(buffer)     \
+    {                               \
+        .size = ARRAY_SIZE(buffer), \
+        .used = 0,                  \
+        .ptr  = (buffer),           \
     }
 
 /**

@@ -17,10 +17,15 @@ ui_time_t uptime_render(const ui_node_t *self, painter_device_t display) {
         goto exit;
     }
 
-    const div_t   days    = div(timer_read32(), UI_DAYS(1).value);
-    const div_t   hours   = div(days.rem, UI_HOURS(1).value);
-    const div_t   minutes = div(hours.rem, UI_MINUTES(1).value);
-    const uint8_t seconds = minutes.rem / UI_SECONDS(1).value;
+    static const ui_time_t day    = UI_DAYS(1);
+    static const ui_time_t hour   = UI_HOURS(1);
+    static const ui_time_t minute = UI_MINUTES(1);
+    static const ui_time_t second = UI_SECONDS(1);
+
+    const div_t   days    = div(timer_read32(), day.value);
+    const div_t   hours   = div(days.rem, hour.value);
+    const div_t   minutes = div(hours.rem, minute.value);
+    const uint8_t seconds = minutes.rem / second.value;
 
     char str[15] = {0};
     snprintf(str, sizeof(str), "Up|%02dh%02dm%02ds", hours.quot, minutes.quot, seconds);
@@ -32,5 +37,5 @@ ui_time_t uptime_render(const ui_node_t *self, painter_device_t display) {
     qp_close_font(font);
 
 exit:
-    return UI_SECONDS(1);
+    return (ui_time_t)UI_SECONDS(1);
 }

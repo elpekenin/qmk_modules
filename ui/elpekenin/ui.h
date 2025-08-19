@@ -106,9 +106,10 @@ typedef struct _ui_node_t {
 /**
  * Create a :c:type:`ui_time_t` of ``x`` milliseconds.
  */
-#define UI_MILLISECONDS(x)                               \
-    (ui_time_t) {                                        \
-        .type = UI_TIME_TYPE_MILLISECONDS, .value = (x), \
+#define UI_MILLISECONDS(x)                  \
+    {                                       \
+        .type  = UI_TIME_TYPE_MILLISECONDS, \
+        .value = (x),                       \
     }
 
 /**
@@ -135,7 +136,7 @@ typedef struct _ui_node_t {
  * Sentinel value of :c:type:`ui_time_t` that represents that a node stops rendering.
  */
 #define UI_STOP                    \
-    (ui_time_t) {                  \
+    {                              \
         .type = UI_TIME_TYPE_STOP, \
     }
 
@@ -172,9 +173,10 @@ ui_time_t ui_time_now(void);
  *    - ``.split_direction = UI_SPLIT_DIR_{LEFT_RIGHT,RIGHT_LEFT}``: All children are as tall as parent, and size splits horizontally
  *    - ``.split_direction = UI_SPLIT_DIR_{TOP_BOTTOM,BOTTOM_TOP}``: All children are as wide as parent, and size splits vertically
  */
-#define UI_CHILDREN(x)                \
-    (ui_children_t) {                 \
-        .ptr = x, .n = ARRAY_SIZE(x), \
+#define UI_CHILDREN(x)        \
+    {                         \
+        .ptr = x,             \
+        .n   = ARRAY_SIZE(x), \
     }
 
 /**
@@ -184,17 +186,19 @@ ui_time_t ui_time_now(void);
 /**
  * ``x`` pixels in size
  */
-#define UI_ABSOLUTE(x)                             \
-    (ui_node_size_t) {                             \
-        .mode = UI_SPLIT_MODE_ABSOLUTE, .size = x, \
+#define UI_ABSOLUTE(x)                  \
+    {                                   \
+        .mode = UI_SPLIT_MODE_ABSOLUTE, \
+        .size = x,                      \
     }
 
 /**
  * ``x`` % of parent's size
  */
-#define UI_RELATIVE(x)                             \
-    (ui_node_size_t) {                             \
-        .mode = UI_SPLIT_MODE_RELATIVE, .size = x, \
+#define UI_RELATIVE(x)                  \
+    {                                   \
+        .mode = UI_SPLIT_MODE_RELATIVE, \
+        .size = x,                      \
     }
 
 /**
@@ -205,9 +209,10 @@ ui_time_t ui_time_now(void);
  *   That is, the node's ``args`` **must** point to a structure whose first element
  *   is a font's array.
  */
-#define UI_FONT(x)                             \
-    (ui_node_size_t) {                         \
-        .mode = UI_SPLIT_MODE_FONT, .size = x, \
+#define UI_FONT(x)                  \
+    {                               \
+        .mode = UI_SPLIT_MODE_FONT, \
+        .size = x,                  \
     }
 
 /**
@@ -218,16 +223,17 @@ ui_time_t ui_time_now(void);
  *   That is, the node's ``args`` **must** point to a structure whose first element
  *   is an image's array.
  */
-#define UI_IMAGE(x)                             \
-    (ui_node_size_t) {                          \
-        .mode = UI_SPLIT_MODE_IMAGE, .size = x, \
+#define UI_IMAGE(x)                  \
+    {                                \
+        .mode = UI_SPLIT_MODE_IMAGE, \
+        .size = x,                   \
     }
 
 /**
  * Claim the parent's remaining (not used by siblings) size.
  */
 #define UI_REMAINING()                   \
-    (ui_node_size_t) {                   \
+    {                                    \
         .mode = UI_SPLIT_MODE_REMAINING, \
     }
 
@@ -263,7 +269,7 @@ bool ui_init(ui_node_t *root, ui_coord_t width, ui_coord_t height);
  *
  *       if (!ui_text_fits(font, text)) {
  *           qp_close_font(font);
- *           return UI_SECONDS(1);
+ *           return (ui_time_t)UI_SECONDS(1);
  *       }
  *
  */
