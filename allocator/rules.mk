@@ -8,7 +8,7 @@ ifeq ($(strip $(ALLOCATOR_WRAP_STD)), yes)
         -Wl,--wrap=realloc
 
     OPT_DEFS += -DALLOCATOR_WRAP_STD=1
-    SRC += $(MODULE_PATH_ALLOCATOR)/std_wrappers.cc
+    SRC += $(MODULE_PATH_ALLOCATOR)/std_wrappers.c
 else
     OPT_DEFS += -DALLOCATOR_WRAP_STD=0
 endif
