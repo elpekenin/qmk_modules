@@ -18,7 +18,8 @@
  *
  * Since indicators are checked (and applied) in the same order that you define them, this config is:
  *   * On the layer ``UTILS``, all LEDs will be off except for ``QK_BOOT`` which will be red
- *   * No indicator to be drawn on other layers (running effect left unchanged)
+ *   * On every layer, if caps is locked, keys assigned to ``KC_CAPS`` will be blue (following current saturation and brightness settings)
+ *   * Every other LED/state of the keyboard won't cause the module to draw, thus preserving QMK's running animation
  */
 
 // -- barrier --
@@ -44,7 +45,7 @@
  *
  * Used to tell whether the indicator's color should be applied.
  */
-typedef struct {
+typedef struct PACKED {
     /**
      * Index of the LED.
      */
@@ -70,7 +71,7 @@ typedef struct {
 /**
  * Different conditions to be checked
  */
-typedef struct {
+typedef struct PACKED {
     /**
      * Highest active layer is ``<X>``.
      */
