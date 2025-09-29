@@ -3,8 +3,6 @@
 
 #include "elpekenin/colors.h"
 
-#include "quantum.h"
-
 int get_rgb(color_t color, rgb_t *rgb) {
     switch (color.type) {
         case COLOR_TYPE_RGB:

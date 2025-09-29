@@ -1,16 +1,26 @@
 // Copyright Pablo Martinez (@elpekenin) <elpekenin@elpekenin.dev>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+/**
+ * Custom type to define colors in different ways.
+ */
+
 #pragma once
 
 #include <errno.h>
 
 #include "quantum.h"
 
+/**
+ * Different ways in which a color can be specified.
+ */
 typedef enum {
     COLOR_TYPE_NONE,
+    /** */
     COLOR_TYPE_RGB,
+    /** */
     COLOR_TYPE_HSV,
+    /** */
     COLOR_TYPE_HUE,
 } color_type_t;
 
