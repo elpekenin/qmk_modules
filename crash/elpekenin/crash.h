@@ -13,13 +13,8 @@
 #pragma once
 
 #include <backtrace.h>
-#include <stdint.h>
-
-#if defined(COMMUNITY_MODULE_GENERICS_ENABLE)
-#    include "elpekenin/generics.h"
-#else
-#    error Must enable 'elpekenin/generics'
-#endif
+#include <stdbool.h>
+#include <stddef.h>
 
 // How big the array to store a message will be.
 #ifndef CRASH_MESSAGE_LENGTH
@@ -37,14 +32,11 @@ typedef struct {
     char        msg[CRASH_MESSAGE_LENGTH];
 } crash_info_t;
 
-OptionImpl(crash_info_t);
-
 /**
  * Get information about last execution.
  *
- * Return:
- *     Optional stack trace.
- *        * Some(trace): Call stack that crashed the program. Use :c:func:`unwrap` to get the value.
- *        * None: Previous execution did not crash.
+ * Return: Whether previous execution crashed
+ *    * ``true``: Call stack that lead to crashing has been copied to ``info``.
+ *    * ``false``: ``info`` left untouched.
  */
-Option(crash_info_t) get_crash(void);
+bool get_crash(crash_info_t *info);

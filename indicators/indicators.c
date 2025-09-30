@@ -29,36 +29,36 @@ static bool should_draw_indicator(const indicator_t *indicator, const indicator_
     return true;
 }
 
-static uint8_t mod_config_8bit(uint8_t mod) {
+static uint8_t apply_magic_config(uint8_t mods) {
+    const mod_t input  = {.raw = mods};
+    mod_t       output = input;
+
     if (keymap_config.swap_lalt_lgui) {
-        /** If both modifiers pressed or neither pressed, do nothing
-         * Otherwise swap the values
-         */
-        if (((mod & MOD_BIT(KC_LALT)) && !(mod & MOD_BIT(KC_LGUI))) || (!(mod & MOD_BIT(KC_LALT)) && (mod & MOD_BIT(KC_LGUI)))) {
-            mod ^= (MOD_BIT(KC_LALT) | MOD_BIT(KC_LGUI));
-        }
-    }
-    if (keymap_config.swap_ralt_rgui) {
-        if (((mod & MOD_BIT(KC_RALT)) && !(mod & MOD_BIT(KC_RGUI))) || (!(mod & MOD_BIT(KC_RALT)) && (mod & MOD_BIT(KC_RGUI)))) {
-            mod ^= (MOD_BIT(KC_RALT) | MOD_BIT(KC_RGUI));
-        }
-    }
-    if (keymap_config.swap_lctl_lgui) {
-        if (((mod & MOD_BIT(KC_LCTL)) && !(mod & MOD_BIT(KC_LGUI))) || (!(mod & MOD_BIT(KC_LCTL)) && (mod & MOD_BIT(KC_LGUI)))) {
-            mod ^= (MOD_BIT(KC_LCTL) | MOD_BIT(KC_LGUI));
-        }
-    }
-    if (keymap_config.swap_rctl_rgui) {
-        if (((mod & MOD_BIT(KC_RCTL)) && !(mod & MOD_BIT(KC_RGUI))) || (!(mod & MOD_BIT(KC_RCTL)) && (mod & MOD_BIT(KC_RGUI)))) {
-            mod ^= (MOD_BIT(KC_RCTL) | MOD_BIT(KC_RGUI));
-        }
-    }
-    if (keymap_config.no_gui) {
-        mod &= ~MOD_BIT(KC_LGUI);
-        mod &= ~MOD_BIT(KC_RGUI);
+        output.left_alt = input.left_gui;
+        output.left_gui = input.left_alt;
     }
 
-    return mod;
+    if (keymap_config.swap_ralt_rgui) {
+        output.right_alt = input.right_gui;
+        output.right_gui = input.right_alt;
+    }
+
+    if (keymap_config.swap_lctl_lgui) {
+        output.left_ctrl = input.left_gui;
+        output.left_gui  = input.left_ctrl;
+    }
+
+    if (keymap_config.swap_rctl_rgui) {
+        output.right_ctrl = input.right_gui;
+        output.right_gui  = input.right_ctrl;
+    }
+
+    if (keymap_config.no_gui) {
+        output.left_gui  = false;
+        output.right_gui = false;
+    }
+
+    return output.raw;
 }
 
 //
@@ -77,7 +77,7 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
 #endif
 
     indicator_args_t args = {
-        .mods      = mod_config_8bit(mods),
+        .mods      = apply_magic_config(mods),
         .layer     = layer,
         .host_leds = host_keyboard_leds(),
     };

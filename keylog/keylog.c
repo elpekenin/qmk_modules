@@ -11,11 +11,11 @@
 #include "quantum.h"
 #include "util.h"
 
-STATIC_ASSERT(CM_ENABLED(STRING), "Must enable 'elpekenin/string'");
-#include "elpekenin/string.h" // is_utf8_continuation
-
-STATIC_ASSERT(CM_ENABLED(GENERICS), "Must enable 'elpekenin/generics'");
-#include "elpekenin/generics.h"
+#if defined(COMMUNITY_MODULE_STRING_ENABLE)
+#    include "elpekenin/string.h" // is_utf8_continuation
+#else
+#    error Must enable 'elpekenin/string'
+#endif
 
 static char keylog[KEYLOG_SIZE + 1] = {
     [0 ... KEYLOG_SIZE - 1] = ' ',
@@ -110,41 +110,37 @@ static void skip_prefix(const char **str) {
     }
 }
 
-OptionImpl(replacements_t);
-
-static Option(replacements_t) find_replacement(const char *str) {
+static const replacements_t *find_replacement(const char *str) {
     for (size_t i = 0; i < ARRAY_SIZE(replacements); ++i) {
-        const replacements_t replacement = replacements[i];
+        const replacements_t *replacements = &replacements[i];
 
-        if (strcmp(replacement.raw, str) == 0) {
-            return Some(replacements_t, replacement);
+        if (strcmp(replacements->raw, str) == 0) {
+            return replacements;
         }
     }
 
-    return None(replacements_t);
+    return NULL;
 }
 
 static void maybe_symbol(const char **str) {
-    const Option(replacements_t) maybe_replacement = find_replacement(*str);
-    if (!maybe_replacement.is_some) {
+    const replacements_t *replacements = find_replacement(*str);
+    if (replacements == NULL) {
         return;
     }
-
-    replacements_t replacement = unwrap(maybe_replacement);
 
     const char *target = NULL;
     switch (get_mods()) {
         case 0:
-            target = replacement.strings[NO_MODS];
+            target = replacements->strings[NO_MODS];
             break;
 
         case MOD_BIT_LSHIFT:
         case MOD_BIT_RSHIFT:
-            target = replacement.strings[SHIFT];
+            target = replacements->strings[SHIFT];
             break;
 
         case MOD_BIT_RALT:
-            target = replacement.strings[AL_GR];
+            target = replacements->strings[AL_GR];
             break;
 
         default:

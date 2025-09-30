@@ -37,12 +37,13 @@ static uint32_t copied_magic = 0;
 
 __noinit static crash_info_t crash_info;
 
-Option(crash_info_t) get_crash(void) {
+bool get_crash(crash_info_t *info) {
     if (copied_magic == MAGIC_VALUE) {
-        return Some(crash_info_t, crash_info);
+        *info = crash_info;
+        return true;
     }
 
-    return None(crash_info_t);
+    return false;
 }
 
 // store crash's cause and reset the controller (instead of deadloop or w/e)

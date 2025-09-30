@@ -21,6 +21,15 @@ int get_rgb(color_t color, rgb_t *rgb) {
             });
             break;
 
+        case COLOR_TYPE_WHITE:
+            *rgb = hsv_to_rgb((hsv_t){
+                .h = 0,
+                .s = 0,
+                .v = rgb_matrix_get_val(),
+            });
+            break;
+
+        case COLOR_TYPE_TRNS:
         default:
             return -EINVAL;
     }

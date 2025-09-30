@@ -5,6 +5,8 @@
  * Custom type to define colors in different ways.
  */
 
+// -- barrier --
+
 #pragma once
 
 #include <errno.h>
@@ -20,8 +22,22 @@ typedef enum {
     COLOR_TYPE_RGB,
     /** */
     COLOR_TYPE_HSV,
-    /** */
+    /**
+     * Color of a specific hue, whose saturation and value follow RGB matrix's settings.
+     */
     COLOR_TYPE_HUE,
+    /**
+     * Transparency, used for falling back into another color.
+     *
+     * .. note::
+     *     The color "below" has to be computed by other code based on context.
+     *     This type of value stores no color information.
+     */
+    COLOR_TYPE_TRNS,
+    /**
+     * White color whose brightness (val) follows RGB matrix's settings.
+     */
+    COLOR_TYPE_WHITE,
 } color_type_t;
 
 /**
@@ -37,7 +53,9 @@ typedef struct {
      * Inner value.
      */
     union {
+        /** */
         rgb_t rgb;
+        /** */
         hsv_t hsv;
     };
 } color_t;
@@ -120,8 +138,6 @@ enum qmk_hues {
 /**
  * Create a :c:type:`color_t` instance from a hue value.
  *
- * .. note::
- *   Sat and val will follow RGB's global settings.
  */
 #define HUE(_hue)               \
     {                           \
@@ -130,6 +146,27 @@ enum qmk_hues {
             {                   \
                 .h = (_hue),    \
             },                  \
+    }
+
+/**
+ * Create a :c:type:`color_t` instance for transparency.
+ */
+#define TRNS_COLOR               \
+    {                            \
+        .type = COLOR_TYPE_TRNS, \
+    }
+
+/**
+ * Create a :c:type:`color_t` instance for white.
+ */
+#define WHITE_COLOR               \
+    {                             \
+        .type = COLOR_TYPE_WHITE, \
+    }
+
+#define NONE_COLOR               \
+    {                            \
+        .type = COLOR_TYPE_NONE, \
     }
 
 int get_rgb(color_t color, rgb_t *rgb);
