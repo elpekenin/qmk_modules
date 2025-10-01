@@ -7,7 +7,7 @@
  * It works similar to keymaps, mapping a color to each key and allowing transparency.
  *
  * Hackery is needed (re-defining ``XXX``) so that ``LAYOUT`` can correctly fill
- * un-used matrix spots with values of type ``color_t``. See example:
+ * un-used matrix spots with values of type :c:type:`color_t`. See example:
  *
  * .. code-block:: c
  *
