@@ -26,10 +26,22 @@
 #    define CRASH_UNWIND_DEPTH (100)
 #endif
 
+/**
+ * Information about a crash.
+ */
 typedef struct {
-    size_t      stack_depth;
+    /**
+     * How nested the call stack was when program crashed.
+     */
+    size_t stack_depth;
+    /**
+     * Buffer storing stack frames (only the first ``stack_depth`` ones are valid).
+     */
     backtrace_t call_stack[CRASH_UNWIND_DEPTH];
-    char        msg[CRASH_MESSAGE_LENGTH];
+    /**
+     * Reason of the crash, null-terminated.
+     */
+    char msg[CRASH_MESSAGE_LENGTH];
 } crash_info_t;
 
 /**

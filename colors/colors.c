@@ -3,7 +3,7 @@
 
 #include "elpekenin/colors.h"
 
-int get_rgb(color_t color, rgb_t *rgb) {
+int to_rgb(color_t color, rgb_t *rgb) {
     switch (color.type) {
         case COLOR_TYPE_RGB:
             *rgb = color.rgb;
@@ -30,6 +30,9 @@ int get_rgb(color_t color, rgb_t *rgb) {
             break;
 
         case COLOR_TYPE_TRNS:
+            return -ENODATA;
+
+        // unknown variant
         default:
             return -EINVAL;
     }

@@ -12,6 +12,8 @@ uint8_t ledmap_layer_count(void) {
     return NUM_LEDMAP_LAYERS_RAW;
 }
 
-ledmap_color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col) {
-    return pgm_read_byte(&(ledmap[layer][row][col]));
+color_t color_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col) {
+    color_t value;
+    memcpy_P(&value, &ledmap[layer][row][col], sizeof(color_t));
+    return value;
 }

@@ -169,4 +169,16 @@ enum qmk_hues {
         .type = COLOR_TYPE_NONE, \
     }
 
-int get_rgb(color_t color, rgb_t *rgb);
+/**
+ * Convert a :c:type:`color_t` to RGB format.
+ *
+ * Args:
+ *     color: Color definition.
+ *     rgb: Where the value will be written.
+ *
+ * Return: Result of the operation.
+ *     * ``0``: Color was retrieved.
+ *     * ``-ENODATA``: ``TRNS`` was found, there's nothing to work with.
+ *     * ``-EINVAL``: Invalid value (``color.type`` is not a value in :c:type:`color_type_t`).
+ */
+int to_rgb(color_t color, rgb_t *rgb);

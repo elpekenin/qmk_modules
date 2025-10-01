@@ -85,6 +85,10 @@ __always_inline __noreturn static inline void raise_error(const char *msg) {
         .is_some = false, .__unwrap = option_unwrap(T), \
     }
 
+/**
+ * ----
+ */
+
 //
 // Result
 //

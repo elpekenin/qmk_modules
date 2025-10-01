@@ -100,7 +100,7 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
                 const indicator_t indicator = get_indicator(i);
 
                 if (should_draw_indicator(&indicator, &args)) {
-                    const int ret = get_rgb(indicator.color, &rgb);
+                    const int ret = to_rgb(indicator.color, &rgb);
                     if (ret < 0) {
                         // something went wrong, do nothing
                         continue;

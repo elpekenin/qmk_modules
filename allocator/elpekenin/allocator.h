@@ -4,7 +4,7 @@
 /**
  * Utilities to use custom allocators instead of stdlib's implementation.
  *
- * This is: :c:func:`malloc`, :c:func:`free`, :c:func:`calloc` and :c:func:`realloc`.
+ * This is: ``malloc``, ``free``, ``calloc`` and ``realloc``.
  */
 
 // -- barrier --
@@ -69,22 +69,22 @@ typedef struct PACKED {
 } alloc_stats_t;
 
 /**
- * Signature of a :c:func:`malloc` function.
+ * Signature of a ``malloc``-like function.
  */
 typedef void *(*malloc_fn)(const allocator_t *allocator, size_t size);
 
 /**
- * Signature of a :c:func:`free` function.
+ * Signature of a ``free``-like function.
  */
 typedef void (*free_fn)(const allocator_t *allocator, void *ptr);
 
 /**
- * Signature of a :c:func:`calloc` function.
+ * Signature of a ``calloc``-like function.
  */
 typedef void *(*calloc_fn)(const allocator_t *allocator, size_t nmemb, size_t size);
 
 /**
- * Signature of a :c:func:`realloc` function.
+ * Signature of a ``realloc``-like function.
  */
 typedef void *(*realloc_fn)(const allocator_t *allocator, void *ptr, size_t size);
 
@@ -117,7 +117,7 @@ struct PACKED allocator_t {
      */
     const char *const name;
 
-    /**F
+    /**
      * Arbitrary config used by allocator. Eg a ChibiOS' pool.
      */
     void *arg;
