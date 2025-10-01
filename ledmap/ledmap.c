@@ -5,7 +5,11 @@
 
 #include "quantum.h"
 
-int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
+#endif
+
+__warn_unused static int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb) {
     const layer_state_t layers_stack = layer_state | default_layer_state;
     const layer_state_t layer_mask   = ((layer_state_t)1) << layer;
 

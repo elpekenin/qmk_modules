@@ -25,6 +25,10 @@
 
 #include "compiler_support.h"
 
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
+#endif
+
 /**
  * MD5 id of a build is 128 bits long.
  *
@@ -40,8 +44,15 @@ STATIC_ASSERT(sizeof(u128) == 128 / 8, "Invalid size for `u128`");
 
 /**
  * Get the build id for the running program.
+ *
+ * Args:
+ *     id: Pointer where the id will be written.
+ *
+ * Return: Whether previous execution crashed
+ *     * ``0``: Id was retrieved.
+ *     * ``-EINVAL``: Id could not be read.
  */
-int get_build_id(u128 *id);
+__warn_unused int get_build_id(u128 *id);
 
 #if defined(COMMUNITY_MODULE_UI_ENABLE)
 #    include "elpekenin/ui.h"

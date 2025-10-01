@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
+#endif
+
 // How big the array to store a message will be.
 #ifndef CRASH_MESSAGE_LENGTH
 #    define CRASH_MESSAGE_LENGTH (200)
@@ -47,8 +51,11 @@ typedef struct {
 /**
  * Get information about last execution.
  *
+ * Args:
+ *     info: Pointer where the information will be written.
+ *
  * Return: Whether previous execution crashed
  *    * ``true``: Call stack that lead to crashing has been copied to ``info``.
  *    * ``false``: ``info`` left untouched.
  */
-bool get_crash(crash_info_t *info);
+__warn_unused bool get_crash(crash_info_t *info);

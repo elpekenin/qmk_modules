@@ -13,6 +13,10 @@
 
 #include "quantum.h"
 
+#ifndef __warn_unused
+#    define __warn_unused __attribute__((__warn_unused_result__))
+#endif
+
 /**
  * Different ways in which a color can be specified.
  */
@@ -174,11 +178,11 @@ enum qmk_hues {
  *
  * Args:
  *     color: Color definition.
- *     rgb: Where the value will be written.
+ *     rgb: Pointer where the value will be written.
  *
  * Return: Result of the operation.
  *     * ``0``: Color was retrieved.
  *     * ``-ENODATA``: ``TRNS`` was found, there's nothing to work with.
  *     * ``-EINVAL``: Invalid value (``color.type`` is not a value in :c:type:`color_type_t`).
  */
-int to_rgb(color_t color, rgb_t *rgb);
+__warn_unused int to_rgb(color_t color, rgb_t *rgb);

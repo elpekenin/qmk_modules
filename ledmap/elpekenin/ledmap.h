@@ -72,23 +72,6 @@
 #    pragma message "Enable indicators after ledmap, otherwise you will overwrite them."
 #endif
 
-/**
- * Retrieve the color assigned to a key in the ledmap (transparency gets applied).
- *
- * Args:
- *     layer: Where to look at.
- *     row: Electrical position of the key in the matrix.
- *     col: Electrical position of the key in the matrix.
- *     rgb: Where the value will be written.
- *
- * Return: Result of the operation.
- *     * ``0``: Color was retrieved.
- *     * ``-EINVAL``: Some input was wrong.
- *     * ``-ENODATA``: ``TRNS`` on layer 0 -> Dont overwrite the existing effect.
- *     * Further details on :c:func:`to_rgb`
- */
-int rgb_at_ledmap_location(uint8_t layer, uint8_t row, uint8_t col, rgb_t *rgb);
-
 // Not intended to be used by users -> no docstring
 uint8_t ledmap_layer_count(void);
 

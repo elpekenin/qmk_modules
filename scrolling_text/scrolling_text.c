@@ -108,7 +108,7 @@ static void clear(scrolling_text_state_t *state) {
 // Rendering
 //
 
-static int render_scrolling_text_state(scrolling_text_state_t *state) {
+__warn_unused static int render_scrolling_text_state(scrolling_text_state_t *state) {
     scrolling_text_dprintf("[DEBUG] %s: entry (char #%d)\n", __func__, (int)state->char_number);
 
     const scrolling_text_config_t config = state->config;
@@ -164,8 +164,7 @@ static int render_scrolling_text_state(scrolling_text_state_t *state) {
 static uint32_t scrolling_text_callback(__unused uint32_t trigger_time, void *cb_arg) {
     scrolling_text_state_t *state = (scrolling_text_state_t *)cb_arg;
 
-    int ret = render_scrolling_text_state(state);
-    if (ret != 0) {
+    if (render_scrolling_text_state(state) != 0) {
         clear(state);
         return 0;
     }
