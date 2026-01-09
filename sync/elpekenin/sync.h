@@ -7,7 +7,7 @@
  * Since the value is referenced by its memory address, it needs to have static lifetime.
  * That is: global variable or ``static`` variable in a function.
  *
- * NOTE: Community modules don't yet support custom IDs, you must add ``ELPEKENIN_SYNC_ID`` to your ``SPLIT_TRANSACTION_IDS_USER `` in ``config.h``
+ * NOTE: Community modules don't yet support custom IDs, you must add ``ELPEKENIN_SYNC_ID`` to your ``SPLIT_TRANSACTION_IDS_USER`` in ``config.h``
  */
 
 // -- barrier --
@@ -39,7 +39,7 @@ typedef struct PACKED {
 void sync_variable(void *addr, size_t size);
 
 /**
- * Sync `variable` across halves.
+ * Sync ``variable`` across halves.
  */
 #define SYNC_VARIABLE(variable)                                                          \
     do {                                                                                 \
