@@ -40,7 +40,7 @@ typedef enum {
 /**
  * Time unit.
  */
-typedef struct {
+typedef struct PACKED {
     ui_time_type_t type;
     uint32_t       value;
 } ui_time_t;
@@ -62,12 +62,12 @@ typedef enum {
     UI_SPLIT_DIR_BOTTOM_TOP,
 } ui_split_direction_t;
 
-typedef struct {
+typedef struct PACKED {
     ui_split_mode_t mode;
     ui_coord_t      size;
 } ui_node_size_t;
 
-typedef struct {
+typedef struct PACKED {
     struct _ui_node_t *ptr;
     size_t             n;
 } ui_children_t;
@@ -78,7 +78,7 @@ typedef enum {
     UI_STATE_ERR,
 } ui_state_t;
 
-typedef struct {
+typedef struct PACKED {
     ui_coord_t x;
     ui_coord_t y;
 } ui_vector_t;
