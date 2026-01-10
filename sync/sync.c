@@ -30,3 +30,21 @@ void sync_variable(void *addr, size_t size) {
 void keyboard_post_init_sync(void) {
     transaction_register_rpc(ELPEKENIN_SYNC_ID, sync_handler);
 }
+
+#ifdef AUTO_SYNC_ENABLE
+extern uint32_t auto_sync_state[];
+
+void housekeeping_task_sync(void) {
+    if (!is_keyboard_master()) return;
+
+    for (size_t i = 0; i < sync_variables_count(); ++i) {
+        const sync_variable_t variable = get_sync_variable(i);
+
+        const uint32_t last = auto_sync_state[i];
+        if (timer_elapsed32(last) <= variable.ms_rate) continue;
+
+        sync_variable(variable.slice.addr, variable.slice.size);
+        auto_sync_state[i] = timer_read32();
+    }
+}
+#endif

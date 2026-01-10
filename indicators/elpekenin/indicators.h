@@ -16,8 +16,8 @@
  *         CAPS_LOCK_INDICATOR(HUE(HUE_BLUE)),
  *     };
  *
- * Since indicators are checked (and applied) in the same order that you define them, this config is:
- *   * On the layer ``UTILS``, all LEDs will be off except for ``QK_BOOT`` which will be red
+ * Indicators are checked (and applied) in the same order that you define them, this config results in:
+ *   * On the ``UTILS`` layer, all LEDs will be off except for ``QK_BOOT`` which will be red
  *   * On every layer, if caps is locked, keys assigned to ``KC_CAPS`` will be blue (following current saturation and brightness settings)
  *   * Every other LED/state of the keyboard won't cause the module to draw, thus preserving QMK's running animation
  */
