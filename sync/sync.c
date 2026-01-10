@@ -21,7 +21,6 @@ void sync_variable(void *addr, size_t size) {
                 .size = size,
             },
     };
-
     memcpy(view.value, addr, size);
 
     transaction_rpc_send(ELPEKENIN_SYNC_ID, sizeof(memory_slice_t) + size, &view);
@@ -32,19 +31,32 @@ void keyboard_post_init_sync(void) {
 }
 
 #ifdef AUTO_SYNC_ENABLE
-extern uint32_t auto_sync_state[];
+extern sync_state_t auto_sync_states[];
 
 void housekeeping_task_sync(void) {
     if (!is_keyboard_master()) return;
 
-    for (size_t i = 0; i < sync_variables_count(); ++i) {
-        const sync_variable_t variable = get_sync_variable(i);
+    for (size_t i = 0; i < sync_configs_count(); ++i) {
+        const sync_config_t config = get_sync_config(i);
+        sync_state_t *const state  = &auto_sync_states[i];
 
-        const uint32_t last = auto_sync_state[i];
-        if (timer_elapsed32(last) <= variable.ms_rate) continue;
+        const bool on_change = config.rate == SYNC_NEVER;
+        if (on_change) {
+            // value hasn't changed
+            if (memcmp(&state->value, config.slice.addr, config.slice.size) == 0) {
+                continue;
+            }
 
-        sync_variable(variable.slice.addr, variable.slice.size);
-        auto_sync_state[i] = timer_read32();
+            memcpy(&state->value, config.slice.addr, config.slice.size);
+        } else {
+            // last sync is recent
+            if (timer_elapsed32(state->last_update) <= config.rate) {
+                continue;
+            }
+            state->last_update = timer_read32();
+        }
+
+        sync_variable(config.slice.addr, config.slice.size);
     }
 }
 #endif
