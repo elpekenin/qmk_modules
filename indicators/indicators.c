@@ -67,6 +67,34 @@ static uint8_t apply_magic_config(uint8_t mods) {
 
 ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(1, 1, 0);
 
+static keypos_t index_to_keypos[RGB_MATRIX_LED_COUNT] = {0};
+
+static void find_keypos(uint8_t index) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+        for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+            if (g_led_config.matrix_co[row][col] == index) {
+                index_to_keypos[index] = (keypos_t){
+                    .row = row,
+                    .col = col,
+                };
+
+                return;
+            }
+        }
+    }
+
+    index_to_keypos[index] = (keypos_t){
+        .row = 255,
+        .col = 255,
+    };
+}
+
+void keyboard_post_init_indicators(void) {
+    for (uint8_t index = 0; index < RGB_MATRIX_LED_COUNT; ++index) {
+        find_keypos(index);
+    }
+}
+
 bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max) {
     rgb_t   rgb;
     uint8_t mods  = get_mods();
@@ -83,31 +111,35 @@ bool rgb_matrix_indicators_advanced_indicators(uint8_t led_min, uint8_t led_max)
     };
 
     // iterate all keys
-    for (int8_t row = 0; row < MATRIX_ROWS; ++row) {
-        for (int8_t col = 0; col < MATRIX_COLS; ++col) {
-            uint8_t index = g_led_config.matrix_co[row][col];
+    for (uint8_t index = led_min; index < led_max; ++index) {
+        args.led_index = index;
 
-            // early exit if out of range
-            if (index < led_min || index >= led_max) {
-                continue;
+        const keypos_t keypos = index_to_keypos[index];
+
+        // key without keycode is mapped to (255, 255) in the array
+        const bool not_a_key = keypos.row == 255 && keypos.col == 255;
+        if (not_a_key) {
+            args.keycode = KC_NO;
+        } else {
+            args.keycode = keymap_key_to_keycode(layer, keypos);
+        }
+
+        // iterate all indicators
+        for (size_t i = 0; i < indicators_count(); ++i) {
+            indicator_t indicator = get_indicator(i);
+            if (not_a_key) {
+                indicator.checks.keycode    = false;
+                indicator.checks.kc_gt_than = false;
             }
 
-            args.led_index = index;
-            args.keycode   = keymap_key_to_keycode(layer, (keypos_t){col, row});
-
-            // iterate all indicators
-            for (size_t i = 0; i < indicators_count(); ++i) {
-                const indicator_t indicator = get_indicator(i);
-
-                if (should_draw_indicator(&indicator, &args)) {
-                    const int ret = to_rgb(indicator.color, &rgb);
-                    if (ret < 0) {
-                        // something went wrong, do nothing
-                        continue;
-                    }
-
-                    rgb_matrix_set_color(args.led_index, rgb.r, rgb.g, rgb.b);
+            if (should_draw_indicator(&indicator, &args)) {
+                const int ret = to_rgb(indicator.color, &rgb);
+                if (ret < 0) {
+                    // something went wrong, do nothing
+                    continue;
                 }
+
+                rgb_matrix_set_color(args.led_index, rgb.r, rgb.g, rgb.b);
             }
         }
     }
