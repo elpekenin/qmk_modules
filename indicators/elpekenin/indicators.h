@@ -95,9 +95,13 @@ typedef struct PACKED {
      */
     bool kc_gt_than : 1;
     /**
-     * Host leds ``<x>`` are active (not an exact match, others can be active too).
+     * Host leds ``<X>`` are active (not an exact match, others can be active too).
      */
     bool host_leds : 1;
+    /**
+     * LED with index ``<X>``
+     */
+    bool led_index : 1;
 } indicator_checks_t;
 
 typedef enum {
@@ -256,6 +260,29 @@ typedef struct PACKED {
                 .keycode = QK_USER,                       \
                 .layer   = (_layer),                      \
             },                                            \
+    }
+
+/**
+ * Indicator on the LED with the given index while host LEDs are active.
+ *
+ * Args:
+ *     index: Index of the LED.
+ *     host_mask: Bitmask of the host LEDs that must be active.
+ *     _color: Color to be applied.
+ */
+#define INDEX_WITH_HOST_LED_INDICATOR(index, host_mask, _color) \
+    {                                                           \
+        .color = _color,                                        \
+        .checks =                                               \
+            {                                                   \
+                .host_leds = true,                              \
+                .led_index = true,                              \
+            },                                                  \
+        .args =                                                 \
+            {                                                   \
+                .led_index = (index),                           \
+                .host_leds = (host_mask),                       \
+            },                                                  \
     }
 
 /**

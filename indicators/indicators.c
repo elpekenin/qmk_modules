@@ -26,6 +26,10 @@ static bool should_draw_indicator(const indicator_t *indicator, const indicator_
         return false;
     }
 
+    if (indicator->checks.led_index && indicator->args.led_index != args->led_index) {
+        return false;
+    }
+
     return true;
 }
 
