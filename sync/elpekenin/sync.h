@@ -87,7 +87,7 @@ void sync_variable(void *addr, size_t size);
  */
 
 // -- barrier --
-#ifdef AUTO_SYNC_ENABLE
+#if defined(AUTO_SYNC_ENABLE) || defined(__SPHINX__)
 typedef struct PACKED {
     memory_slice_t slice;
     uint32_t       rate;
