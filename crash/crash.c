@@ -47,9 +47,6 @@ bool get_crash(crash_info_t *info) {
 }
 
 // store crash's cause and reset the controller (instead of deadloop or w/e)
-//
-// should be inline to prevent an extra stack frame in the backtrace
-// but then, it wouldn't be possible to expose on the header
 __always_inline __noreturn static void exception(const char *reason) {
     magic                  = MAGIC_VALUE;
     crash_info.stack_depth = backtrace_unwind(crash_info.call_stack, CRASH_UNWIND_DEPTH);

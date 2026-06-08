@@ -9,8 +9,6 @@
  *   - ☐ Local variables (stack memory)
  *   - ☑ Local variables in a function marked as ``static``
  *   - ☐ Dynamically-allocated variables (heap)
- *
- * NOTE: Community modules don't yet support custom IDs, you must add ``ELPEKENIN_SYNC_ID`` to your ``SPLIT_TRANSACTION_IDS_USER`` in ``config.h``
  */
 
 // -- barrier --

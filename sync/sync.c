@@ -5,6 +5,8 @@
 
 #include <string.h>
 
+#include "quantum.h"
+
 static void sync_handler(uint8_t m2s_size, const void *m2s_buffer, uint8_t s2m_size, void *s2m_buffer) {
     memory_view_t *view = (memory_view_t *)m2s_buffer;
     memcpy(view->slice.addr, &view->value, view->slice.size);
@@ -25,6 +27,12 @@ void sync_variable(void *addr, size_t size) {
 
     transaction_rpc_send(ELPEKENIN_SYNC_ID, sizeof(memory_slice_t) + size, &view);
 }
+
+//
+// QMK hooks
+//
+
+ASSERT_COMMUNITY_MODULES_MIN_API_VERSION(0, 1, 2);
 
 void keyboard_post_init_sync(void) {
     transaction_register_rpc(ELPEKENIN_SYNC_ID, sync_handler);

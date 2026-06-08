@@ -68,10 +68,6 @@
 #    error Must enable 'elpekenin/colors'
 #endif
 
-#if defined(COMMUNITY_MODULE_INDICATORS_ENABLE)
-#    pragma message "Enable indicators after ledmap, otherwise you will overwrite them."
-#endif
-
 // Not intended to be used by users -> no docstring
 uint8_t ledmap_layer_count(void);
 

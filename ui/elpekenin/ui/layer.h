@@ -14,7 +14,7 @@ typedef struct {
     const uint8_t *font;
     last_layer_t   last;
     ui_time_t      interval;
-    const char *(*const layer_name)(uint8_t layer);
+    const char *(*const get_layer_name)(uint8_t layer);
 } layer_args_t;
 STATIC_ASSERT(offsetof(layer_args_t, font) == 0, "UI will crash :)");
 

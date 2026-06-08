@@ -8,7 +8,7 @@
 
 bool layer_init(ui_node_t *self) {
     layer_args_t *const args = self->args;
-    if (args->layer_name == NULL) {
+    if (args->get_layer_name == NULL) {
         return false;
     }
 
@@ -29,7 +29,7 @@ ui_time_t layer_render(const ui_node_t *self, painter_device_t display) {
         goto exit;
     }
 
-    const char *const str = args->layer_name(layer);
+    const char *const str = args->get_layer_name(layer);
 
     const uint16_t width = qp_textwidth(font, str);
     if (width == 0 || width > self->size.x) {
